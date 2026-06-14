@@ -1,0 +1,229 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ t('officer_dashboard', lang) or 'Officer Dashboard - Extension Officer' }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/officer_dashboard.css') }}">
+<style>
+    .modal-lg {
+        max-width: 800px;
+    }
+    .disease-detail-card {
+        margin-bottom: 1rem;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .disease-detail-card .card-header {
+        font-weight: bold;
+    }
+    .stat-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container-fluid">
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h4 class="mb-2">{{ t('welcome_back_officer', lang) or 'Welcome back' }}, {{ session.user_name }}!</h4>
+                    <p class="mb-0 mt-2">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        {{ t('your_region', lang) or 'Your Region' }}: <span class="region-badge">{{ officer_region or (t('all_regions', lang) or 'All Regions') }}</span>
+                    </p>
+                </div>
+                <div class="mt-3 mt-sm-0">
+                    <button class="btn-refresh" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', lang) or 'Refresh Data' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card" onclick="scrollToFarmers()">
+                <div>
+                    <div class="stat-value" id="totalFarmers">0</div>
+                    <div class="stat-label"><i class="fas fa-users me-1"></i>{{ t('total_farmers', lang) or 'Total Farmers' }}</div>
+                </div>
+                <div class="stat-icon icon-farmers">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-card" onclick="scrollToPredictions()">
+                <div>
+                    <div class="stat-value" id="totalPredictions">0</div>
+                    <div class="stat-label"><i class="fas fa-chart-line me-1"></i>{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</div>
+                </div>
+                <div class="stat-icon icon-predictions">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value" id="diseasesDetected">0</div>
+                    <div class="stat-label"><i class="fas fa-leaf me-1"></i>{{ t('diseases_detected', lang) or 'Diseases Detected' }}</div>
+                </div>
+                <div class="stat-icon icon-diseases">
+                    <i class="fas fa-leaf"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-value" id="activeFarmers">0</div>
+                    <div class="stat-label"><i class="fas fa-user-check me-1"></i>{{ t('active_farmers_30d', lang) or 'Active Farmers (30d)' }}</div>
+                </div>
+                <div class="stat-icon icon-active">
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Management Section -->
+        <div class="dashboard-card">
+            <div class="card-header-custom">
+                <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>{{ t('disease_management', lang) or 'Disease Management' }}</h5>
+                <button class="btn btn-primary btn-sm" onclick="showAddDiseaseModal()">
+                    <i class="fas fa-plus me-1"></i>{{ t('add_new_disease', lang) or 'Add New Disease' }}
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{{ t('id', lang) or 'ID' }}</th>
+                                <th>{{ t('disease_name_en', lang) or 'Disease Name (English)' }}</th>
+                                <th>{{ t('disease_name_sw', lang) or 'Disease Name (Swahili)' }}</th>
+                                <th>{{ t('scientific_name', lang) or 'Scientific Name' }}</th>
+                                <th>{{ t('actions', lang) or 'Actions' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diseasesTableBody">
+                            <tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_diseases', lang) or 'Loading diseases...' }}<\/td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Farmers Table -->
+        <div class="dashboard-card" id="farmersSection">
+            <div class="card-header-custom">
+                <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>{{ t('all_farmers', lang) or 'All Farmers' }}</h5>
+                <div>
+                    <input type="text" id="farmerSearch" class="form-control form-control-sm" placeholder="{{ t('search_farmers', lang) or 'Search farmers...' }}" style="width: 200px; display: inline-block;">
+                    <button class="btn btn-success btn-sm ms-2" onclick="exportFarmers()">
+                        <i class="fas fa-file-csv me-1"></i>{{ t('export_csv', lang) or 'Export CSV' }}
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{{ t('full_name', lang) or 'Full Name' }}</th>
+                            <th>{{ t('phone_number', lang) or 'Phone Number' }}</th>
+                            <th>{{ t('email', lang) or 'Email' }}</th>
+                            <th>{{ t('location', lang) or 'Location' }}</th>
+                            <th>{{ t('district', lang) or 'District' }}</th>
+                            <th>{{ t('region', lang) or 'Region' }}</th>
+                            <th>{{ t('registered', lang) or 'Registered' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="farmersTableBody">
+                        <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_farmers', lang) or 'Loading farmers...' }}<\/td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Predictions Table -->
+        <div class="dashboard-card" id="predictionsSection">
+            <div class="card-header-custom">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>{{ t('recent_predictions', lang) or 'Recent Predictions' }}</h5>
+                <div>
+                    <select id="diseaseFilter" class="form-select form-select-sm" style="width: 180px; display: inline-block;">
+                        <option value="all">{{ t('all_diseases', lang) or 'All Diseases' }}</option>
+                        <option value="Blight">Blight</option>
+                        <option value="Rust">Common Rust</option>
+                        <option value="Spot">Gray Leaf Spot</option>
+                        <option value="Healthy">Healthy</option>
+                    </select>
+                    <button class="btn btn-success btn-sm ms-2" onclick="exportPredictions()">
+                        <i class="fas fa-file-csv me-1"></i>{{ t('export_csv', lang) or 'Export CSV' }}
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{{ t('farmer_name', lang) or 'Farmer Name' }}</th>
+                            <th>{{ t('phone', lang) or 'Phone' }}</th>
+                            <th>{{ t('location', lang) or 'Location' }}</th>
+                            <th>{{ t('disease', lang) or 'Disease' }}</th>
+                            <th>{{ t('confidence', lang) or 'Confidence' }}</th>
+                            <th>{{ t('date', lang) or 'Date' }}</th>
+                            <th>{{ t('action', lang) or 'Action' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionsTableBody">
+                        <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_predictions', lang) or 'Loading predictions...' }}<\/td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disease Details Modal -->
+<div class="modal fade" id="diseaseDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-leaf me-2"></i>Disease Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="diseaseDetailsModalBody">
+                <div class="text-center py-4"><div class="spinner-border text-info"></div> Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="editDiseaseFromModalBtn">Edit Disease</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Details Modal -->
+<div class="modal fade" id="predictionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-microscope me-2"></i>Prediction Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="predictionDetailsModalBody">
+                <div class="text-center py-4"><div class="spinner-border text-success"></div> Loading...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">Print Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/officer_dashboard.js') }}"></script>
+{% endblock %}

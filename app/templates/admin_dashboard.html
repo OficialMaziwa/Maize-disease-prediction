@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('admin_dashboard', lang) }} - System Control{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Welcome Section -->
+    <div class="welcome-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-2"><i class="fas fa-crown me-2"></i>{{ t('admin_dashboard', lang) }}</h2>
+                <p class="mb-0 opacity-75">{{ t('welcome_back', lang) }}, {{ session.user_name }}! {{ t('full_system_control', lang) }}</p>
+            </div>
+            
+            <div class="mt-3 mt-sm-0 d-flex gap-2">
+                <a href="{{ url_for('main.admin_user_activity') }}" class="btn btn-info">
+                    <i class="fas fa-users me-2"></i>{{ t('user_activity_logs', lang) or 'User Activity Logs' }}
+                </a>
+                <button class="btn btn-light" onclick="refreshAllData()">
+                    <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', lang) or 'Refresh Data' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <div class="stat-value">{{ stats.get('total_users', 0) }}</div>
+                <div class="stat-label">{{ t('total_users', lang) or 'Total Users' }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <i class="fas fa-user-friends text-white"></i>
+                </div>
+                <div class="stat-value">{{ stats.get('total_farmers', 0) }}</div>
+                <div class="stat-label">{{ t('farmers', lang) or 'Farmers' }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);">
+                    <i class="fas fa-chalkboard-teacher text-white"></i>
+                </div>
+                <div class="stat-value">{{ stats.get('total_officers', 0) }}</div>
+                <div class="stat-label">{{ t('extension_officers', lang) or 'Extension Officers' }}</div>
+                <small class="text-warning">{{ t('pending', lang) or 'Pending' }}: {{ stats.get('pending_officers', 0) }}</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div class="stat-value">{{ stats.get('total_predictions', 0) }}</div>
+                <div class="stat-label">{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="table-card">
+        <div class="card-header">
+            <ul class="nav nav-tabs-custom" id="adminTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#farmers">
+                        <i class="fas fa-user-friends me-2"></i>{{ t('farmers', lang) or 'Farmers' }}
+                        <span class="badge bg-success ms-2">{{ farmers|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#officers">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>{{ t('extension_officers', lang) or 'Extension Officers' }}
+                        <span class="badge bg-info ms-2">{{ officers|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#pending">
+                        <i class="fas fa-clock me-2"></i>{{ t('pending_approvals', lang) or 'Pending Approvals' }}
+                        <span class="badge bg-danger ms-2">{{ pending_officers|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#admins">
+                        <i class="fas fa-user-shield me-2"></i>{{ t('admins', lang) or 'Admins' }}
+                        <span class="badge bg-warning ms-2">{{ admins|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#diseases">
+                        <i class="fas fa-leaf me-2"></i>{{ t('diseases', lang) or 'Diseases' }}
+                        <span class="badge bg-success ms-2">{{ diseases|length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#reports">
+                        <i class="fas fa-chart-bar me-2"></i>{{ t('reports', lang) or 'Reports' }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="tab-content">
+                <!-- Farmers Tab -->
+                <div class="tab-pane fade show active" id="farmers">
+                    <div class="p-3">
+                        <button class="btn btn-success" onclick="showAddFarmerModal()">
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_farmer', lang) or 'Add New Farmer' }}
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('id', lang) or 'ID' }}</th>
+                                    <th>{{ t('name', lang) or 'Name' }}</th>
+                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
+                                    <th>{{ t('email', lang) or 'Email' }}</th>
+                                    <th>{{ t('location', lang) or 'Location' }}</th>
+                                    <th>{{ t('district', lang) or 'District' }}</th>
+                                    <th>{{ t('region', lang) or 'Region' }}</th>
+                                    <th>{{ t('status', lang) or 'Status' }}</th>
+                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for farmer in farmers %}
+                                <tr>
+                                    <td>{{ farmer.user_id }}</td>
+                                    <td><strong>{{ farmer.full_name }}</strong></td>
+                                    <td>{{ farmer.phone_number }}</td>
+                                    <td>{{ farmer.email or '-' }}</td>
+                                    <td>{{ farmer.location or '-' }}</td>
+                                    <td>{{ farmer.district or '-' }}</td>
+                                    <td>{{ farmer.region or '-' }}</td>
+                                    <td><span class="badge bg-success">{{ t('active', lang) or 'Active' }}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ farmer.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ farmer.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ farmer.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Officers Tab -->
+                <div class="tab-pane fade" id="officers">
+                    <div class="p-3">
+                        <button class="btn btn-primary" onclick="showAddOfficerModal()">
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_officer', lang) or 'Add New Officer' }}
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('id', lang) or 'ID' }}</th>
+                                    <th>{{ t('name', lang) or 'Name' }}</th>
+                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
+                                    <th>{{ t('email', lang) or 'Email' }}</th>
+                                    <th>{{ t('region', lang) or 'Region' }}</th>
+                                    <th>{{ t('status', lang) or 'Status' }}</th>
+                                    <th>{{ t('approved', lang) or 'Approved' }}</th>
+                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for officer in officers %}
+                                <tr>
+                                    <td>{{ officer.user_id }}</td>
+                                    <td><strong>{{ officer.full_name }}</strong></td>
+                                    <td>{{ officer.phone_number }}</td>
+                                    <td>{{ officer.email or '-' }}</td>
+                                    <td>{{ officer.region or '-' }}</td>
+                                    <td>
+                                        <span class="badge {% if officer.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if officer.is_active %}{{ t('active', lang) or 'Active' }}{% else %}{{ t('inactive', lang) or 'Inactive' }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if officer.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                            {% if officer.is_approved %}{{ t('approved', lang) or 'Approved' }}{% else %}{{ t('pending', lang) or 'Pending' }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ officer.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ officer.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% if not officer.is_approved %}
+                                            <button class="btn btn-sm btn-success" onclick="approveOfficer('{{ officer.user_id }}')" title="{{ t('approve', lang) or 'Approve' }}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ officer.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+               <!-- Pending Approvals Tab  -->
+<div class="tab-pane fade" id="pending">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>{{ t('id', lang) or 'ID' }}</th>
+                    <th>{{ t('name', lang) or 'Name' }}</th>
+                    <th>{{ t('phone', lang) or 'Phone' }}</th>
+                    <th>{{ t('email', lang) or 'Email' }}</th>
+                    <th>{{ t('region', lang) or 'Region' }}</th>
+                    <th>{{ t('registered', lang) or 'Registered' }}</th>
+                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                </tr>
+            </thead>
+            <tbody id="pending-officers-tbody">
+                {% for officer in pending_officers %}
+                <tr id="officer-row-{{ officer.user_id }}">
+                    <td>{{ officer.user_id or 'N/A' }}</td>
+                    <td><strong>{{ officer.full_name }}</strong></td>
+                    <td>{{ officer.phone_number }}</td>
+                    <td>{{ officer.email or '-' }}</td>
+                    <td>{{ officer.region or '-' }}</td>
+                    <td>{{ officer.created_at[:10] if officer.created_at else '-' }}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-success approve-btn" 
+                                data-user-id="{{ officer.user_id }}"
+                                onclick="approveOfficer('{{ officer.user_id }}', this)">
+                            <i class="fas fa-check me-1"></i> {{ t('approve', lang) or 'Approve' }}
+                        </button>
+                        <button class="btn btn-sm btn-danger reject-btn" 
+                                data-user-id="{{ officer.user_id }}"
+                                onclick="showRejectModal('{{ officer.user_id }}', '{{ officer.full_name }}')">
+                            <i class="fas fa-times me-1"></i> {{ t('reject', lang) or 'Reject' }}
+                        </button>
+                        <button class="btn btn-sm btn-info view-btn" 
+                                onclick="viewUser('{{ officer.user_id }}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+                <!-- Admins Tab -->
+                <div class="tab-pane fade" id="admins">
+                    <div class="p-3">
+                        <button class="btn btn-primary" onclick="showAddAdminModal()">
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_admin', lang) or 'Add New Admin' }}
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('id', lang) or 'ID' }}</th>
+                                    <th>{{ t('name', lang) or 'Name' }}</th>
+                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
+                                    <th>{{ t('email', lang) or 'Email' }}</th>
+                                    <th>{{ t('role', lang) or 'Role' }}</th>
+                                    <th>{{ t('status', lang) or 'Status' }}</th>
+                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for admin in admins %}
+                                <tr>
+                                    <td>{{ admin.user_id }}</td>
+                                    <td><strong>{{ admin.full_name }}</strong></td>
+                                    <td>{{ admin.phone_number }}</td>
+                                    <td>{{ admin.email or '-' }}</td>
+                                    <td><span class="badge bg-info">{{ admin.role }}</span></td>
+                                    <td>
+                                        <span class="badge {% if admin.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if admin.is_active %}{{ t('active', lang) or 'Active' }}{% else %}{{ t('inactive', lang) or 'Inactive' }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ admin.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ admin.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% if admin.user_id != session.user_id %}
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ admin.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Diseases Tab -->
+                <div class="tab-pane fade" id="diseases">
+                    <div class="p-3">
+                        <button class="btn btn-primary" onclick="showAddDiseaseModal()">
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_disease', lang) or 'Add New Disease' }}
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('id', lang) or 'ID' }}</th>
+                                    <th>{{ t('disease_name_en', lang) or 'Disease Name (EN)' }}</th>
+                                    <th>{{ t('disease_name_sw', lang) or 'Disease Name (SW)' }}</th>
+                                    <th>{{ t('scientific_name', lang) or 'Scientific Name' }}</th>
+                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for disease in diseases %}
+                                <tr>
+                                    <td>{{ disease.disease_id }}</td>
+                                    <td><strong>{{ disease.disease_name_en }}</strong></td>
+                                    <td>{{ disease.disease_name_sw or '-' }}</td>
+                                    <td>{{ disease.scientific_name or '-' }}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-info me-1" onclick="viewDisease({{ disease.disease_id }})" title="View">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </button>
+                                        <button class="btn btn-sm btn-warning me-1" onclick="editDisease({{ disease.disease_id }})" title="Edit">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteDisease({{ disease.disease_id }})" title="Delete">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="tab-pane fade" id="reports">
+                    <div class="p-4 text-center">
+                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                        <h4>{{ t('reports_dashboard', lang) or 'Reports Dashboard' }}</h4>
+                        <p class="text-muted">{{ t('comprehensive_reports', lang) or 'Comprehensive reports and analytics coming soon' }}</p>
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                        <h5>{{ t('user_reports', lang) or 'User Reports' }}</h5>
+                                        <p>{{ t('generate_user_reports', lang) or 'Generate user registration and activity reports' }}</p>
+                                        <button class="btn btn-sm btn-primary" onclick="generateReport('users')">
+                                            {{ t('generate_report', lang) or 'Generate Report' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <i class="fas fa-leaf fa-2x text-success mb-2"></i>
+                                        <h5>{{ t('disease_reports', lang) or 'Disease Reports' }}</h5>
+                                        <p>{{ t('generate_disease_reports', lang) or 'Disease prediction and outbreak reports' }}</p>
+                                        <button class="btn btn-sm btn-success" onclick="generateReport('diseases')">
+                                            {{ t('generate_report', lang) or 'Generate Report' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <i class="fas fa-chart-bar fa-2x text-info mb-2"></i>
+                                        <h5>{{ t('analytics', lang) or 'Analytics' }}</h5>
+                                        <p>{{ t('system_analytics', lang) or 'System usage and performance analytics' }}</p>
+                                        <button class="btn btn-sm btn-info" onclick="generateReport('analytics')">
+                                            {{ t('generate_report', lang) or 'Generate Report' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+<script>
+// Override the approveOfficer and rejectOfficer functions to ensure they work with string IDs
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin dashboard loaded with language: {{ lang }}');
+    
+    // Fix for any None values in buttons
+    document.querySelectorAll('button[onclick*="None"]').forEach(function(btn) {
+        console.warn('Found button with None:', btn);
+        btn.disabled = true;
+        btn.classList.add('btn-secondary');
+        btn.classList.remove('btn-success', 'btn-danger');
+    });
+});
+
+// Make sure functions handle string IDs properly
+window.approveOfficer = function(userId, buttonElement) {
+    if (!userId || userId === 'None' || userId === 'null' || userId === 'undefined' || userId === '') {
+        showToast('Invalid officer ID. Please refresh the page.', 'danger');
+        console.error('Invalid userId:', userId);
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to approve this extension officer? They will receive email notification.')) {
+        return;
+    }
+
+    showLoading(true);
+
+    fetch('/admin/officer/' + userId + '/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        showLoading(false);
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            showToast(data.message || 'Error approving officer', 'danger');
+        }
+    })
+    .catch(function(error) {
+        showLoading(false);
+        console.error('Error:', error);
+        showToast('Network error. Make sure server is running.', 'danger');
+    });
+};
+
+window.showRejectModal = function(userId, officerName) {
+    if (!userId || userId === 'None' || userId === 'null' || userId === 'undefined' || userId === '') {
+        showToast('Invalid officer ID. Please refresh the page.', 'danger');
+        return;
+    }
+    
+    var existingModal = document.getElementById('rejectModal');
+    if (existingModal) existingModal.remove();
+
+    var modalHtml = '<div class="modal fade" id="rejectModal" tabindex="-1">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+        '<div class="modal-header bg-danger text-white">' +
+        '<h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Officer: ' + escapeHtml(officerName) + '</h5>' +
+        '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+        '</div>' +
+        '<div class="modal-body">' +
+        '<p>Are you sure you want to reject <strong>' + escapeHtml(officerName) + '</strong>\'s application?</p>' +
+        '<div class="mb-3">' +
+        '<label class="form-label">Reason for rejection:</label>' +
+        '<textarea id="rejectionReason" class="form-control" rows="3" placeholder="Please provide a reason..."></textarea>' +
+        '</div>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+        '<button type="button" class="btn btn-danger" onclick="rejectOfficer(\'' + userId + '\')">Confirm Rejection</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modalElement = document.getElementById('rejectModal');
+    var modal = new bootstrap.Modal(modalElement);
+    modal.show();
+
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+};
+
+window.rejectOfficer = function(userId) {
+    var reason = document.getElementById('rejectionReason') ? document.getElementById('rejectionReason').value : 'No specific reason provided';
+
+    showLoading(true);
+
+    fetch('/admin/officer/' + userId + '/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        showLoading(false);
+        if (data.success) {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            showToast(data.message || 'Error rejecting officer', 'danger');
+        }
+    })
+    .catch(function(error) {
+        showLoading(false);
+        console.error('Error:', error);
+        showToast('Network error. Make sure server is running.', 'danger');
+    });
+};
+</script>
+{% endblock %}

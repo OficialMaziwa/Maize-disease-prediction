@@ -1,0 +1,163 @@
+﻿"""
+User Database Functions with Role-Based Access Control
+PostgreSQL Version
+"""
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+class UserDB:
+    """User database operations with role-based access"""
+
+    def __init__(self):
+        self.connection = None
+        self.connect()
+
+    def connect(self):
+        """Connect to PostgreSQL database"""
+        try:
+            if self.connection:
+                try:
+                    self.connection.close()
+                except:
+                    pass
+                self.connection = None
+
+            self.connection = psycopg2.connect(
+                host="127.0.0.1",
+                user="postgres",
+                password="Malaba@2003",
+                database="maize_disease_db",
+                port=5432
+            )
+            print("✅ PostgreSQL connected successfully")
+            return True
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            self.connection = None
+            return False
+
+    def is_connected(self):
+        """Check if database connection is active"""
+        try:
+            if self.connection is None:
+                return False
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            return True
+        except:
+            return False
+
+    def get_cursor(self, dictionary=True):
+        """Get a database cursor with connection check"""
+        if not self.is_connected():
+            print("Connection lost, attempting to reconnect...")
+            if not self.connect():
+                print("Failed to reconnect to database")
+                return None
+        try:
+            if dictionary:
+                return self.connection.cursor(cursor_factory=RealDictCursor)
+            return self.connection.cursor()
+        except Exception as e:
+            print(f"Error creating cursor: {e}")
+            return None
+
+    def get_user_by_phone(self, phone_number):
+        """Get user by phone number"""
+        cursor = self.get_cursor()
+        if not cursor:
+            return None
+        try:
+            cursor.execute(
+                "SELECT * FROM maziwa WHERE phone_number = %s", (phone_number,)
+            )
+            return cursor.fetchone()
+        finally:
+            cursor.close()
+
+    def get_user_by_email(self, email):
+        """Get user by email"""
+        cursor = self.get_cursor()
+        if not cursor:
+            return None
+        try:
+            cursor.execute("SELECT * FROM maziwa WHERE email = %s", (email,))
+            return cursor.fetchone()
+        finally:
+            cursor.close()
+
+    def get_user_by_id(self, user_id):
+        """Get user by ID"""
+        cursor = self.get_cursor()
+        if not cursor:
+            return None
+        try:
+            cursor.execute(
+                """SELECT user_id, phone_number, email, full_name, role, location, 
+                district, region, is_active, is_approved, created_at, last_login, profile_picture 
+                FROM maziwa WHERE user_id = %s""",
+                (user_id,),
+            )
+            return cursor.fetchone()
+        finally:
+            cursor.close()
+
+    def authenticate_user(self, identifier, password):
+        """Authenticate user by phone or email"""
+        cursor = None
+        try:
+            cursor = self.get_cursor()
+            if not cursor:
+                return {"success": False, "message": "Database connection error"}
+
+            cursor.execute(
+                """
+                SELECT * FROM maziwa 
+                WHERE (phone_number = %s OR email = %s) AND is_active = TRUE
+            """,
+                (identifier, identifier),
+            )
+            user = cursor.fetchone()
+
+            if user and check_password_hash(user["password_hash"], password):
+                if user["role"] == "extension_officer" and not user.get("is_approved", False):
+                    return {
+                        "success": False,
+                        "message": "Your account is pending admin approval.",
+                    }
+                self.update_last_login(user["user_id"])
+                return {"success": True, "user": user, "message": "Login successful"}
+            return {"success": False, "message": "Invalid credentials"}
+        except Exception as e:
+            return {"success": False, "message": f"Authentication error: {str(e)}"}
+        finally:
+            if cursor:
+                cursor.close()
+
+    def update_last_login(self, user_id):
+        """Update user's last login time"""
+        cursor = self.get_cursor(dictionary=False)
+        if not cursor:
+            return
+        try:
+            cursor.execute(
+                "UPDATE maziwa SET last_login = NOW() WHERE user_id = %s", (user_id,)
+            )
+            self.connection.commit()
+        except Exception as e:
+            print(f"Error updating last login: {e}")
+        finally:
+            cursor.close()
+
+    def close(self):
+        """Close database connection"""
+        if self.connection:
+            self.connection.close()
+
+
+# Create a global instance that main.py can import
+user_db = UserDB()

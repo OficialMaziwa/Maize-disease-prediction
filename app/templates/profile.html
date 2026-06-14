@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('profile', lang) or 'Profile' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease Detection' }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="container">
+        <div class="row">
+            <!-- Left Column - Profile Photo & Account Info -->
+            <div class="col-md-4">
+                <!-- Profile Photo Card -->
+                <div class="profile-card">
+                    <div class="card-header-custom">
+                        <h5 class="mb-0">
+                            <i class="fas fa-camera me-2"></i>{{ t('profile_photo', lang) or 'Profile Photo' }}
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="profile-photo-container mb-3" id="profileImageWrapper">
+                            {% if user.profile_picture and user.profile_picture != 'NULL' and user.profile_picture != 'None' and user.profile_picture|length > 0 %}
+                                <img src="/profile-photo/{{ user.profile_picture }}?t={{ range(1,1000000)|random }}" 
+                                     alt="{{ t('profile_photo', lang) or 'Profile Photo' }}" 
+                                     id="profileImage"
+                                     class="profile-image"
+                                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #28a745;"
+                                     onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?background=28a745&color=fff&name={{ user.full_name|urlencode }}&size=150';">
+                            {% else %}
+                                <div class="default-avatar" id="defaultAvatar" style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #28a745 0%, #1e8c3c 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-user fa-4x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="photo-actions">
+                            <button type="button" class="btn-upload" onclick="document.getElementById('profilePhotoInput').click();">
+                                <i class="fas fa-upload me-1"></i> {{ t('upload_photo', lang) or 'Upload Photo' }}
+                            </button>
+                            
+                            <button type="button" class="btn-remove" onclick="deleteProfilePhoto()" id="removePhotoBtn" {% if not user.profile_picture or user.profile_picture == 'NULL' or user.profile_picture == 'None' %}style="display: none;"{% endif %}>
+                                <i class="fas fa-trash-alt me-1"></i> {{ t('remove_photo', lang) or 'Remove Photo' }}
+                            </button>
+                        </div>
+                        
+                        <input type="file" id="profilePhotoInput" style="display: none;" accept="image/*">
+                        <div id="uploadProgress" class="progress mt-3" style="display: none; height: 5px;">
+                            <div class="progress-bar bg-success" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Info Card -->
+                <div class="profile-card">
+                    <div class="card-header-custom info">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>{{ t('account_info', lang) or 'Account Information' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <label>{{ t('member_since', lang) or 'Member Since' }}</label>
+                                <p>
+                                    {% if user.created_at %}
+                                        {% if user.created_at.strftime %}
+                                            {{ user.created_at.strftime('%B %d, %Y') }}
+                                        {% else %}
+                                            {{ user.created_at[:10] if user.created_at else 'N/A' }}
+                                        {% endif %}
+                                    {% else %}
+                                        {{ t('na', lang) or 'N/A' }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <div>
+                                <label>{{ t('last_login', lang) or 'Last Login' }}</label>
+                                <p>
+                                    {% if user.last_login %}
+                                        {% if user.last_login.strftime %}
+                                            {{ user.last_login.strftime('%B %d, %Y %H:%M') }}
+                                        {% else %}
+                                            {{ user.last_login[:16] if user.last_login else (t('never', lang) or 'Never') }}
+                                        {% endif %}
+                                    {% else %}
+                                        {{ t('never', lang) or 'Never' }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-user-tag"></i>
+                            <div>
+                                <label>{{ t('role', lang) or 'Role' }}</label>
+                                <p><span class="role-badge">{{ user.role|title }}</span></p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-phone-alt"></i>
+                            <div>
+                                <label>{{ t('phone_number', lang) or 'Phone Number' }}</label>
+                                <p>{{ user.phone_number }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Edit Profile & Change Password -->
+            <div class="col-md-8">
+                <!-- Edit Profile Card -->
+                <div class="profile-card">
+                    <div class="card-header-custom success">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>{{ t('edit_profile', lang) or 'Edit Profile' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('main.profile') }}" id="profileForm">
+                            <div class="form-group">
+                                <label><i class="fas fa-user me-1 text-success"></i> {{ t('full_name', lang) or 'Full Name' }} *</label>
+                                <input type="text" name="full_name" class="form-control-custom" value="{{ user.full_name }}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-envelope me-1 text-success"></i> {{ t('email', lang) or 'Email' }}</label>
+                                <input type="email" name="email" class="form-control-custom" value="{{ user.email or '' }}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt me-1 text-success"></i> {{ t('location', lang) or 'Location' }}</label>
+                                <input type="text" name="location" class="form-control-custom" value="{{ user.location or '' }}">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label><i class="fas fa-city me-1 text-success"></i> {{ t('district', lang) or 'District' }}</label>
+                                    <input type="text" name="district" class="form-control-custom" value="{{ user.district or '' }}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label><i class="fas fa-globe-africa me-1 text-success"></i> {{ t('region', lang) or 'Region' }}</label>
+                                    <input type="text" name="region" class="form-control-custom" value="{{ user.region or '' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-language me-1 text-success"></i> {{ t('language_preference', lang) or 'Language Preference' }}</label>
+                                <select name="language_preference" class="form-control-custom">
+                                    <option value="en" {% if user.language_preference == 'en' %}selected{% endif %}>English</option>
+                                    <option value="sw" {% if user.language_preference == 'sw' %}selected{% endif %}>Kiswahili</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-save me-2"></i> {{ t('save_changes', lang) or 'Save Changes' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Change Password Card -->
+                <div class="profile-card">
+                    <div class="card-header-custom warning">
+                        <h5 class="mb-0">
+                            <i class="fas fa-key me-2"></i>{{ t('change_password', lang) or 'Change Password' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label><i class="fas fa-lock me-1"></i> {{ t('current_password', lang) or 'Current Password' }}</label>
+                                <input type="password" id="current_password" class="form-control-custom" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-key me-1"></i> {{ t('new_password', lang) or 'New Password' }}</label>
+                                <input type="password" id="new_password" class="form-control-custom" required>
+                                <div class="password-strength" id="passwordStrength"></div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-check-circle me-1"></i> {{ t('confirm_password', lang) or 'Confirm Password' }}</label>
+                                <input type="password" id="confirm_password" class="form-control-custom" required>
+                                <div class="password-match" id="passwordMatch"></div>
+                            </div>
+                            <button type="button" class="btn-change-password" onclick="changePassword()">
+                                <i class="fas fa-sync-alt me-2"></i> {{ t('update_password', lang) or 'Update Password' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="toast-container"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

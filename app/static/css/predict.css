@@ -1,0 +1,240 @@
+/* ==================== PREDICT PAGE STYLES ==================== */
+/* Upload Area */
+.upload-area {
+    border: 2px dashed #28a745;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.upload-area:hover {
+    background: #e8f5e9;
+    border-color: #1e7e34;
+}
+
+.upload-area.drag-over {
+    background: #c8e6c9;
+    border-color: #0d6efd;
+}
+
+/* Prediction Result */
+.prediction-result {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    color: white;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 40px;
+}
+
+.loading-spinner.active {
+    display: block;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Camera Container */
+.camera-container {
+    position: relative;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#video {
+    width: 100%;
+    max-height: 400px;
+    background: #000;
+}
+
+.btn-capture {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #28a745;
+    transition: all 0.2s ease;
+}
+
+.btn-capture:hover {
+    transform: translateX(-50%) scale(1.05);
+    background: #f0f0f0;
+}
+
+.btn-capture:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+/* Reject Message */
+.reject-message {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: none;
+}
+
+.reject-message.show {
+    display: block;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* Image Preview */
+.image-preview {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.preview-img {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Result Cards */
+.result-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-card .card-header {
+    font-weight: 700;
+    padding: 15px 20px;
+}
+
+.result-card .card-body {
+    padding: 20px;
+}
+
+.result-card ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+
+.result-card li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.result-card li:last-child {
+    margin-bottom: 0;
+}
+
+/* Confidence Progress Bar */
+.confidence-progress {
+    height: 30px;
+    border-radius: 15px;
+    margin: 15px 0;
+}
+
+.confidence-progress .progress-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Tab Styles */
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 600;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.nav-tabs .nav-link.active {
+    color: #28a745;
+    background: none;
+    border-bottom: 2px solid #28a745;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .upload-area {
+        padding: 20px;
+    }
+
+    .upload-area i {
+        font-size: 2rem;
+    }
+
+    .upload-area h5 {
+        font-size: 1rem;
+    }
+
+    .prediction-result h2 {
+        font-size: 1.3rem;
+    }
+
+    .confidence-progress {
+        height: 25px;
+    }
+
+    .btn-capture {
+        width: 50px;
+        height: 50px;
+    }
+
+    .btn-capture i {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .result-card .card-header h5 {
+        font-size: 1rem;
+    }
+
+    .result-card .card-body {
+        padding: 15px;
+    }
+
+    .result-card li {
+        font-size: 0.85rem;
+    }
+}

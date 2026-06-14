@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}System Security Logs - Database{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-bug"></i> <span id="attackCount">0</span></h5>
+                    <small>Detected Attacks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-key"></i> <span id="failedCount">0</span></h5>
+                    <small>Failed Logins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-check"></i> <span id="successCount">0</span></h5>
+                    <small>Successful Logins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-chart-line"></i> <span id="totalCount">0</span></h5>
+                    <small>Total Events</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <button class="btn btn-primary" onclick="refreshLogs()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="btn btn-danger" onclick="clearLogs()">
+                <i class="fas fa-trash"></i> Clear All Logs
+            </button>
+            <button class="btn btn-success" onclick="exportLogs()">
+                <i class="fas fa-download"></i> Export Logs
+            </button>
+            <span class="float-end text-muted" id="lastRefresh">Last updated: Just now</span>
+        </div>
+    </div>
+
+    <!-- Log Tabs -->
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="fas fa-database me-2"></i>Database Security Logs</h4>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="logTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#security">
+                        <i class="fas fa-shield-alt"></i> Security Events
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#attacks">
+                        <i class="fas fa-bug"></i> Attack Detection
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#auth">
+                        <i class="fas fa-key"></i> Authentication
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#access">
+                        <i class="fas fa-globe"></i> Access Logs
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-3">
+                <!-- Security Events Tab -->
+                <div class="tab-pane fade show active" id="security">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Severity</th>
+                                    <th>IP Address</th>
+                                    <th>User ID</th>
+                                    <th>User Role</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="securityLogs">
+                                <tr><td colspan="8" class="text-center">Loading security logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Attack Detection Tab -->
+                <div class="tab-pane fade" id="attacks">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Attack Type</th>
+                                    <th>Severity</th>
+                                    <th>IP Address</th>
+                                    <th>Endpoint</th>
+                                    <th>Pattern</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attackLogs">
+                                <tr><td colspan="7" class="text-center">Loading attack logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Authentication Tab -->
+                <div class="tab-pane fade" id="auth">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Event</th>
+                                    <th>Username</th>
+                                    <th>Success</th>
+                                    <th>IP Address</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="authLogs">
+                                <tr><td colspan="7" class="text-center">Loading authentication logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Access Logs Tab -->
+                <div class="tab-pane fade" id="access">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Timestamp</th>
+                                    <th>IP Address</th>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Status</th>
+                                    <th>Response Time</th>
+                                    <th>User ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accessLogs">
+                                <tr><td colspan="8" class="text-center">Loading access logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Function to load all logs from database
+async function refreshLogs() {
+    document.getElementById('lastRefresh').innerHTML = 'Last updated: ' + new Date().toLocaleTimeString();
+    
+    // Load Security Logs
+    try {
+        const response = await fetch('/api/admin/db-logs/security?limit=200');
+        const data = await response.json();
+        if (data.success) {
+            displaySecurityLogs(data.logs);
+        }
+    } catch (error) {
+        console.error('Error loading security logs:', error);
+        document.getElementById('securityLogs').innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading logs</td></tr>';
+    }
+
+    // Load Auth Logs
+    try {
+        const response = await fetch('/api/admin/db-logs/auth?limit=200');
+        const data = await response.json();
+        if (data.success) {
+            displayAuthLogs(data.logs);
+            // Count successes and failures
+            let failed = 0, success = 0;
+            data.logs.forEach(log => {
+                if (log.success == 1) success++;
+                if (log.success == 0) failed++;
+            });
+            document.getElementById('failedCount').innerText = failed;
+            document.getElementById('successCount').innerText = success;
+        }
+    } catch (error) {
+        console.error('Error loading auth logs:', error);
+    }
+
+    // Load Attack Logs
+    try {
+        const response = await fetch('/api/admin/db-logs/attack?limit=200');
+        const data = await response.json();
+        if (data.success) {
+            displayAttackLogs(data.logs);
+            document.getElementById('attackCount').innerText = data.logs.length || 0;
+        }
+    } catch (error) {
+        console.error('Error loading attack logs:', error);
+    }
+
+    // Load Access Logs
+    try {
+        const response = await fetch('/api/admin/db-logs/access?limit=200');
+        const data = await response.json();
+        if (data.success) {
+            displayAccessLogs(data.logs);
+        }
+    } catch (error) {
+        console.error('Error loading access logs:', error);
+    }
+    
+    // Update total count
+    let total = 0;
+    ['securityLogs', 'authLogs', 'attackLogs', 'accessLogs'].forEach(id => {
+        const tbody = document.getElementById(id);
+        if (tbody && tbody.rows) {
+            total += tbody.rows.length;
+        }
+    });
+    document.getElementById('totalCount').innerText = total;
+}
+
+// Display Security Logs
+function displaySecurityLogs(logs) {
+    const tbody = document.getElementById('securityLogs');
+    if (!tbody) return;
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No security logs found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    logs.forEach(log => {
+        const row = tbody.insertRow();
+        const severityClass = log.severity === 'CRITICAL' ? 'danger' : (log.severity === 'WARNING' ? 'warning' : 'info');
+        
+        row.insertCell(0).innerHTML = log.log_id || '-';
+        row.insertCell(1).innerHTML = log.created_at || '-';
+        row.insertCell(2).innerHTML = log.event_type || '-';
+        row.insertCell(3).innerHTML = `<span class="badge bg-${severityClass}">${log.severity || 'INFO'}</span>`;
+        row.insertCell(4).innerHTML = log.ip_address || '-';
+        row.insertCell(5).innerHTML = log.user_id || '-';
+        row.insertCell(6).innerHTML = log.user_role || '-';
+        row.insertCell(7).innerHTML = (log.details || '').substring(0, 100);
+    });
+}
+
+// Display Auth Logs
+function displayAuthLogs(logs) {
+    const tbody = document.getElementById('authLogs');
+    if (!tbody) return;
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No authentication logs found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    logs.forEach(log => {
+        const row = tbody.insertRow();
+        const successBadge = log.success == 1 ? 
+            '<span class="badge bg-success">Success</span>' : 
+            '<span class="badge bg-danger">Failed</span>';
+        
+        row.insertCell(0).innerHTML = log.auth_id || '-';
+        row.insertCell(1).innerHTML = log.created_at || '-';
+        row.insertCell(2).innerHTML = log.event_type || '-';
+        row.insertCell(3).innerHTML = log.username || '-';
+        row.insertCell(4).innerHTML = successBadge;
+        row.insertCell(5).innerHTML = log.ip_address || '-';
+        row.insertCell(6).innerHTML = (log.details || '').substring(0, 100);
+    });
+}
+
+// Display Attack Logs
+function displayAttackLogs(logs) {
+    const tbody = document.getElementById('attackLogs');
+    if (!tbody) return;
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No attacks detected - System is secure!</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    logs.forEach(log => {
+        const row = tbody.insertRow();
+        const severityClass = log.severity === 'CRITICAL' ? 'danger' : (log.severity === 'HIGH' ? 'warning' : 'info');
+        
+        row.insertCell(0).innerHTML = log.attack_id || '-';
+        row.insertCell(1).innerHTML = log.created_at || '-';
+        row.insertCell(2).innerHTML = `<span class="badge bg-danger">${log.attack_type || 'Unknown'}</span>`;
+        row.insertCell(3).innerHTML = `<span class="badge bg-${severityClass}">${log.severity || 'MEDIUM'}</span>`;
+        row.insertCell(4).innerHTML = log.ip_address || '-';
+        row.insertCell(5).innerHTML = log.endpoint || '-';
+        row.insertCell(6).innerHTML = (log.pattern_matched || '').substring(0, 80);
+    });
+}
+
+// Display Access Logs
+function displayAccessLogs(logs) {
+    const tbody = document.getElementById('accessLogs');
+    if (!tbody) return;
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No access logs found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    logs.forEach(log => {
+        const row = tbody.insertRow();
+        const statusClass = log.status_code >= 400 ? 'danger' : 'success';
+        
+        row.insertCell(0).innerHTML = log.access_id || '-';
+        row.insertCell(1).innerHTML = log.created_at || '-';
+        row.insertCell(2).innerHTML = log.ip_address || '-';
+        row.insertCell(3).innerHTML = log.method || '-';
+        row.insertCell(4).innerHTML = log.endpoint || '-';
+        row.insertCell(5).innerHTML = `<span class="badge bg-${statusClass}">${log.status_code}</span>`;
+        row.insertCell(6).innerHTML = `${Math.round(log.response_time_ms || 0)}ms`;
+        row.insertCell(7).innerHTML = log.user_id || 'Guest';
+    });
+}
+
+// Clear all logs
+async function clearLogs() {
+    if (!confirm('⚠️ WARNING: This will delete ALL logs from the database. This action cannot be undone!\n\nAre you sure you want to continue?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/clear-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('All logs have been cleared successfully!');
+            refreshLogs();
+        } else {
+            alert('Error clearing logs: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error clearing logs:', error);
+        alert('Error clearing logs. Please try again.');
+    }
+}
+
+// Export logs to CSV
+function exportLogs() {
+    const activeTab = document.querySelector('.nav-link.active').getAttribute('href');
+    let data = [];
+    
+    if (activeTab === '#security') {
+        const rows = document.querySelectorAll('#securityLogs tr');
+        data = [['ID', 'Timestamp', 'Event Type', 'Severity', 'IP Address', 'User ID', 'User Role', 'Details']];
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length > 1 && cols[0].innerText !== 'No security logs found') {
+                data.push(Array.from(cols).map(col => col.innerText));
+            }
+        });
+    } else if (activeTab === '#auth') {
+        const rows = document.querySelectorAll('#authLogs tr');
+        data = [['ID', 'Timestamp', 'Event', 'Username', 'Success', 'IP Address', 'Details']];
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length > 1 && cols[0].innerText !== 'No authentication logs found') {
+                data.push(Array.from(cols).map(col => col.innerText));
+            }
+        });
+    } else if (activeTab === '#attacks') {
+        const rows = document.querySelectorAll('#attackLogs tr');
+        data = [['ID', 'Timestamp', 'Attack Type', 'Severity', 'IP Address', 'Endpoint', 'Pattern']];
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length > 1 && cols[0].innerText !== 'No attacks detected') {
+                data.push(Array.from(cols).map(col => col.innerText));
+            }
+        });
+    } else if (activeTab === '#access') {
+        const rows = document.querySelectorAll('#accessLogs tr');
+        data = [['ID', 'Timestamp', 'IP Address', 'Method', 'Endpoint', 'Status', 'Response Time', 'User ID']];
+        rows.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length > 1 && cols[0].innerText !== 'No access logs found') {
+                data.push(Array.from(cols).map(col => col.innerText));
+            }
+        });
+    }
+    
+    // Create CSV
+    const csv = data.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `logs_${activeTab.substring(1)}_${new Date().toISOString().slice(0,19)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Auto-refresh every 30 seconds
+let refreshInterval;
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(refreshLogs, 30000);
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshLogs();
+    startAutoRefresh();
+    
+    // Stop refresh when page is hidden
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (refreshInterval) clearInterval(refreshInterval);
+        } else {
+            startAutoRefresh();
+            refreshLogs();
+        }
+    });
+});
+</script>
+
+<style>
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    .table th {
+        position: sticky;
+        top: 0;
+        background-color: #212529;
+        color: white;
+        z-index: 10;
+    }
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .btn {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}

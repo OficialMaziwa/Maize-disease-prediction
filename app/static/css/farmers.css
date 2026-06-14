@@ -1,0 +1,233 @@
+/* farmers.css - Complete Styles */
+
+.farmers-container {
+    background: #f0f2f5;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+/* Page Header */
+.page-header {
+    background: white;
+    border-radius: 15px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.page-header h2 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Statistics Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+}
+
+.stat-icon.bg-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.stat-icon.bg-success {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+}
+
+.stat-icon.bg-danger {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.stat-icon.bg-info {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.stat-info h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+/* Filters Card */
+.filters-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.filters-card .input-group-text,
+.filters-card .form-control,
+.filters-card .form-select {
+    border-color: #e1e8ed;
+}
+
+.filters-card .input-group-text {
+    color: #28a745;
+}
+
+/* Farmers Table Card */
+.farmers-table-card {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.farmers-table-card .table {
+    margin-bottom: 0;
+}
+
+.farmers-table-card .table thead th {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    font-weight: 600;
+    padding: 15px;
+    border: none;
+    font-size: 14px;
+}
+
+.farmers-table-card .table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    border-bottom: 1px solid #ecf0f1;
+    font-size: 14px;
+}
+
+.farmers-table-card .table tbody tr:hover {
+    background: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+/* Pagination */
+.pagination-container {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e1e8ed;
+}
+
+.pagination .page-item .page-link {
+    color: #28a745;
+    border-radius: 8px;
+    margin: 0 3px;
+}
+
+.pagination .page-item.active .page-link {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #adb5bd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+    }
+
+    .stat-info h3 {
+        font-size: 20px;
+    }
+
+    .stat-info p {
+        font-size: 12px;
+    }
+
+    .farmers-table-card .table thead th {
+        font-size: 11px;
+        padding: 10px;
+    }
+
+    .farmers-table-card .table tbody td {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+
+    .action-buttons .btn-sm {
+        padding: 3px 6px;
+        font-size: 10px;
+    }
+}

@@ -1,0 +1,20 @@
+{
+  "class_names": [
+    "Blight",
+    "Common_Rust",
+    "Gray_Leaf_Spot",
+    "Healthy"
+  ],
+  "display_names": [
+    "Turcicum Leaf Blight",
+    "Common Rust",
+    "Gray Leaf Spot",
+    "Healthy"
+  ],
+  "folder_to_display": {
+    "Blight": "Turcicum Leaf Blight",
+    "Common_Rust": "Common Rust",
+    "Gray_Leaf_Spot": "Gray Leaf Spot",
+    "Healthy": "Healthy"
+  }
+}

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('user_details', lang) or 'User Details' }} - {{ user.full_name if user else (t('user', lang) or 'User') }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_details.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="user-detail-container">
+    <div class="profile-header">
+        <h2><i class="fas fa-user-circle me-2"></i> {{ t('user_profile', lang) or 'User Profile' }}</h2>
+        <p>{{ t('user_profile_desc', lang) or 'View and manage user information, activity, and account settings' }}</p>
+    </div>
+    
+    <div class="profile-info-card">
+        <img id="profileAvatar" class="profile-avatar" src="" alt="{{ t('profile_photo', lang) or 'Profile Photo' }}">
+        
+        <!-- Statistics Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalDiagnoses">0</div>
+                <div class="stat-label">{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-number" id="accuracyRate">0%</div>
+                <div class="stat-label">{{ t('success_rate', lang) or 'Success Rate' }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-number" id="notificationsCount">0</div>
+                <div class="stat-label">{{ t('notifications', lang) or 'Notifications' }}</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stat-number" id="activeDays">0</div>
+                <div class="stat-label">{{ t('active_days', lang) or 'Active Days' }}</div>
+            </div>
+        </div>
+        
+        <!-- Personal Information -->
+        <div class="info-section">
+            <div class="info-title">
+                <i class="fas fa-user me-2"></i> {{ t('personal_information', lang) or 'Personal Information' }}
+            </div>
+            <div class="info-grid" id="personalInfo">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+        
+        <!-- Account Information -->
+        <div class="info-section">
+            <div class="info-title">
+                <i class="fas fa-shield-alt me-2"></i> {{ t('account_information', lang) or 'Account Information' }}
+            </div>
+            <div class="info-grid" id="accountInfo">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+        
+        <!-- Location Information -->
+        <div class="info-section">
+            <div class="info-title">
+                <i class="fas fa-map-marker-alt me-2"></i> {{ t('location_information', lang) or 'Location Information' }}
+            </div>
+            <div class="info-grid" id="locationInfo">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="info-section">
+            <div class="info-title">
+                <i class="fas fa-history me-2"></i> {{ t('recent_activity', lang) or 'Recent Activity' }}
+            </div>
+            <div class="activity-list" id="activityList">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">{{ t('loading_activity', lang) or 'Loading activity...' }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons no-print">
+            <button class="btn btn-primary btn-action" onclick="toggleUserStatus()" id="statusToggleBtn">
+                <i class="fas fa-power-off me-2"></i> {{ t('toggle_status', lang) or 'Toggle Status' }}
+            </button>
+            <button class="btn btn-warning btn-action" onclick="editUser()">
+                <i class="fas fa-edit me-2"></i> {{ t('edit_user', lang) or 'Edit User' }}
+            </button>
+            <button class="btn btn-danger btn-action" onclick="deleteUser()">
+                <i class="fas fa-trash-alt me-2"></i> {{ t('delete_user', lang) or 'Delete User' }}
+            </button>
+            <button class="btn btn-info btn-action" onclick="sendNotification()">
+                <i class="fas fa-bell me-2"></i> {{ t('send_notification', lang) or 'Send Notification' }}
+            </button>
+            <button class="btn btn-secondary btn-action" onclick="window.location.href='/admin'">
+                <i class="fas fa-arrow-left me-2"></i> {{ t('back_dashboard', lang) or 'Back to Dashboard' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i> {{ t('edit_user', lang) or 'Edit User' }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('full_name', lang) or 'Full Name' }}</label>
+                        <input type="text" class="form-control" id="editFullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('email', lang) or 'Email' }}</label>
+                        <input type="email" class="form-control" id="editEmail">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('phone_number', lang) or 'Phone Number' }}</label>
+                        <input type="tel" class="form-control" id="editPhone" readonly disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('role', lang) or 'Role' }}</label>
+                        <select class="form-select" id="editRole">
+                            <option value="farmer">{{ t('farmer', lang) or 'Farmer' }}</option>
+                            <option value="extension_officer">{{ t('extension_officer', lang) or 'Extension Officer' }}</option>
+                            <option value="admin">{{ t('admin', lang) or 'Admin' }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('location', lang) or 'Location' }}</label>
+                        <input type="text" class="form-control" id="editLocation">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('district', lang) or 'District' }}</label>
+                        <input type="text" class="form-control" id="editDistrict">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('region', lang) or 'Region' }}</label>
+                        <input type="text" class="form-control" id="editRegion">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel', lang) or 'Cancel' }}</button>
+                <button type="button" class="btn btn-primary" onclick="saveUserChanges()">{{ t('save_changes', lang) or 'Save Changes' }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-bell me-2"></i> {{ t('send_notification', lang) or 'Send Notification' }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationForm">
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('title_english', lang) or 'Title (English)' }}</label>
+                        <input type="text" class="form-control" id="notifTitleEn" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('title_swahili', lang) or 'Title (Swahili)' }}</label>
+                        <input type="text" class="form-control" id="notifTitleSw">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('message_english', lang) or 'Message (English)' }}</label>
+                        <textarea class="form-control" id="notifMessageEn" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('message_swahili', lang) or 'Message (Swahili)' }}</label>
+                        <textarea class="form-control" id="notifMessageSw" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('notification_type', lang) or 'Notification Type' }}</label>
+                        <select class="form-select" id="notifType">
+                            <option value="system_update">{{ t('system_update', lang) or 'System Update' }}</option>
+                            <option value="tip">{{ t('tip', lang) or 'Tip' }}</option>
+                            <option value="reminder">{{ t('reminder', lang) or 'Reminder' }}</option>
+                            <option value="weather_alert">{{ t('weather_alert', lang) or 'Weather Alert' }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel', lang) or 'Cancel' }}</button>
+                <button type="button" class="btn btn-info" onclick="sendManualNotification()">{{ t('send_notification', lang) or 'Send Notification' }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/user_details.js') }}"></script>
+{% endblock %}

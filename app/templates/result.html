@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('diagnosis_report', lang) or 'Diagnosis Report' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease Detection' }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+<style>
+    .severity-High, .severity-high { background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    .severity-Medium, .severity-medium { background-color: #ffc107; color: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    .severity-Low, .severity-low { background-color: #28a745; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    .severity-None, .severity-none { background-color: #17a2b8; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    .severity-Medium-High, .severity-medium-high { background-color: #fd7e14; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    
+    .confidence-Very-High, .confidence-very_high { background-color: #28a745; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+    .confidence-High, .confidence-high { background-color: #20c997; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+    .confidence-Medium, .confidence-medium { background-color: #ffc107; color: #333; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+    .confidence-Low, .confidence-low { background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+    
+    .report-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .report-card .card-header {
+        background: linear-gradient(135deg, #28a745 0%, #1e8c3c 100%);
+        padding: 20px;
+    }
+    
+    .alert-info-custom {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border-left: 4px solid #28a745;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .alert-warning-custom {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-left: 4px solid #ff9800;
+        border-radius: 10px;
+        padding: 15px;
+    }
+    
+    .save-options {
+        position: sticky;
+        bottom: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+        padding: 15px;
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        z-index: 100;
+    }
+    
+    .save-btn {
+        border-radius: 25px;
+        padding: 8px 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+    }
+    
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+    
+    @media print {
+        .save-options {
+            display: none;
+        }
+        .no-print {
+            display: none;
+        }
+        .report-card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div id="report-content">
+                <!-- Diagnosis Card -->
+                <div class="card report-card mb-4">
+                    <div class="card-header bg-success text-white text-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-file-medical-alt me-2"></i>
+                            {{ t('diagnosis_report', lang) or 'Diagnosis Report' }}
+                        </h3>
+                        <small class="opacity-75">{{ report.detection_date if report else detection_date }}</small>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert-info-custom">
+                            <h4 class="mb-2 text-success">
+                                <i class="fas fa-microscope me-2"></i>
+                                {{ t('diagnosis', lang) or 'Diagnosis' }}: 
+                                <strong>{{ recommendations.disease_name if recommendations else disease_name }}</strong>
+                            </h4>
+                            <p class="mb-0">
+                                <strong>{{ t('confidence_level', lang) or 'Confidence Level' }}:</strong> 
+                                <span class="confidence-{{ recommendations.confidence_level|replace(' ', '_') if recommendations.confidence_level else 'Medium' }}">
+                                    {{ recommendations.confidence_level if recommendations.confidence_level else 'High' }}
+                                </span>
+                                <span>({{ "%.1f"|format(recommendations.confidence if recommendations else confidence) }}%)</span>
+                            </p>
+                            {% if recommendations.confidence_note %}
+                            <p class="mt-2 mb-0 text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ recommendations.confidence_note }}
+                            </p>
+                            {% endif %}
+                            <p class="mt-3 mb-0">{{ recommendations.description if recommendations else description }}</p>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="card bg-light h-100">
+                                    <div class="card-body">
+                                        <h5 class="text-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            {{ t('severity', lang) or 'Severity' }}
+                                        </h5>
+                                        <p>
+                                            <span class="severity-{{ recommendations.severity if recommendations.severity else 'Medium' }}">
+                                                {% set severity_key = recommendations.severity|lower if recommendations.severity else 'medium' %}
+                                                {{ t(severity_key, lang) or recommendations.severity }}
+                                            </span>
+                                        </p>
+                                        {% if recommendations.symptoms %}
+                                        <hr>
+                                        <h6 class="text-info mt-2">
+                                            <i class="fas fa-stethoscope me-2"></i>
+                                            {{ t('symptoms', lang) or 'Symptoms' }}
+                                        </h6>
+                                        <p class="mb-0 small">{{ recommendations.symptoms }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light h-100">
+                                    <div class="card-body">
+                                        <h5 class="text-info">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            {{ t('economic_impact', lang) or 'Economic Impact' }}
+                                        </h5>
+                                        <p class="mb-0">{{ recommendations.economic_impact if recommendations.economic_impact else t('economic_impact_default', lang) or 'Significant yield losses if not controlled promptly' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Plan Card -->
+                <div class="card report-card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-list-check me-2"></i>
+                            {{ t('action_plan', lang) or 'Action Plan' }}
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert-warning-custom">
+                            <strong>
+                                <i class="fas fa-clock me-2"></i>
+                                {{ t('response_deadline', lang) or 'Response Deadline' }}:
+                            </strong> 
+                            {{ recommendations.response_deadline if recommendations.response_deadline else t('immediate_action', lang) or 'Immediate action required' }}
+                        </div>
+                        
+                        <h5 class="mt-3">
+                            <i class="fas fa-step-forward me-2 text-success"></i>
+                            {{ t('step_by_step', lang) or 'Step by Step Guide' }}
+                        </h5>
+                        <div class="list-group mb-3">
+                            {% if report.action_plan %}
+                                {% for action in report.action_plan %}
+                                    <div class="list-group-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {{ action }}
+                                    </div>
+                                {% endfor %}
+                            {% elif recommendations.action_plan %}
+                                {% for action in recommendations.action_plan %}
+                                    <div class="list-group-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {{ action }}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="list-group-item text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {{ t('no_action_plan', lang) or 'No specific action plan available' }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatments Row -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card report-card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-flask me-2"></i>
+                                    {{ t('chemical_treatment', lang) or 'Chemical Treatment' }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if recommendations.chemical and recommendations.chemical.methods %}
+                                    <ul class="mb-0">
+                                        {% for method in recommendations.chemical.methods %}
+                                            <li class="mb-2">{{ method }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif recommendations.chemical_treatment %}
+                                    <p>{{ recommendations.chemical_treatment }}</p>
+                                {% else %}
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ t('no_chemical_treatment', lang) or 'No chemical treatment information available' }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card report-card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-leaf me-2"></i>
+                                    {{ t('organic_solutions', lang) or 'Organic Solutions' }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if recommendations.organic and recommendations.organic.methods %}
+                                    <ul class="mb-0">
+                                        {% for method in recommendations.organic.methods %}
+                                            <li class="mb-2">{{ method }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif recommendations.organic_options %}
+                                    <ul class="mb-0">
+                                        {% for solution in recommendations.organic_options %}
+                                            <li class="mb-2">{{ solution }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ t('no_organic_treatment', lang) or 'No organic treatment information available' }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prevention & Monitoring Card -->
+                <div class="card report-card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            {{ t('prevention_monitoring', lang) or 'Prevention & Monitoring' }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-info">
+                                    <i class="fas fa-calendar-week me-2"></i>
+                                    {{ t('long_term_prevention', lang) or 'Long-term Prevention' }}:
+                                </h6>
+                                {% if recommendations.cultural and recommendations.cultural.methods %}
+                                    <ul class="mb-0">
+                                        {% for method in recommendations.cultural.methods %}
+                                            <li class="mb-2">{{ method }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% elif recommendations.long_term_solutions %}
+                                    <ul class="mb-0">
+                                        {% for solution in recommendations.long_term_solutions %}
+                                            <li class="mb-2">{{ solution }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ t('no_prevention_info', lang) or 'No prevention information available' }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-info">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    {{ t('monitoring_schedule', lang) or 'Monitoring Schedule' }}:
+                                </h6>
+                                <p class="fw-bold">{{ recommendations.monitoring_frequency if recommendations.monitoring_frequency else t('weekly_monitoring', lang) or 'Weekly monitoring recommended' }}</p>
+                                
+                                <h6 class="text-info mt-3">
+                                    <i class="fas fa-calendar-check me-2"></i>
+                                    {{ t('follow_up', lang) or 'Follow-up' }}:
+                                </h6>
+                                <p class="mb-0">{{ report.follow_up if report.follow_up else t('follow_up_default', lang) or 'Re-evaluate after 7 days' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Share Information -->
+                <div class="card report-card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-share-alt me-2"></i>
+                            {{ t('share_information', lang) or 'Share Information' }}
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="mb-3">{{ t('share_message', lang) or 'Share this diagnosis report with other farmers or extension officers' }}</p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <button class="btn btn-outline-primary" onclick="shareViaWhatsApp()">
+                                <i class="fab fa-whatsapp me-2"></i> WhatsApp
+                            </button>
+                            <button class="btn btn-outline-info" onclick="shareViaSMS()">
+                                <i class="fas fa-sms me-2"></i> {{ t('sms', lang) or 'SMS' }}
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="copyShareLink()">
+                                <i class="fas fa-link me-2"></i> {{ t('copy_link', lang) or 'Copy Link' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Options -->
+            <div class="save-options no-print">
+                <button onclick="saveAsHTML()" class="btn btn-primary save-btn" title="{{ t('save_html', lang) or 'Save as HTML' }}">
+                    <i class="fas fa-file-code me-1"></i> {{ t('save_html', lang) or 'Save HTML' }}
+                </button>
+                <button onclick="saveAsText()" class="btn btn-success save-btn" title="{{ t('save_text', lang) or 'Save as Text' }}">
+                    <i class="fas fa-file-alt me-1"></i> {{ t('save_text', lang) or 'Save Text' }}
+                </button>
+                <button onclick="copyToClipboard()" class="btn btn-info save-btn" title="{{ t('copy', lang) or 'Copy' }}">
+                    <i class="fas fa-copy me-1"></i> {{ t('copy', lang) or 'Copy' }}
+                </button>
+                <button onclick="window.print()" class="btn btn-secondary save-btn" title="{{ t('print', lang) or 'Print' }}">
+                    <i class="fas fa-print me-1"></i> {{ t('print', lang) or 'Print' }}
+                </button>
+                <a href="{{ url_for('main.predict') }}" class="btn btn-dark save-btn" title="{{ t('new_analysis', lang) or 'New Analysis' }}">
+                    <i class="fas fa-microscope me-1"></i> {{ t('new_analysis', lang) or 'New Analysis' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Pass data to JavaScript
+    window.reportData = {
+        diseaseName: "{{ recommendations.disease_name if recommendations else disease_name }}",
+        confidence: "{{ '%.1f'|format(recommendations.confidence if recommendations else confidence) }}",
+        detectionDate: "{{ report.detection_date if report else detection_date }}"
+    };
+    
+    window.reportTranslations = {
+        report_saved: "{{ t('report_saved', lang) or 'Report saved successfully!' }}",
+        report_copied: "{{ t('report_copied', lang) or 'Report copied to clipboard!' }}",
+        share_via_whatsapp: "{{ t('share_via_whatsapp', lang) or 'Share via WhatsApp' }}",
+        share_via_sms: "{{ t('share_via_sms', lang) or 'Share via SMS' }}"
+    };
+    
+    // Save as HTML
+    function saveAsHTML() {
+        const reportContent = document.getElementById('report-content').cloneNode(true);
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Diagnosis Report - ${window.reportData.diseaseName}</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+                <style>
+                    body { padding: 20px; font-family: Arial, sans-serif; }
+                    .report-card { margin-bottom: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+                    .card-header { background: linear-gradient(135deg, #28a745 0%, #1e8c3c 100%); color: white; padding: 15px; }
+                    .save-options { display: none; }
+                    @media print {
+                        .save-options { display: none; }
+                        body { padding: 0; }
+                    }
+                    .severity-High, .severity-high { background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+                    .severity-Medium, .severity-medium { background-color: #ffc107; color: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+                    .severity-Low, .severity-low { background-color: #28a745; color: white; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+                </style>
+            </head>
+            <body>
+                ${reportContent.outerHTML}
+                <div style="text-align: center; margin-top: 30px; padding: 20px; color: #666; font-size: 12px;">
+                    <p>Generated by Maize Disease Detection System on ${new Date().toLocaleString()}</p>
+                </div>
+            </body>
+            </html>
+        `;
+        
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `diagnosis_report_${window.reportData.diseaseName}_${new Date().toISOString().slice(0,19)}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(window.reportTranslations.report_saved);
+    }
+    
+    // Save as Text
+    function saveAsText() {
+        const reportText = document.getElementById('report-content').innerText;
+        const header = `DIAGNOSIS REPORT\n${'='.repeat(50)}\nDate: ${window.reportData.detectionDate}\nDisease: ${window.reportData.diseaseName}\nConfidence: ${window.reportData.confidence}%\n${'='.repeat(50)}\n\n`;
+        const fullText = header + reportText + `\n\n${'='.repeat(50)}\nGenerated by Maize Disease Detection System on ${new Date().toLocaleString()}`;
+        
+        const blob = new Blob([fullText], { type: 'text/plain' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `diagnosis_report_${window.reportData.diseaseName}_${new Date().toISOString().slice(0,19)}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(window.reportTranslations.report_saved);
+    }
+    
+    // Copy to Clipboard
+    function copyToClipboard() {
+        const reportText = document.getElementById('report-content').innerText;
+        const header = `DIAGNOSIS REPORT\n${'='.repeat(50)}\nDate: ${window.reportData.detectionDate}\nDisease: ${window.reportData.diseaseName}\nConfidence: ${window.reportData.confidence}%\n${'='.repeat(50)}\n\n`;
+        const fullText = header + reportText;
+        
+        navigator.clipboard.writeText(fullText).then(() => {
+            alert(window.reportTranslations.report_copied);
+        }).catch(() => {
+            alert('Failed to copy report');
+        });
+    }
+    
+    // Share via WhatsApp
+    function shareViaWhatsApp() {
+        const text = `*DIAGNOSIS REPORT*\n\nDisease: ${window.reportData.diseaseName}\nConfidence: ${window.reportData.confidence}%\nDate: ${window.reportData.detectionDate}\n\nSent from Maize Disease Detection System`;
+        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    }
+    
+    // Share via SMS
+    function shareViaSMS() {
+        const text = `DIAGNOSIS REPORT: ${window.reportData.diseaseName} with ${window.reportData.confidence}% confidence. Date: ${window.reportData.detectionDate}`;
+        const url = `sms:?body=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    }
+    
+    // Copy share link
+    function copyShareLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    }
+</script>
+<script src="{{ url_for('static', filename='js/result.js') }}"></script>
+{% endblock %}

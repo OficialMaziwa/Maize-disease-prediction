@@ -1,0 +1,175 @@
+/* static/css/user_logs.css */
+
+/* User Activity Logs Styles */
+.user-logs-container {
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: calc(100vh - 70px);
+}
+
+.filter-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.filter-card label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.filter-card .form-control,
+.filter-card .btn {
+    border-radius: 10px;
+}
+
+.filter-card .form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Statistics Cards */
+.user-stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.user-stats-card h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 10px 0 5px;
+}
+
+.user-stats-card small {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+/* Activity Table Card */
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    background: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border: none;
+}
+
+.card-header h5 {
+    margin: 0;
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px 15px;
+}
+
+.table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+/* Badge Styles */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.badge.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #333;
+}
+
+.badge.bg-dark {
+    background-color: #343a40 !important;
+}
+
+/* Code styling */
+code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #d63384;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-stats-card h3 {
+        font-size: 1.3rem;
+    }
+
+    .filter-card {
+        padding: 15px;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .table td,
+    .table th {
+        padding: 8px 10px;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+    }
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Toast container for alerts */
+.toast-container {
+    z-index: 9999;
+}

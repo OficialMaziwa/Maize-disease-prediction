@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('about', lang) }} - Maize Disease Prediction{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Stats Row -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center p-3 border rounded-3 shadow-sm">
+                <div class="stat-number fs-1 fw-bold text-success">95%+</div>
+                <div class="text-muted">{{ t('accuracy', lang) }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center p-3 border rounded-3 shadow-sm">
+                <div class="stat-number fs-1 fw-bold text-success">4</div>
+                <div class="text-muted">{{ t('diseases', lang) }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center p-3 border rounded-3 shadow-sm">
+                <div class="stat-number fs-1 fw-bold text-success">4000+</div>
+                <div class="text-muted">{{ t('images_trained', lang) }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card text-center p-3 border rounded-3 shadow-sm">
+                <div class="stat-number fs-1 fw-bold text-success">&lt;5s</div>
+                <div class="text-muted">{{ t('instant_results', lang) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Mission -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-success mb-3">
+                        <i class="fas fa-bullseye"></i> {{ t('our_mission', lang) }}
+                    </h4>
+                    <p class="text-muted fs-5 mb-0">
+                        {{ t('mission_text', lang) }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Vision -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-success mb-3">
+                        <i class="fas fa-eye"></i> {{ t('our_vision', lang) }}
+                    </h4>
+                    <p class="text-muted fs-5 mb-0">
+                        {{ t('vision_text', lang) }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-success mb-4">
+                        <i class="fas fa-chart-line"></i> {{ t('how_it_works', lang) }}
+                    </h4>
+                    <div class="timeline-item mb-4 d-flex">
+                        <div class="timeline-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">1</div>
+                        <div class="timeline-content">
+                            <h6 class="fw-bold mb-1">{{ t('step1_title', lang) }}</h6>
+                            <p class="text-muted mb-0">{{ t('step1_desc', lang) }}</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item mb-4 d-flex">
+                        <div class="timeline-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">2</div>
+                        <div class="timeline-content">
+                            <h6 class="fw-bold mb-1">{{ t('step2_title', lang) }}</h6>
+                            <p class="text-muted mb-0">{{ t('step2_desc', lang) }}</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item mb-4 d-flex">
+                        <div class="timeline-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">3</div>
+                        <div class="timeline-content">
+                            <h6 class="fw-bold mb-1">{{ t('step3_title', lang) }}</h6>
+                            <p class="text-muted mb-0">{{ t('step3_desc', lang) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Technology Stack -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-success mb-3">
+                        <i class="fas fa-microchip"></i> {{ t('technology_stack', lang) }}
+                    </h4>
+                    <div>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🐍 Python</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🧠 TensorFlow</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🌐 Flask</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🎨 Bootstrap 5</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">📱 {{ t('responsive_ui', lang) }}</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🗄️ PostgreSQL</span>
+                        <span class="tech-badge bg-light text-dark px-3 py-2 rounded-pill m-1 d-inline-block">🤖 CNN Model</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Problem Statement -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-danger mb-3">
+                        <i class="fas fa-exclamation-triangle"></i> {{ t('the_problem', lang) }}
+                    </h4>
+                    <p class="text-muted mb-0">
+                        {{ t('problem_text', lang) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diseases Detected -->
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+        <div class="card-body p-4">
+            <h4 class="fw-bold text-success mb-4 text-center">
+                <i class="fas fa-biohazard"></i> {{ t('diseases_we_detect', lang) }}
+            </h4>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="disease-item p-3 bg-light rounded-3 mb-2">
+                        <h6 class="fw-bold mb-1">🍂 {{ t('Common_Rust', lang) }}</h6>
+                        <small class="text-muted">{{ t('common_rust_desc', lang) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="disease-item p-3 bg-light rounded-3 mb-2">
+                        <h6 class="fw-bold mb-1">🌿 {{ t('Gray_Leaf_Spot', lang) }}</h6>
+                        <small class="text-muted">{{ t('gray_leaf_spot_desc', lang) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="disease-item p-3 bg-light rounded-3 mb-2">
+                        <h6 class="fw-bold mb-1">🌱 {{ t('Blight', lang) }}</h6>
+                        <small class="text-muted">{{ t('northern_leaf_blight_desc', lang) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="disease-item p-3 bg-light rounded-3 mb-2">
+                        <h6 class="fw-bold mb-1">✅ {{ t('Healthy', lang) }}</h6>
+                        <small class="text-muted">{{ t('healthy_leaf_desc', lang) }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-5">
+        <div class="alert alert-success rounded-4 p-4 shadow-sm">
+            <h5 class="fw-bold mb-3">🌾 {{ t('ready_to_protect', lang) }}</h5>
+            <p class="mb-3">{{ t('upload_photo_cta', lang) }}</p>
+            <a href="{{ url_for('main.predict') }}" class="btn btn-success btn-lg px-5">
+                <i class="fas fa-microscope"></i> {{ t('start_detection', lang) }}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="{{ lang if lang else 'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maize Disease Detection - {% block title %}{{ t('home', lang if lang else 'en') }}{% endblock %}</title>
+    
+    <!-- External CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <!-- Brand/Logo -->
+            <a class="navbar-brand" href="/">
+                🌽 <span data-translate-key="maize_disease_detection">{{ t('maize_disease_detection', lang if lang else 'en') }}</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i> <span data-translate-key="home">{{ t('home', lang if lang else 'en') }}</span>
+                        </a>
+                    </li>  
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">
+                            <i class="fas fa-info-circle me-1"></i> <span data-translate-key="about">{{ t('about', lang if lang else 'en') }}</span>
+                        </a>
+                    </li>
+                    {% if session.user_id %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i> <span data-translate-key="dashboard">{{ t('dashboard', lang) }}</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% if session.user_id %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle fa-lg me-1"></i>
+                                <span>{{ session.user_name[:15] }}{% if session.user_name|length > 15 %}...{% endif %}</span>
+                                {% if session.user_role == 'farmer' %}
+                                    <span class="role-badge farmer"><span data-translate-key="farmer">{{ t('farmer', lang if lang else 'en') }}</span></span>
+                                {% elif session.user_role == 'extension_officer' %}
+                                    <span class="role-badge officer"><span data-translate-key="officer">{{ t('officer', lang if lang else 'en') }}</span></span>
+                                {% elif session.user_role == 'admin' %}
+                                    <span class="role-badge admin"><span data-translate-key="admin">{{ t('admin', lang if lang else 'en') }}</span></span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user me-2"></i> <span data-translate-key="my_profile">{{ t('my_profile', lang if lang else 'en') }}</span>
+                                </a></li>
+                                {% if session.user_role == 'farmer' %}
+                                <li><a class="dropdown-item" href="/history">
+                                    <i class="fas fa-history me-2"></i> <span data-translate-key="prediction_history">{{ t('prediction_history', lang if lang else 'en') }}</span>
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/logout">
+                                    <i class="fas fa-sign-out-alt me-2"></i> <span data-translate-key="logout">{{ t('logout', lang if lang else 'en') }}</span>
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i> <span data-translate-key="login">{{ t('login', lang if lang else 'en') }}</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus me-1"></i> <span data-translate-key="register">{{ t('register', lang if lang else 'en') }}</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Language Switcher - NO PAGE RELOAD -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i> <span id="currentLangLabel">English</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a class="dropdown-item language-option" href="#" data-lang="en">
+                                    <i class="fas fa-flag-usa me-2"></i> English
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item language-option" href="#" data-lang="sw">
+                                    <i class="fas fa-flag-tanzania me-2"></i> Kiswahili
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="mainContent">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                <i class="fas fa-leaf me-2"></i>
+                <span data-translate-key="maize_disease_system">{{ t('maize_disease_system', lang if lang else 'en') }}</span>
+                <i class="fas fa-heart mx-2" style="color: #ff6b6b;"></i> 
+                <span data-translate-key="helping_farmers">{{ t('helping_farmers', lang if lang else 'en') }}</span>
+            </p>
+            <p class="mt-2" style="font-size: 0.8rem;">
+                <i class="fas fa-robot"></i> <span data-translate-key="powered_by_ai">{{ t('powered_by_ai', lang if lang else 'en') }}</span> | 
+                <i class="fas fa-chart-line"></i> 95% <span data-translate-key="accuracy">{{ t('accuracy', lang if lang else 'en') }}</span> | 
+                <i class="fas fa-tachometer-alt"></i> <span data-translate-key="instant_results">{{ t('instant_results', lang if lang else 'en') }}</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- External JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Language Manager - NO PAGE RELOAD, translates whole page -->
+    <script>
+    // ==================== LANGUAGE SWITCHING WITHOUT PAGE RELOAD ====================
+    let currentLang = localStorage.getItem('language') || '{{ lang if lang else "en" }}';
+    let translationsCache = {};
+    
+    // Fetch translations from server
+    async function fetchTranslations(lang) {
+        if (translationsCache[lang]) {
+            return translationsCache[lang];
+        }
+        
+        try {
+            const response = await fetch(`/api/translations/${lang}`);
+            if (response.ok) {
+                const data = await response.json();
+                translationsCache[lang] = data;
+                return data;
+            }
+        } catch (error) {
+            console.error("Error fetching translations:", error);
+        }
+        return {};
+    }
+    
+    // Update all translatable elements on the page
+    async function updatePageTranslations(lang) {
+        const translations = await fetchTranslations(lang);
+        
+        // Update elements with data-translate-key attribute (navbar, footer, etc.)
+        document.querySelectorAll('[data-translate-key]').forEach(el => {
+            const key = el.getAttribute('data-translate-key');
+            if (translations[key] && translations[key][lang]) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    if (el.placeholder !== undefined) {
+                        el.placeholder = translations[key][lang];
+                    }
+                } else {
+                    el.innerHTML = translations[key][lang];
+                }
+            }
+        });
+        
+        // Update all elements that have text that needs translation
+        await updateDynamicContent(lang);
+        
+        // Update HTML lang attribute
+        document.documentElement.lang = lang;
+        
+        // Update language label
+        const langLabel = document.getElementById('currentLangLabel');
+        if (langLabel) {
+            langLabel.innerText = lang === 'sw' ? 'Kiswahili' : 'English';
+        }
+        
+        // Dispatch event for other components (like prediction results)
+        window.dispatchEvent(new CustomEvent('languageChanged', { 
+            detail: { language: lang, translations: translations } 
+        }));
+    }
+    
+    // Update dynamic content like tables, stats, etc.
+    async function updateDynamicContent(lang) {
+        const translations = await fetchTranslations(lang);
+        
+        // Update statistics cards
+        const statLabels = document.querySelectorAll('.stat-label, .stat-card small');
+        statLabels.forEach(el => {
+            const text = el.innerText.trim().toLowerCase();
+            const translations_map = {
+                'total users': 'total_users',
+                'farmers': 'farmers',
+                'extension officers': 'extension_officers',
+                'total diagnoses': 'total_predictions',
+                'pending': 'pending'
+            };
+            if (translations_map[text] && translations[translations_map[text]]) {
+                const translated = translations[translations_map[text]][lang];
+                if (translated) {
+                    if (text === 'pending') {
+                        const number = el.innerText.match(/\d+/);
+                        el.innerText = translated + (number ? ': ' + number[0] : '');
+                    } else {
+                        el.innerText = translated;
+                    }
+                }
+            }
+        });
+        
+        // Update table headers
+        const tableHeaders = document.querySelectorAll('th');
+        tableHeaders.forEach(th => {
+            const text = th.innerText.trim().toLowerCase();
+            const translations_map = {
+                'id': 'id', 'name': 'name', 'phone': 'phone', 'email': 'email',
+                'location': 'location', 'district': 'district', 'region': 'region',
+                'status': 'status', 'role': 'role', 'actions': 'actions',
+                'registered': 'registered', 'approved': 'approved',
+                'disease name (en)': 'disease_name_en',
+                'disease name (sw)': 'disease_name_sw',
+                'scientific name': 'scientific_name'
+            };
+            if (translations_map[text] && translations[translations_map[text]]) {
+                th.innerText = translations[translations_map[text]][lang];
+            }
+        });
+        
+        // Update buttons
+        const buttons = document.querySelectorAll('button, .btn');
+        buttons.forEach(btn => {
+            const text = btn.innerText.trim().toLowerCase();
+            const translations_map = {
+                'edit': 'edit', 'delete': 'delete', 'view': 'view', 'add': 'add',
+                'save': 'save', 'cancel': 'cancel', 'close': 'close', 'back': 'back',
+                'approve': 'approve', 'reject': 'reject', 'search': 'search',
+                'export csv': 'export', 'refresh data': 'refresh_data',
+                'add new farmer': 'add_new_farmer', 'add new officer': 'add_new_officer',
+                'add new admin': 'add_new_admin', 'add new disease': 'add_new_disease',
+                'analyze disease': 'analyze_disease', 'new prediction': 'new_prediction',
+                'change image': 'change_image', 'retake': 'retake', 'choose image': 'choose_image'
+            };
+            if (translations_map[text] && translations[translations_map[text]]) {
+                // Preserve icon if present
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    btn.innerHTML = icon.outerHTML + ' ' + translations[translations_map[text]][lang];
+                } else {
+                    btn.innerText = translations[translations_map[text]][lang];
+                }
+            }
+        });
+        
+        // Update tab names
+        const tabs = document.querySelectorAll('.nav-link');
+        tabs.forEach(tab => {
+            const text = tab.innerText.trim().toLowerCase();
+            const translations_map = {
+                'farmers': 'farmers', 'extension officers': 'extension_officers',
+                'pending approvals': 'pending_approvals', 'admins': 'admins',
+                'diseases': 'diseases', 'reports': 'reports'
+            };
+            if (translations_map[text] && translations[translations_map[text]]) {
+                const badge = tab.querySelector('.badge');
+                if (badge) {
+                    const badgeHtml = badge.outerHTML;
+                    tab.innerHTML = translations[translations_map[text]][lang] + ' ' + badgeHtml;
+                } else {
+                    tab.innerText = translations[translations_map[text]][lang];
+                }
+            }
+        });
+        
+        // Update welcome message
+        const welcomeText = document.querySelector('.welcome-card h2, .welcome-card h4');
+        if (welcomeText) {
+            const text = welcomeText.innerText.trim().toLowerCase();
+            if (text.includes('admin dashboard') && translations['admin_dashboard']) {
+                welcomeText.innerHTML = translations['admin_dashboard'][lang];
+            } else if (text.includes('officer dashboard') && translations['officer_dashboard']) {
+                welcomeText.innerHTML = translations['officer_dashboard'][lang];
+            }
+        }
+        
+        const welcomeP = document.querySelector('.welcome-card p');
+        if (welcomeP && translations['welcome_back']) {
+            const userName = welcomeP.innerText.split(',')[1]?.split('!')[0]?.trim() || '';
+            welcomeP.innerHTML = translations['welcome_back'][lang] + ', ' + userName + '! ' + 
+                (translations['full_system_control'] ? translations['full_system_control'][lang] : '');
+        }
+    }
+    
+    // Change language without reload
+    async function changeLanguageWithoutReload(lang) {
+        if (lang === currentLang) return;
+        
+        console.log("Changing language to:", lang);
+        currentLang = lang;
+        localStorage.setItem('language', lang);
+        
+        // Show loading indicator
+        showLanguageLoader(true);
+        
+        // Update UI immediately with new translations
+        await updatePageTranslations(lang);
+        
+        // Send to server in background
+        try {
+            await fetch('/change-language/' + lang, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+        } catch (error) {
+            console.error("Error updating server language:", error);
+        }
+        
+        showLanguageLoader(false);
+    }
+    
+    // Show/hide language loader
+    function showLanguageLoader(show) {
+        let loader = document.getElementById('languageLoader');
+        if (show) {
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'languageLoader';
+                loader.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:99999;display:flex;justify-content:center;align-items:center;pointer-events:none';
+                loader.innerHTML = '<div class="spinner-border text-light" style="width:3rem;height:3rem"><span class="visually-hidden">Loading...</span></div>';
+                document.body.appendChild(loader);
+            }
+            loader.style.display = 'flex';
+        } else {
+            if (loader) loader.style.display = 'none';
+        }
+    }
+    
+    // Initialize language
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial language
+        updatePageTranslations(currentLang);
+        
+        // Add click handlers to language options
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const newLang = this.getAttribute('data-lang');
+                if (newLang) {
+                    changeLanguageWithoutReload(newLang);
+                    // Close dropdown
+                    const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('languageDropdown'));
+                    if (dropdown) dropdown.hide();
+                }
+            });
+        });
+        
+        // Observe for dynamically added content (like tabs, modals)
+        const observer = new MutationObserver(function(mutations) {
+            let needsUpdate = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) {
+                            if (node.hasAttribute && node.hasAttribute('data-translate-key')) {
+                                needsUpdate = true;
+                            }
+                            if (node.querySelectorAll && node.querySelectorAll('[data-translate-key]').length > 0) {
+                                needsUpdate = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (needsUpdate) {
+                updatePageTranslations(currentLang);
+            }
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // Re-translate when Bootstrap tabs are shown
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function() {
+                updatePageTranslations(currentLang);
+            });
+        });
+        
+        // Re-translate when modals are shown
+        document.addEventListener('shown.bs.modal', function() {
+            updatePageTranslations(currentLang);
+        });
+    });
+    
+    // Expose for other scripts
+    window.getCurrentLanguage = () => currentLang;
+    window.getTranslation = async (key) => {
+        const translations = await fetchTranslations(currentLang);
+        return translations[key] ? translations[key][currentLang] : key;
+    };
+    </script>
+    
+    <!-- Page Specific JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,22 @@
+﻿# Large files
+*.h5
+*.H5
+dataset/
+uploads/
+*.jpg
+*.JPG
+*.png
+*.jpeg
+
+# Python
+__pycache__/
+venv/
+*.pyc
+.env
+
+# Logs
+logs/
+*.log
+
+# Backups
+*.backup

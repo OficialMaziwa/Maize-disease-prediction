@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('register', lang) }} - {{ t('maize_disease_detection', lang) }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                <div class="auth-card">
+                    <div class="auth-header text-white">
+                        <div class="auth-icon">🌱</div>
+                        <h3 class="mb-0">{{ t('create_account', lang) }}</h3>
+                    </div>
+                    
+                    <div class="auth-body">
+                        <div id="alertContainer"></div>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3" role="alert">
+                                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form method="POST" action="{{ url_for('main.register') }}" id="registerForm">
+                            <!-- Jina Kamili -->
+                            <div class="form-group mb-3">
+                                <label for="full_name" class="form-label">
+                                    <i class="fas fa-user me-2"></i>{{ t('full_name', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Mfano: Juma Mkulima" required>
+                            </div>
+                            
+                            <!-- Namba ya Simu -->
+                            <div class="form-group mb-3">
+                                <label for="phone_number" class="form-label">
+                                    <i class="fas fa-phone-alt me-2"></i>{{ t('phone_number', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="0712345678" required>
+                                <small class="text-muted">{{ t('phone_example', lang) }}</small>
+                            </div>
+                            
+                            <!-- Barua pepe -->
+                            <div class="form-group mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>{{ t('email_optional', lang) }}
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="mkulima@example.com">
+                            </div>
+                            
+                            <!-- Mkoa (Region) -->
+                            <div class="form-group mb-3">
+                                <label for="region" class="form-label">
+                                    <i class="fas fa-globe-africa me-2"></i>{{ t('region', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="region" name="region" required>
+                                    <option value="">-- Chagua Mkoa --</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Wilaya (District) -->
+                            <div class="form-group mb-3">
+                                <label for="district" class="form-label">
+                                    <i class="fas fa-city me-2"></i>{{ t('district', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="district" name="district" required disabled>
+                                    <option value="">-- Kwanza chagua Mkoa --</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Kata (Ward) -->
+                            <div class="form-group mb-3">
+                                <label for="ward" class="form-label">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ t('ward', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="ward" name="ward" required disabled>
+                                    <option value="">-- Kwanza chagua Wilaya --</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Mtaa/Kijiji (Street) -->
+                            <div class="form-group mb-3">
+                                <label for="street" class="form-label">
+                                    <i class="fas fa-home me-2"></i>{{ t('street', lang) }}
+                                </label>
+                                <input type="text" class="form-control" id="street" name="street" placeholder="Mfano: Kijiji A, Mtaa B">
+                                <small class="text-muted">{{ t('street_help', lang) }}</small>
+                            </div>
+                            
+                            <!-- Aina ya Akaunti (Role) -->
+                            <div class="form-group mb-3">
+                                <label for="role" class="form-label">
+                                    <i class="fas fa-briefcase me-2"></i>{{ t('account_type', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="farmer">👨‍🌾 {{ t('farmer', lang) }}</option>
+                                    <option value="extension_officer">👨‍🏫 {{ t('extension_officer', lang) }}</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Nenosiri -->
+                            <div class="form-group mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>{{ t('password', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="password-wrapper">
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Angalau herufi 6" required>
+                                    <button type="button" class="toggle-password" data-target="password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="passwordStrength" class="password-strength mt-1"></div>
+                            </div>
+                            
+                            <!-- Thibitisha Nenosiri -->
+                            <div class="form-group mb-4">
+                                <label for="confirm_password" class="form-label">
+                                    <i class="fas fa-check-circle me-2"></i>{{ t('confirm_password', lang) }} <span class="text-danger">*</span>
+                                </label>
+                                <div class="password-wrapper">
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Weka nenosiri tena" required>
+                                    <button type="button" class="toggle-password" data-target="confirm_password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="passwordMatch" class="password-match mt-1"></div>
+                            </div>
+                            
+                            <div class="info-box" id="roleInfo">
+                                <i class="fas fa-info-circle text-success me-2"></i>
+                                <span id="roleInfoText">{{ t('farmer_info', lang) }}</span>
+                            </div>
+                            
+                            <button type="button" class="btn btn-auth text-white mt-3" onclick="showConfirmation()">
+                                <i class="fas fa-check-circle me-2"></i>{{ t('review_register', lang) }}
+                            </button>
+                        </form>
+                        
+                        <div class="divider">
+                            <span>{{ t('or', lang) }}</span>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">
+                                {{ t('have_account', lang) }} 
+                                <a href="{{ url_for('main.login') }}" class="auth-link">
+                                    {{ t('login_here', lang) }} <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </p>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt"></i> {{ t('secure_info', lang) }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ya Kuthibitisha -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-success text-white border-0 rounded-top-4">
+                <h5 class="modal-title">
+                    <i class="fas fa-clipboard-list me-2"></i>{{ t('confirm_details', lang) }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info rounded-3">
+                    <i class="fas fa-info-circle me-2"></i> {{ t('review_info', lang) }}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted small">{{ t('full_name', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_full_name">-</p>
+                    
+                    <label class="text-muted small">{{ t('phone_number', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_phone_number">-</p>
+                    
+                    <label class="text-muted small">{{ t('email', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_email">-</p>
+                    
+                    <label class="text-muted small">{{ t('region', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_region">-</p>
+                    
+                    <label class="text-muted small">{{ t('district', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_district">-</p>
+                    
+                    <label class="text-muted small">{{ t('ward', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_ward">-</p>
+                    
+                    <label class="text-muted small">{{ t('street', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_street">-</p>
+                    
+                    <label class="text-muted small">{{ t('account_type', lang) }}</label>
+                    <p class="fw-bold mb-2" id="confirm_role">-</p>
+                </div>
+                
+                <div id="officerWarning" class="alert alert-warning rounded-3" style="display: none;">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>{{ t('officer_warning_title', lang) }}</strong> {{ t('officer_warning_text', lang) }}
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-edit me-2"></i>{{ t('edit', lang) }}
+                </button>
+                <button type="button" class="btn btn-success rounded-pill px-4" onclick="submitForm()">
+                    <i class="fas fa-check-circle me-2"></i>{{ t('confirm_register', lang) }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tanzania_locations.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

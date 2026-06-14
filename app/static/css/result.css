@@ -1,0 +1,243 @@
+/* result.css */
+
+.report-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.report-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.report-card .card-header {
+    background: linear-gradient(135deg, #28a745 0%, #1e8c3c 100%);
+    padding: 20px;
+}
+
+.alert-info-custom {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left: 4px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.alert-warning-custom {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-left: 4px solid #ff9800;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.save-options {
+    position: sticky;
+    bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+.save-btn {
+    border-radius: 25px;
+    padding: 8px 20px;
+    transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Severity badges */
+.severity-High,
+.severity-high {
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.severity-Medium,
+.severity-medium {
+    background-color: #ffc107;
+    color: #333;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.severity-Low,
+.severity-low {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.severity-None,
+.severity-none {
+    background-color: #17a2b8;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.severity-Medium-High,
+.severity-medium-high {
+    background-color: #fd7e14;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+/* Confidence badges */
+.confidence-Very-High,
+.confidence-very_high {
+    background-color: #28a745;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.confidence-High,
+.confidence-high {
+    background-color: #20c997;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.confidence-Medium,
+.confidence-medium {
+    background-color: #ffc107;
+    color: #333;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.confidence-Low,
+.confidence-low {
+    background-color: #dc3545;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+/* Print styles */
+@media print {
+
+    .save-options,
+    .no-print {
+        display: none !important;
+    }
+
+    .report-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+    }
+
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .save-options {
+        border-radius: 15px;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+    }
+
+    .save-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .report-card .card-header h3,
+    .report-card .card-header h4 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.report-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.report-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.report-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.report-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.report-card:nth-child(4) {
+    animation-delay: 0.4s;
+}

@@ -1,0 +1,241 @@
+/* ==================== BASE STYLES ==================== */
+:root {
+    --primary-color: #1e8c3c;
+    --primary-dark: #0d5c2a;
+    --primary-light: #4caf50;
+    --secondary-color: #ffc107;
+    --danger-color: #dc3545;
+    --warning-color: #ff9800;
+    --info-color: #17a2b8;
+    --dark-color: #343a40;
+    --light-color: #f8f9fa;
+    --gray-color: #6c757d;
+    --white: #ffffff;
+    --black: #000000;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* ==================== NAVBAR STYLES ==================== */
+.navbar {
+    background: linear-gradient(135deg, #1e8c3c 0%, #0d5c2a 100%) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 0.8rem 0;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: 0.5px;
+    transition: var(--transition);
+}
+
+.navbar-brand:hover {
+    transform: scale(1.02);
+    opacity: 0.95;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: var(--transition);
+    position: relative;
+    margin: 0 5px;
+}
+
+.nav-link:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+}
+
+/* ==================== DROPDOWN STYLES ==================== */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    margin-top: 10px;
+    padding: 8px 0;
+}
+
+.dropdown-item {
+    padding: 10px 20px;
+    transition: var(--transition);
+    border-radius: 8px;
+    margin: 2px 8px;
+}
+
+.dropdown-item:hover {
+    background: #e8f5e9;
+    transform: translateX(5px);
+}
+
+.dropdown-header {
+    font-weight: 700;
+    color: var(--primary-color);
+    padding: 12px 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* ==================== ROLE BADGES ==================== */
+.role-badge {
+    margin-left: 8px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.role-badge.farmer {
+    background: #d4edda;
+    color: #155724;
+}
+
+.role-badge.officer {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.role-badge.admin {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* ==================== NOTIFICATION BELL ==================== */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.notification-bell:hover {
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: var(--danger-color);
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.notification-item {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
+
+.notification-unread {
+    background-color: #e3f2fd;
+    border-left: 3px solid #0d6efd;
+}
+
+.dropdown-menu-notifications {
+    width: 380px;
+    max-height: 450px;
+    overflow-y: auto;
+    border-radius: 12px;
+}
+
+/* ==================== OFFLINE BADGE ==================== */
+#offlineBadge {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ==================== FOOTER ==================== */
+.footer {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #ffffff;
+    padding: 30px 0;
+    margin-top: 50px;
+    text-align: center;
+}
+
+.footer p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 992px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .nav-link {
+        padding: 8px 15px;
+    }
+
+    .dropdown-menu-notifications {
+        width: 320px;
+        right: -80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+
+    .role-badge {
+        display: inline-block;
+        margin-top: 5px;
+    }
+}

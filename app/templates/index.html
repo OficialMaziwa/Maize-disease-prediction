@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('home', lang) }} - {{ t('maize_disease_system', lang) }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title text-white">
+                🌽 {{ t('welcome_title', lang) }}<br>
+                {{ t('welcome_subtitle', lang) }}
+            </h1>
+            <p class="hero-subtitle text-white">
+                {{ t('hero_description', lang) }}
+            </p>
+            <div class="text-center">
+                <a href="{{ url_for('main.predict') }}" class="btn btn-get-started">
+                    <strong>🌿 {{ t('get_started', lang) }} →</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section - Steps -->
+<div class="container my-5 py-4">
+    <div class="text-center">
+        <h2 class="section-title">
+            <i class="fas fa-cogs me-2"></i> {{ t('how_it_works', lang) }}
+        </h2>
+        <p class="text-muted">{{ t('step_desc', lang) if t('step_desc', lang) != 'step_desc' else 'Three simple steps to protect your maize crop' }}</p>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="option-icon">📸</div>
+                    <h5 class="card-title fw-bold">{{ t('step1_title', lang) }}</h5>
+                    <p class="card-text text-muted">{{ t('step1_desc', lang) }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="option-icon">🤖</div>
+                    <h5 class="card-title fw-bold">{{ t('step2_title', lang) }}</h5>
+                    <p class="card-text text-muted">{{ t('step2_desc', lang) }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="option-icon">💊</div>
+                    <h5 class="card-title fw-bold">{{ t('step3_title', lang) }}</h5>
+                    <p class="card-text text-muted">{{ t('step3_desc', lang) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="container my-5">
+    <div class="stats-section p-5 shadow-sm">
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <div class="stat-number">95%+</div>
+                <div class="stat-label">{{ t('detection_accuracy', lang) }}</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-number">4+</div>
+                <div class="stat-label">{{ t('disease_types', lang) }}</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-number">&lt;5s</div>
+                <div class="stat-label">{{ t('avg_response_time', lang) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disease Types Section -->
+<div class="container my-5 py-3">
+    <div class="text-center">
+        <h2 class="section-title">
+            <i class="fas fa-leaf me-2"></i> {{ t('common_diseases', lang) }}
+        </h2>
+        <p class="text-muted">{{ t('common_diseases_desc', lang) if t('common_diseases_desc', lang) != 'common_diseases_desc' else 'Our AI can identify these common maize diseases with high accuracy' }}</p>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-3 mb-4">
+            <div class="disease-card card bg-light border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="disease-icon">🌽</div>
+                    <h6 class="card-title fw-bold mt-2">{{ t('common_rust', lang) }}</h6>
+                    <small class="text-muted">{{ t('common_rust_desc', lang) }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="disease-card card bg-light border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="disease-icon">🍂</div>
+                    <h6 class="card-title fw-bold mt-2">{{ t('gray_leaf_spot', lang) }}</h6>
+                    <small class="text-muted">{{ t('gray_leaf_spot_desc', lang) }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="disease-card card bg-light border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="disease-icon">🌿</div>
+                    <h6 class="card-title fw-bold mt-2">{{ t('northern_leaf_blight', lang) }}</h6>
+                    <small class="text-muted">{{ t('northern_leaf_blight_desc', lang) }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="disease-card card bg-light border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="disease-icon">✨</div>
+                    <h6 class="card-title fw-bold mt-2">{{ t('healthy_leaf', lang) }}</h6>
+                    <small class="text-muted">{{ t('healthy_leaf_desc', lang) }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="container my-5">
+    <div class="cta-section alert alert-success text-center p-5 rounded-4 shadow-sm">
+        <i class="fas fa-heartbeat fa-3x mb-3" style="color: #1e8c3c;"></i>
+        <h3 class="fw-bold">{{ t('protect_crop_title', lang) }}</h3>
+        <p class="mb-3">{{ t('protect_crop_message', lang) }}</p>
+        <a href="{{ url_for('main.predict') }}" class="btn btn-success btn-lg px-5 mt-2">
+            <i class="fas fa-microscope me-2"></i> {{ t('start_detection', lang) }}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

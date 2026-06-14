@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('user_activity_logs', lang) or 'User Activity Logs' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-history me-2"></i>{{ t('user_activity_logs', lang) or 'User Activity Logs' }}</h2>
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>{{ t('back_to_dashboard', lang) or 'Back to Dashboard' }}
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h3 id="totalLogins" class="card-title">0</h3>
+                    <p class="card-text">{{ t('total_logins', lang) or 'Total Logins' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h3 id="totalLogouts" class="card-title">0</h3>
+                    <p class="card-text">{{ t('total_logouts', lang) or 'Total Logouts' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h3 id="totalPredictions" class="card-title">0</h3>
+                    <p class="card-text">{{ t('total_predictions', lang) or 'Total Predictions' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h3 id="activeUsers" class="card-title">0</h3>
+                    <p class="card-text">{{ t('active_users', lang) or 'Active Users' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activities Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-list me-2"></i>{{ t('user_activities', lang) or 'User Activities' }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>{{ t('date_time', lang) or 'Date & Time' }}</th>
+                            <th>{{ t('user', lang) or 'User' }}</th>
+                            <th>{{ t('role', lang) or 'Role' }}</th>
+                            <th>{{ t('activity_type', lang) or 'Activity Type' }}</th>
+                            <th>{{ t('details', lang) or 'Details' }}</th>
+                            <th>{{ t('ip_address', lang) or 'IP Address' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activitiesTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">{{ t('loading', lang) or 'Loading...' }}</span>
+                                </div>
+                                <p class="mt-2">{{ t('loading_activities', lang) or 'Loading activities...' }}</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pass translations to JavaScript
+    window.activityTranslations = {
+        loading: "{{ t('loading', lang) or 'Loading...' }}",
+        no_activities: "{{ t('no_activities_found', lang) or 'No activities found' }}",
+        error_loading: "{{ t('error_loading_activities', lang) or 'Failed to load activities' }}",
+        unknown: "{{ t('unknown', lang) or 'Unknown' }}",
+        na: "{{ t('na', lang) or 'N/A' }}"
+    };
+    
+    async function loadActivities() {
+        try {
+            console.log('Loading activities...');
+            const response = await fetch('/api/admin/user-activity');
+            const data = await response.json();
+            console.log('Data received:', data);
+            
+            if (data.success) {
+                const activities = data.activities || [];
+                
+                // Update stats
+                document.getElementById('totalLogins').textContent = data.stats?.total_logins || 0;
+                document.getElementById('totalLogouts').textContent = data.stats?.total_logouts || 0;
+                document.getElementById('totalPredictions').textContent = data.stats?.total_predictions || 0;
+                document.getElementById('activeUsers').textContent = data.stats?.active_users || 0;
+                
+                // Display table
+                const tbody = document.getElementById('activitiesTableBody');
+                if (activities.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">${window.activityTranslations.no_activities}</td></tr>`;
+                } else {
+                    tbody.innerHTML = activities.map(activity => {
+                        // Get badge color based on activity type
+                        let badgeClass = 'bg-secondary';
+                        const activityType = (activity.activity_type || '').toLowerCase();
+                        if (activityType === 'login') badgeClass = 'bg-success';
+                        else if (activityType === 'logout') badgeClass = 'bg-danger';
+                        else if (activityType === 'prediction') badgeClass = 'bg-info';
+                        else if (activityType === 'admin_action') badgeClass = 'bg-warning';
+                        else if (activityType === 'profile_update') badgeClass = 'bg-primary';
+                        
+                        return `
+                            <tr>
+                                <td class="text-nowrap">${activity.created_at || '-'}</td>
+                                <td><strong>${escapeHtml(activity.user_name || window.activityTranslations.unknown)}</strong></td>
+                                <td><span class="badge bg-secondary">${escapeHtml(activity.user_role || window.activityTranslations.na)}</span></td>
+                                <td><span class="badge ${badgeClass}">${escapeHtml(activity.activity_type || window.activityTranslations.na)}</span></td>
+                                <td>${escapeHtml(activity.activity_details || '-')}</td>
+                                <td><code>${escapeHtml(activity.ip_address || window.activityTranslations.na)}</code></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } else {
+                document.getElementById('activitiesTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${window.activityTranslations.error_loading}</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('activitiesTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${window.activityTranslations.error_loading}: ${error.message}</td></tr>`;
+        }
+    }
+    
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadActivities);
+    // Refresh every 30 seconds
+    setInterval(loadActivities, 30000);
+</script>
+
+<style>
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+    }
+    .card-header h5 {
+        margin: 0;
+    }
+    .text-nowrap {
+        font-size: 0.85rem;
+    }
+    code {
+        font-size: 0.8rem;
+        background: #f4f4f4;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    .badge {
+        padding: 5px 10px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

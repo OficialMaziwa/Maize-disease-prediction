@@ -1,0 +1,141 @@
+/* ==================== ABOUT PAGE STYLES ==================== */
+.about-header {
+    background: linear-gradient(135deg, #1e8c3c 0%, #0d5c2a 100%);
+    border-radius: 20px;
+    padding: 60px 40px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.about-header::before {
+    content: '🌽';
+    position: absolute;
+    font-size: 200px;
+    opacity: 0.1;
+    bottom: -30px;
+    right: -30px;
+    transform: rotate(-15deg);
+}
+
+.about-header::after {
+    content: '🌿';
+    position: absolute;
+    font-size: 150px;
+    opacity: 0.08;
+    top: -20px;
+    left: -20px;
+    transform: rotate(10deg);
+}
+
+/* Statistics Cards */
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e8c3c;
+}
+
+/* Technology Badges */
+.tech-badge {
+    background: #e8f5e9;
+    padding: 12px 20px;
+    border-radius: 50px;
+    display: inline-block;
+    margin: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tech-badge:hover {
+    background: #1e8c3c;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Disease Items */
+.disease-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    border-left: 4px solid #1e8c3c;
+}
+
+.disease-item:hover {
+    background: #e8f5e9;
+    transform: translateX(5px);
+}
+
+/* Timeline */
+.timeline-item {
+    display: flex;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.timeline-icon {
+    width: 50px;
+    height: 50px;
+    background: #1e8c3c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.3rem;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 12px;
+}
+
+/* Progress Bars */
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 1s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .about-header {
+        padding: 40px 20px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .timeline-item {
+        flex-direction: column;
+    }
+
+    .timeline-icon {
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+}

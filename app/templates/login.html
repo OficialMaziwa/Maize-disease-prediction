@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('login', lang) }} - {{ t('maize_disease_detection', lang) }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="auth-header text-white">
+                        <div class="auth-icon">🔐</div>
+                        <h3 class="mb-0">{{ t('welcome_back', lang) }}</h3>
+                        <p class="mb-0 mt-2">{{ t('login_to_account', lang) }}</p>
+                    </div>
+                    
+                    <div class="auth-body">
+                        <div id="alertContainer"></div>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3" role="alert">
+                                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form method="POST" action="{{ url_for('main.login') }}" id="loginForm">
+                            <!-- Phone/Email -->
+                            <div class="form-group mb-3">
+                                <label for="identifier" class="form-label">
+                                    <i class="fas fa-phone-alt me-2"></i>{{ t('phone_or_email', lang) }} *
+                                </label>
+                                <input type="text" class="form-control" id="identifier" name="identifier" 
+                                       placeholder="0712345678 au mkulima@example.com" required>
+                            </div>
+                            
+                            <!-- Password with Toggle Button -->
+                            <div class="form-group mb-4">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>{{ t('password', lang) }} *
+                                </label>
+                                <div class="password-wrapper">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button type="button" class="toggle-password" data-target="password" id="togglePasswordBtn">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-auth text-white w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>{{ t('login_btn', lang) }}
+                            </button>
+                        </form>
+                        
+                        <div class="divider">
+                            <span>{{ t('or', lang) }}</span>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">
+                                {{ t('no_account', lang) }} 
+                                <a href="{{ url_for('main.register') }}" class="auth-link">
+                                    {{ t('register_here', lang) }} <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script>
+    // Password Toggle for Login Page - Works like register page
+    (function() {
+        // Wait for DOM to be ready
+        function initPasswordToggle() {
+            var toggleBtn = document.getElementById('togglePasswordBtn');
+            var passwordInput = document.getElementById('password');
+            
+            if (toggleBtn && passwordInput) {
+                // Remove any existing event listener by cloning
+                var newBtn = toggleBtn.cloneNode(true);
+                toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+                
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Toggle password visibility
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        // Change icon to eye-slash (password is visible)
+                        var icon = this.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        }
+                    } else {
+                        passwordInput.type = 'password';
+                        // Change icon back to eye (password is hidden)
+                        var icon = this.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    }
+                });
+                
+                console.log('✅ Password toggle initialized on login page');
+            } else {
+                console.log('⚠️ Toggle button or password input not found, retrying...');
+                setTimeout(initPasswordToggle, 100);
+            }
+        }
+        
+        // Run when page is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPasswordToggle);
+        } else {
+            initPasswordToggle();
+        }
+    })();
+</script>
+{% endblock %}
