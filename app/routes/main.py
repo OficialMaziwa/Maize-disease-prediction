@@ -449,7 +449,7 @@ def register():
         password_hash = generate_password_hash(
             password, method="pbkdf2:sha256", salt_length=32
         )
-        is_approved = 0 if role == "extension_officer" else 1
+        is_approved = FALSE if role == "extension_officer" else 1
 
         try:
             cursor.execute(
@@ -771,7 +771,7 @@ def admin_dashboard():
         admins = cursor.fetchall() or []
 
         cursor.execute(
-            "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = 0 OR is_approved IS NULL) ORDER BY created_at DESC"
+            "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL) ORDER BY created_at DESC"
         )
         pending_officers = cursor.fetchall() or []
 
@@ -1244,7 +1244,7 @@ def api_admin_stats():
         total_admins = cursor.fetchone()["count"] or 0
 
         cursor.execute(
-            "SELECT COUNT(*) as count FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = 0 OR is_approved IS NULL)"
+            "SELECT COUNT(*) as count FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL)"
         )
         pending_officers = cursor.fetchone()["count"] or 0
 
@@ -1378,7 +1378,7 @@ def admin_approve_officer(user_id):
         # Update approval in database
         cursor.execute(
             """
-            UPDATE maziwa SET is_approved = 1, is_active = 1, approved_at = CURRENT_TIMESTAMP, approved_by = %s 
+            UPDATE maziwa SET is_approved = TRUE, is_active = TRUE, approved_at = CURRENT_TIMESTAMP, approved_by = %s 
             WHERE user_id = %s
         """,
             (session.get("user_id"), user_id),
