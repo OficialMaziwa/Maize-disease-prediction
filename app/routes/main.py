@@ -1388,14 +1388,22 @@ def admin_approve_officer(user_id):
         admin_name = session.get("user_name", "Admin")
         officer_name = officer["full_name"]
 
-        # Send in-app notification only (no email/SMS)
+                # Send email notification
+        email_sent = False
+        if officer.get("email"):
+            email_sent = send_approval_email(officer["email"], officer_name, admin_name)
+        
+        # Send in-app notification
         create_in_app_notification(
             officer["user_id"],
             "Account Approved",
-            f"Your account has been approved by {admin_name}. You can now login to the system.",
+            f"Your account has been approved by {admin_name}. You can now login to the system."
         )
-
-        message = f"Officer {officer_name} approved successfully! They will see the notification when they login."
+        
+        if email_sent:
+            message = f"Officer {officer_name} approved successfully! Email sent to {officer['email']}"
+        else:
+            message = f"Officer {officer_name} approved successfully! (No email sent - officer has no email)"Officer {officer_name} approved successfully! They will see the notification when they login."
 
         return jsonify({"success": True, "message": message})
 
