@@ -2509,6 +2509,13 @@ def upload_profile_photo():
     except Exception as e:
         print(f"Error uploading profile photo: {e}")
         return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
+    
+@main.route("/health", methods=["GET", "HEAD"])
+def health_check():
+    """Health check endpoint for UptimeRobot to keep the service awake.
+       This endpoint does not affect your database or application data.
+    """
+    return {"status": "healthy", "message": "Maize Disease Detection System is running"}
 
 
 # ==================== DELETE PROFILE PHOTO ====================
