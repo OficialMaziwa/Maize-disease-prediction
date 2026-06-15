@@ -517,7 +517,7 @@ def login():
             user = cursor.fetchone()
 
             if user and check_password_hash(user["password_hash"], password):
-                if user["is_active"] == 0:
+                if user["is_active"] == False:
                     flash("Your account is deactivated. Contact admin.", "danger")
                     cursor.close()
                     return render_template(
@@ -526,7 +526,7 @@ def login():
                         t=lang_manager.get_text,
                         request=request,
                     )
-                if user["role"] == "extension_officer" and user["is_approved"] == 0:
+                if user["role"] == "extension_officer" and user["is_approved"] == False:
                     flash("Your account is pending approval by admin.", "warning")
                     cursor.close()
                     return render_template(
@@ -1327,7 +1327,7 @@ def admin_update_user(user_id):
         if "is_approved" in data:
             update_fields.append("is_approved = %s")
             params.append(data["is_approved"])
-            if data["is_approved"] == 1:
+            if data["is_approved"] == True:
                 update_fields.append("approved_at = CURRENT_TIMESTAMP")
 
         if update_fields:
@@ -1368,7 +1368,7 @@ def admin_approve_officer(user_id):
             cursor.close()
             return jsonify({"success": False, "message": "Officer not found"}), 404
 
-        if officer.get("is_approved") == 1:
+        if officer.get("is_approved") == True:
             cursor.close()
             return (
                 jsonify({"success": False, "message": "Officer already approved"}),
