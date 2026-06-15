@@ -1343,8 +1343,6 @@ def admin_update_user(user_id):
 
 
 # ==================== ADMIN OFFICER APPROVAL ====================
-@main.route("/admin/officer/<user_id>/approve", methods=["POST"])
-@log_activity
 def admin_approve_officer(user_id):
     if session.get("user_role") != "admin":
         return jsonify({"error": "Unauthorized"}), 403
@@ -1387,30 +1385,59 @@ def admin_approve_officer(user_id):
 
         admin_name = session.get("user_name", "Admin")
         officer_name = officer["full_name"]
+        officer_email = officer.get("email")
 
-                # Send email notification
+        # Send email notification only
         email_sent = False
-        if officer.get("email"):
-            email_sent = send_approval_email(officer["email"], officer_name, admin_name)
-        
-        # Send in-app notification
-        create_in_app_notification(
-            officer["user_id"],
-            "Account Approved",
-            f"Your account has been approved by {admin_name}. You can now login to the system."
-        )
-        
+        if officer_email:
+            try:
+                from flask_mail import Message
+                subject = "? Account Approved - Maize Disease Detection System"
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="background: #28a745; color: white; padding: 20px; text-align: center;">
+                            <h2>?? Maize Disease Detection System</h2>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 30px;">
+                            <h3>Congratulations, {officer_name}! ??</h3>
+                            <p>Your account has been <strong>APPROVED</strong> by <strong>{admin_name}</strong>.</p>
+                            <p>You can now login to the system and start helping farmers detect maize diseases.</p>
+                            <p style="text-align: center;">
+                                <a href="{APP_URL}/login" style="background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px;">?? Login to Your Account</a>
+                            </p>
+                            <p><strong>Login credentials:</strong><br>
+                            Phone number: Your registered phone number<br>
+                            Password: Your chosen password</p>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
+                            <p>Maize Disease Detection System - Helping Farmers Make Better Decisions</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                msg = Message(subject, recipients=[officer_email])
+                msg.html = html_content
+                mail.send(msg)
+                email_sent = True
+                print(f"? Approval email sent to {officer_email}")
+            except Exception as e:
+                print(f"? Failed to send email: {e}")
+
         if email_sent:
-            message = f"Officer {officer_name} approved successfully! Email sent to {officer['email']}"
+            message = f"Officer {officer_name} approved! Email sent to {officer_email}"
         else:
-            message = f"Officer {officer_name} approved successfully! (No email sent - officer has no email)"Officer {officer_name} approved successfully! They will see the notification when they login."
+            message = f"Officer {officer_name} approved! (No email sent - officer has no email address)"
 
         return jsonify({"success": True, "message": message})
 
     except Exception as e:
         print(f"Error approving officer: {e}")
         import traceback
-
         traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
 
