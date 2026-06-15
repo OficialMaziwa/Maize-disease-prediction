@@ -1462,8 +1462,6 @@ def admin_reject_officer(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-
-
 # ==================== OFFICER DASHBOARD ====================
 @main.route("/officer-dashboard")
 @log_activity
@@ -1736,53 +1734,55 @@ def api_predict():
             temp_path = os.path.join(UPLOAD_FOLDER, temp_filename)
             img.save(temp_path, "JPEG", quality=90)
 
-            # Direct prediction
-            if detector is not None and detector.model is not None:
-                try:
-                    from tensorflow.keras.preprocessing import image
-                    import numpy as np
+            # ============ FIXED PREDICTION CODE - LOAD MODEL DIRECTLY ============
+            import tensorflow as tf
+            from tensorflow.keras.preprocessing import image
+            import numpy as np
+            import json as json_lib
 
-                    img_pred = image.load_img(temp_path, target_size=(224, 224))
-                    img_array = image.img_to_array(img_pred)
-                    img_array = np.expand_dims(img_array, axis=0)
-                    img_array = img_array / 255.0
+            # Path to model
+            model_path = "app/models/maize_disease_model.h5"
 
-                    predictions = detector.model.predict(img_array, verbose=0)[0]
-                    predicted_idx = np.argmax(predictions)
-                    confidence = float(predictions[predicted_idx] * 100)
+            if os.path.exists(model_path):
+                print(f"✅ Loading model from {model_path}")
+                model = tf.keras.models.load_model(model_path)
+                print(f"✅ Model loaded, input shape: {model.input_shape}")
 
-                    if detector.class_names:
-                        if isinstance(detector.class_names, list):
-                            disease_name = detector.class_names[predicted_idx]
-                        elif (
-                            isinstance(detector.class_names, dict)
-                            and "class_names" in detector.class_names
-                        ):
-                            disease_name = detector.class_names["class_names"][
-                                predicted_idx
-                            ]
-                        else:
-                            disease_name = list(detector.class_names.keys())[
-                                predicted_idx
-                            ]
-                    else:
-                        disease_name = "Unknown"
+                # Load class names
+                class_names_path = "class_names.json"
+                if os.path.exists(class_names_path):
+                    with open(class_names_path, "r") as f:
+                        class_names = json_lib.load(f)
+                    if isinstance(class_names, dict) and "class_names" in class_names:
+                        class_names = class_names["class_names"]
+                else:
+                    class_names = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
 
-                    print(f"🎯 API Prediction: {disease_name} ({confidence:.1f}%)")
+                print(f"✅ Class names: {class_names}")
 
-                except Exception as pred_error:
-                    print(f"❌ Prediction error: {pred_error}")
-                    disease_name = "Healthy"
-                    confidence = 85.5
+                # Preprocess image
+                img_pred = image.load_img(temp_path, target_size=(224, 224))
+                img_array = image.img_to_array(img_pred)
+                img_array = np.expand_dims(img_array, axis=0)
+                img_array = img_array / 255.0
+
+                # Predict
+                predictions = model.predict(img_array, verbose=0)[0]
+                predicted_idx = np.argmax(predictions)
+                confidence = float(predictions[predicted_idx] * 100)
+                disease_name = class_names[predicted_idx] if class_names else "Unknown"
+
+                print(f"🎯 API Prediction: {disease_name} ({confidence:.1f}%)")
+                print(f"🎯 Raw predictions: {predictions}")
             else:
+                print(f"❌ Model not found at {model_path}")
                 disease_name = "Healthy"
                 confidence = 85.5
+            # ============ END OF FIXED PREDICTION CODE ============
 
             # Translate disease name based on language
             if language == "sw":
-                display_disease_name = lang_manager.get_disease_translation(
-                    disease_name, "sw"
-                )
+                display_disease_name = disease_name
             else:
                 display_disease_name = disease_name
 
@@ -2052,6 +2052,9 @@ def api_predict():
             )
         except Exception as e:
             print(f"Error in prediction: {e}")
+            import traceback
+
+            traceback.print_exc()
             return (
                 jsonify(
                     {
