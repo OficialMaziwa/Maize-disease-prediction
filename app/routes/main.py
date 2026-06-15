@@ -1342,8 +1342,11 @@ def admin_update_user(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
+
 # ==================== ADMIN OFFICER APPROVAL ====================
-@main.route("/admin/officer/<user_id>/approve", methods=["POST"])\n@log_activity\n\1
+@main.route("/admin/officer/<user_id>/approve", methods=["POST"])
+@log_activity
+def admin_approve_officer(user_id):
     if session.get("user_role") != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
@@ -1367,10 +1370,7 @@ def admin_update_user(user_id):
 
         if officer.get("is_approved") == True:
             cursor.close()
-            return (
-                jsonify({"success": False, "message": "Officer already approved"}),
-                400,
-            )
+            return jsonify({"success": False, "message": "Officer already approved"}), 400
 
         # Update approval in database
         cursor.execute(
@@ -1387,41 +1387,24 @@ def admin_update_user(user_id):
         officer_name = officer["full_name"]
         officer_email = officer.get("email")
 
-        # Send email notification only
+        # Send email notification
         email_sent = False
         if officer_email:
             try:
                 from flask_mail import Message
                 subject = "? Account Approved - Maize Disease Detection System"
-                html_content = f"""
-                <!DOCTYPE html>
-                <html>
-                <head><meta charset="UTF-8"></head>
-                <body style="font-family: Arial, sans-serif;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <div style="background: #28a745; color: white; padding: 20px; text-align: center;">
-                            <h2>?? Maize Disease Detection System</h2>
-                        </div>
-                        <div style="background: #f8f9fa; padding: 30px;">
-                            <h3>Congratulations, {officer_name}! ??</h3>
-                            <p>Your account has been <strong>APPROVED</strong> by <strong>{admin_name}</strong>.</p>
-                            <p>You can now login to the system and start helping farmers detect maize diseases.</p>
-                            <p style="text-align: center;">
-                                <a href="{APP_URL}/login" style="background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px;">?? Login to Your Account</a>
-                            </p>
-                            <p><strong>Login credentials:</strong><br>
-                            Phone number: Your registered phone number<br>
-                            Password: Your chosen password</p>
-                        </div>
-                        <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
-                            <p>Maize Disease Detection System - Helping Farmers Make Better Decisions</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
+                body = f"""
+                Congratulations {officer_name}!
+                
+                Your account has been APPROVED by {admin_name}.
+                
+                You can now login to the system:
+                {APP_URL}/login
+                
+                Use your phone number and password to login.
                 """
                 msg = Message(subject, recipients=[officer_email])
-                msg.html = html_content
+                msg.body = body
                 mail.send(msg)
                 email_sent = True
                 print(f"? Approval email sent to {officer_email}")
@@ -1431,54 +1414,16 @@ def admin_update_user(user_id):
         if email_sent:
             message = f"Officer {officer_name} approved! Email sent to {officer_email}"
         else:
-            message = f"Officer {officer_name} approved! (No email sent - officer has no email address)"
+            message = f"Officer {officer_name} approved successfully!"
 
         return jsonify({"success": True, "message": message})
 
     except Exception as e:
         print(f"Error approving officer: {e}")
-        import traceback
-        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-@main.route("/admin/officer/<user_id>/reject", methods=["POST"])
-@log_activity
-def admin_reject_officer(user_id):
-    if session.get("user_role") != "admin":
-        return jsonify({"error": "Unauthorized"}), 403
 
-    if not ensure_db_connection():
-        return jsonify({"success": False, "message": "Database connection error"}), 500
-
-    data = request.get_json()
-    reason = data.get("reason", "No specific reason provided")
-
-    try:
-        cursor = user_db.get_cursor()
-        cursor.execute(
-            """
-            SELECT full_name, phone_number, email 
-            FROM maziwa WHERE user_id = %s AND LOWER(role) = LOWER('extension_officer')
-        """,
-            (user_id,),
-        )
-        officer = cursor.fetchone()
-
-        if not officer:
-            cursor.close()
-            return jsonify({"success": False, "message": "Officer not found"}), 404
-
-        cursor.execute("DELETE FROM maziwa WHERE user_id = %s", (user_id,))
-        db.connection.commit()
-        cursor.close()
-
-        return jsonify({"success": True, "message": "Officer rejected and deleted."})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-
-
-# ==================== OFFICER DASHBOARD ====================
 @main.route("/officer-dashboard")
 @log_activity
 def officer_dashboard():
