@@ -1,4 +1,4 @@
-﻿import os
+import os
 """
 Language Manager for Maize Disease Detection System
 """
@@ -17,12 +17,12 @@ class LanguageManager:
         if database_url:
             try:
                 self.connection = psycopg2.connect(database_url)
-                print("✅ Language Manager connected to PostgreSQL")
+                print("? Language Manager connected to PostgreSQL")
             except Error as e:
-                print(f"❌ Language Manager DB connection error: {e}")
+                print(f"? Language Manager DB connection error: {e}")
                 self.connection = None
         else:
-            print("⚠️ Language Manager: DATABASE_URL not set")
+            print("?? Language Manager: DATABASE_URL not set")
             self.connection = None
 
     def get_text(self, key, language="en"):
@@ -148,7 +148,54 @@ class LanguageManager:
             "extension_officers": {"en": "Extension Officers", "sw": "Maafisa Ugani"},
             "farmers": {"en": "Farmers", "sw": "Wakulima"},
             "admins": {"en": "Admins", "sw": "Wasimamizi"},
-            "pending_approvals": {"en": "Pending Approvals", "sw": "Idhini Zinazosubiri"},
+            "pending_approvals": {"en": "Pending Approvals", "sw": "Idhini Zinazosubiri"},            # About page translations
+            "our_mission": {"en": "Our Mission", "sw": "Dhamira Yetu"},
+            "mission_text": {"en": "To empower smallholder farmers with accessible AI technology for early detection of maize diseases, reducing crop losses and improving food security in Tanzania and across Africa.", "sw": "Kuwasaidia wakulima wadogo kwa teknolojia ya AI inayopatikana kwa urahisi kwa utambuzi wa mapema wa magonjwa ya mahindi, kupunguza hasara ya mazao na kuboresha usalama wa chakula Tanzania na Afrika kwa ujumla."},
+            "our_vision": {"en": "Our Vision", "sw": "Maono Yetu"},
+            "vision_text": {"en": "A future where every farmer has access to AI-powered agricultural extension services, enabling sustainable farming practices and increased agricultural productivity.", "sw": "Wakati ujao ambapo kila mkulima ana upatikanaji wa huduma za ugani za kilimo zinazoendeshwa na AI, kuwezesha mazoea endelevu ya kilimo na kuongeza tija ya kilimo."},
+            "the_problem": {"en": "The Problem", "sw": "Tatizo"},
+            "problem_text": {"en": "Maize diseases cause up to 50% crop loss in Sub-Saharan Africa. Late detection and limited access to agricultural extension services leave many farmers without timely solutions.", "sw": "Magonjwa ya mahindi husababisha hadi asilimia 50 ya upotevu wa mazao katika Afrika Kusini mwa Jangwa la Sahara. Utambuzi wa marehemu na upatikanaji mdogo wa huduma za ugani za kilimo huwaacha wakulima wengi bila ufumbuzi wa wakati."},
+            "responsive_ui": {"en": "Responsive UI", "sw": "Kiolesura Kinachojirekebisha"},
+            "images_trained": {"en": "Images Trained", "sw": "Picha Zilizofunzwa"},
+            "diseases_we_detect": {"en": "Diseases We Detect", "sw": "Magonjwa Tunayogundua"},
+            
+            # Login page translations
+            "welcome_back": {"en": "Welcome back", "sw": "Karibu tena"},
+            "login_to_account": {"en": "Login to your account", "sw": "Ingia kwenye akaunti yako"},
+            "phone_or_email": {"en": "Phone Number or Email", "sw": "Namba ya Simu au Barua Pepe"},
+            "login_btn": {"en": "Login", "sw": "Ingia"},
+            "or": {"en": "or", "sw": "au"},
+            "no_account": {"en": "Don't have an account?", "sw": "Huna akaunti?"},
+            "register_here": {"en": "Register here", "sw": "Jisajili hapa"},
+            "forgot_password": {"en": "Forgot Password?", "sw": "Umesahau Nenosiri?"},
+            
+            # Register page translations
+            "create_account": {"en": "Create Account", "sw": "Tengeneza Akaunti"},
+            "full_name": {"en": "Full Name", "sw": "Jina Kamili"},
+            "phone_number": {"en": "Phone Number", "sw": "Namba ya Simu"},
+            "phone_example": {"en": "Example: 0712345678", "sw": "Mfano: 0712345678"},
+            "email_optional": {"en": "Email (Optional)", "sw": "Barua Pepe (Si Lazima)"},
+            "region": {"en": "Region", "sw": "Mkoa"},
+            "district": {"en": "District", "sw": "Wilaya"},
+            "ward": {"en": "Ward", "sw": "Kata"},
+            "street": {"en": "Street/Village", "sw": "Mtaa/Kijiji"},
+            "street_help": {"en": "Example: Village A, Street B", "sw": "Mfano: Kijiji A, Mtaa B"},
+            "account_type": {"en": "Account Type", "sw": "Aina ya Akaunti"},
+            "extension_officer": {"en": "Extension Officer", "sw": "Afisa Ugani"},
+            "password": {"en": "Password", "sw": "Nenosiri"},
+            "confirm_password": {"en": "Confirm Password", "sw": "Thibitisha Nenosiri"},
+            "farmer_info": {"en": "Farmers can detect diseases on maize crops.", "sw": "Wakulima wanaweza kugundua magonjwa kwenye mazao ya mahindi."},
+            "officer_info": {"en": "Extension officers need admin approval before accessing the system.", "sw": "Maafisa ugani wanahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
+            "review_register": {"en": "Review & Register", "sw": "Kagua na Jisajili"},
+            "have_account": {"en": "Already have an account?", "sw": "Tayari una akaunti?"},
+            "login_here": {"en": "Login here", "sw": "Ingia hapa"},
+            "secure_info": {"en": "Your information is secure with us", "sw": "Taarifa zako ziko salama kwetu"},
+            "confirm_details": {"en": "Confirm Registration Details", "sw": "Thibitisha Taarifa za Usajili"},
+            "review_info": {"en": "Please review your information before submitting", "sw": "Tafadhali kagua taarifa zako kabla ya kutuma"},
+            "confirm_register": {"en": "Confirm Registration", "sw": "Thibitisha Usajili"},
+            "officer_warning_title": {"en": "Pending Approval", "sw": "Inasubiri Idhini"},
+            "officer_warning_text": {"en": "As an Extension Officer, your account will require admin approval before you can access the system.", "sw": "Kama Afisa Ugani, akaunti yako itahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
+            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},
         }
         
         if key in translations:
@@ -161,7 +208,54 @@ class LanguageManager:
             "Blight": {"en": "Northern Leaf Blight", "sw": "Ugonjwa wa Majani wa Kaskazini"},
             "Common_Rust": {"en": "Common Rust", "sw": "Kutu wa Kawaida"},
             "Gray_Leaf_Spot": {"en": "Gray Leaf Spot", "sw": "Madoa Meusi"},
-            "Healthy": {"en": "Healthy", "sw": "Afya"},
+            "Healthy": {"en": "Healthy", "sw": "Afya"},            # About page translations
+            "our_mission": {"en": "Our Mission", "sw": "Dhamira Yetu"},
+            "mission_text": {"en": "To empower smallholder farmers with accessible AI technology for early detection of maize diseases, reducing crop losses and improving food security in Tanzania and across Africa.", "sw": "Kuwasaidia wakulima wadogo kwa teknolojia ya AI inayopatikana kwa urahisi kwa utambuzi wa mapema wa magonjwa ya mahindi, kupunguza hasara ya mazao na kuboresha usalama wa chakula Tanzania na Afrika kwa ujumla."},
+            "our_vision": {"en": "Our Vision", "sw": "Maono Yetu"},
+            "vision_text": {"en": "A future where every farmer has access to AI-powered agricultural extension services, enabling sustainable farming practices and increased agricultural productivity.", "sw": "Wakati ujao ambapo kila mkulima ana upatikanaji wa huduma za ugani za kilimo zinazoendeshwa na AI, kuwezesha mazoea endelevu ya kilimo na kuongeza tija ya kilimo."},
+            "the_problem": {"en": "The Problem", "sw": "Tatizo"},
+            "problem_text": {"en": "Maize diseases cause up to 50% crop loss in Sub-Saharan Africa. Late detection and limited access to agricultural extension services leave many farmers without timely solutions.", "sw": "Magonjwa ya mahindi husababisha hadi asilimia 50 ya upotevu wa mazao katika Afrika Kusini mwa Jangwa la Sahara. Utambuzi wa marehemu na upatikanaji mdogo wa huduma za ugani za kilimo huwaacha wakulima wengi bila ufumbuzi wa wakati."},
+            "responsive_ui": {"en": "Responsive UI", "sw": "Kiolesura Kinachojirekebisha"},
+            "images_trained": {"en": "Images Trained", "sw": "Picha Zilizofunzwa"},
+            "diseases_we_detect": {"en": "Diseases We Detect", "sw": "Magonjwa Tunayogundua"},
+            
+            # Login page translations
+            "welcome_back": {"en": "Welcome back", "sw": "Karibu tena"},
+            "login_to_account": {"en": "Login to your account", "sw": "Ingia kwenye akaunti yako"},
+            "phone_or_email": {"en": "Phone Number or Email", "sw": "Namba ya Simu au Barua Pepe"},
+            "login_btn": {"en": "Login", "sw": "Ingia"},
+            "or": {"en": "or", "sw": "au"},
+            "no_account": {"en": "Don't have an account?", "sw": "Huna akaunti?"},
+            "register_here": {"en": "Register here", "sw": "Jisajili hapa"},
+            "forgot_password": {"en": "Forgot Password?", "sw": "Umesahau Nenosiri?"},
+            
+            # Register page translations
+            "create_account": {"en": "Create Account", "sw": "Tengeneza Akaunti"},
+            "full_name": {"en": "Full Name", "sw": "Jina Kamili"},
+            "phone_number": {"en": "Phone Number", "sw": "Namba ya Simu"},
+            "phone_example": {"en": "Example: 0712345678", "sw": "Mfano: 0712345678"},
+            "email_optional": {"en": "Email (Optional)", "sw": "Barua Pepe (Si Lazima)"},
+            "region": {"en": "Region", "sw": "Mkoa"},
+            "district": {"en": "District", "sw": "Wilaya"},
+            "ward": {"en": "Ward", "sw": "Kata"},
+            "street": {"en": "Street/Village", "sw": "Mtaa/Kijiji"},
+            "street_help": {"en": "Example: Village A, Street B", "sw": "Mfano: Kijiji A, Mtaa B"},
+            "account_type": {"en": "Account Type", "sw": "Aina ya Akaunti"},
+            "extension_officer": {"en": "Extension Officer", "sw": "Afisa Ugani"},
+            "password": {"en": "Password", "sw": "Nenosiri"},
+            "confirm_password": {"en": "Confirm Password", "sw": "Thibitisha Nenosiri"},
+            "farmer_info": {"en": "Farmers can detect diseases on maize crops.", "sw": "Wakulima wanaweza kugundua magonjwa kwenye mazao ya mahindi."},
+            "officer_info": {"en": "Extension officers need admin approval before accessing the system.", "sw": "Maafisa ugani wanahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
+            "review_register": {"en": "Review & Register", "sw": "Kagua na Jisajili"},
+            "have_account": {"en": "Already have an account?", "sw": "Tayari una akaunti?"},
+            "login_here": {"en": "Login here", "sw": "Ingia hapa"},
+            "secure_info": {"en": "Your information is secure with us", "sw": "Taarifa zako ziko salama kwetu"},
+            "confirm_details": {"en": "Confirm Registration Details", "sw": "Thibitisha Taarifa za Usajili"},
+            "review_info": {"en": "Please review your information before submitting", "sw": "Tafadhali kagua taarifa zako kabla ya kutuma"},
+            "confirm_register": {"en": "Confirm Registration", "sw": "Thibitisha Usajili"},
+            "officer_warning_title": {"en": "Pending Approval", "sw": "Inasubiri Idhini"},
+            "officer_warning_text": {"en": "As an Extension Officer, your account will require admin approval before you can access the system.", "sw": "Kama Afisa Ugani, akaunti yako itahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
+            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},
         }
         
         if disease_name in disease_translations:
