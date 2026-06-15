@@ -368,23 +368,161 @@
                     </div>
                 </div>
 
-                <!-- Reports Tab -->
+                                <!-- Reports Tab -->
                 <div class="tab-pane fade" id="reports">
-                    <div class="p-4 text-center">
-                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-                        <h4>{{ t('reports_dashboard', lang) or 'Reports Dashboard' }}</h4>
-                        <p class="text-muted">{{ t('comprehensive_reports', lang) or 'Comprehensive reports and analytics coming soon' }}</p>
-                        <div class="row mt-4">
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                                        <h5>{{ t('user_reports', lang) or 'User Reports' }}</h5>
-                                        <p>{{ t('generate_user_reports', lang) or 'Generate user registration and activity reports' }}</p>
-                                        <button class="btn btn-sm btn-primary" onclick="generateReport('users')">
-                                            {{ t('generate_report', lang) or 'Generate Report' }}
-                                        </button>
+                    <div class="p-4">
+                        <!-- Report Type Selector -->
+                        <div class="btn-group w-100 mb-4" role="group">
+                            <button type="button" class="btn btn-outline-primary active" onclick="showReport('users')">
+                                <i class="fas fa-users me-2"></i>{{ t('user_reports', session.get('language', 'en')) }}
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="showReport('diseases')">
+                                <i class="fas fa-leaf me-2"></i>{{ t('disease_reports', session.get('language', 'en')) }}
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="showReport('analytics')">
+                                <i class="fas fa-chart-line me-2"></i>{{ t('analytics', session.get('language', 'en')) }}
+                            </button>
+                        </div>
+                        
+                        <!-- User Reports -->
+                        <div id="userReports" class="report-content">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-chart-pie me-2"></i>Users by Role
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="usersByRoleChart" height="200"></canvas>
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-calendar me-2"></i>Registrations (Last 6 Months)
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="registrationsChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ t('role', session.get('language', 'en')) }}</th>
+                                                        <th>{{ t('count', session.get('language', 'en')) }}</th>
+                                                        <th>{{ t('percentage', session.get('language', 'en')) }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="usersByRoleTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Disease Reports -->
+                        <div id="diseaseReports" class="report-content" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-chart-bar me-2"></i>Disease Frequency
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="diseaseFrequencyChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-trophy me-2"></i>Most Common Disease
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <div id="mostCommonDisease" class="display-4 fw-bold text-success">-</div>
+                                            <p class="text-muted">Total Detections</p>
+                                            <div id="mostCommonCount" class="fs-3">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <canvas id="monthlyDetectionsChart" height="250"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Analytics Reports -->
+                        <div id="analyticsReports" class="report-content" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-0 shadow-sm text-center">
+                                        <div class="card-body">
+                                            <i class="fas fa-chart-line fa-3x text-primary mb-2"></i>
+                                            <h3 id="totalPredictionsStat" class="mb-0">-</h3>
+                                            <p class="text-muted">{{ t('total_predictions', session.get('language', 'en')) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-0 shadow-sm text-center">
+                                        <div class="card-body">
+                                            <i class="fas fa-percent fa-3x text-success mb-2"></i>
+                                            <h3 id="avgConfidenceStat" class="mb-0">-</h3>
+                                            <p class="text-muted">{{ t('avg_confidence', session.get('language', 'en')) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card border-0 shadow-sm text-center">
+                                        <div class="card-body">
+                                            <i class="fas fa-users fa-3x text-info mb-2"></i>
+                                            <h3 id="activeUsersStat" class="mb-0">-</h3>
+                                            <p class="text-muted">{{ t('active_users_30d', session.get('language', 'en')) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-chart-line me-2"></i>Daily Predictions (Last 30 Days)
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="dailyPredictionsChart" height="250"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white fw-bold">
+                                            <i class="fas fa-chart-pie me-2"></i>User Activity Breakdown
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="activityBreakdownChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
