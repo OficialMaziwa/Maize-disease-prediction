@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t('admin_dashboard', lang) }} - System Control{% endblock %}
+{% block title %}{{ t('admin_dashboard', session.get('language', 'en')) }} - System Control{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
@@ -12,16 +12,16 @@
     <div class="welcome-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <h2 class="mb-2"><i class="fas fa-crown me-2"></i>{{ t('admin_dashboard', lang) }}</h2>
-                <p class="mb-0 opacity-75">{{ t('welcome_back', lang) }}, {{ session.user_name }}! {{ t('full_system_control', lang) }}</p>
+                <h2 class="mb-2"><i class="fas fa-crown me-2"></i>{{ t('admin_dashboard', session.get('language', 'en')) }}</h2>
+                <p class="mb-0 opacity-75">{{ t('welcome_back', session.get('language', 'en')) }}, {{ session.user_name }}! {{ t('full_system_control', session.get('language', 'en')) }}</p>
             </div>
             
             <div class="mt-3 mt-sm-0 d-flex gap-2">
                 <a href="{{ url_for('main.admin_user_activity') }}" class="btn btn-info">
-                    <i class="fas fa-users me-2"></i>{{ t('user_activity_logs', lang) or 'User Activity Logs' }}
+                    <i class="fas fa-users me-2"></i>{{ t('user_activity_logs', session.get('language', 'en')) or 'User Activity Logs' }}
                 </a>
                 <button class="btn btn-light" onclick="refreshAllData()">
-                    <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', lang) or 'Refresh Data' }}
+                    <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', session.get('language', 'en')) or 'Refresh Data' }}
                 </button>
             </div>
         </div>
@@ -35,7 +35,7 @@
                     <i class="fas fa-users text-white"></i>
                 </div>
                 <div class="stat-value">{{ stats.get('total_users', 0) }}</div>
-                <div class="stat-label">{{ t('total_users', lang) or 'Total Users' }}</div>
+                <div class="stat-label">{{ t('total_users', session.get('language', 'en')) or 'Total Users' }}</div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6">
@@ -44,7 +44,7 @@
                     <i class="fas fa-user-friends text-white"></i>
                 </div>
                 <div class="stat-value">{{ stats.get('total_farmers', 0) }}</div>
-                <div class="stat-label">{{ t('farmers', lang) or 'Farmers' }}</div>
+                <div class="stat-label">{{ t('farmers', session.get('language', 'en')) or 'Farmers' }}</div>
             </div>
         </div>
         <div class="col-md-3 col-sm-6">
@@ -53,8 +53,8 @@
                     <i class="fas fa-chalkboard-teacher text-white"></i>
                 </div>
                 <div class="stat-value">{{ stats.get('total_officers', 0) }}</div>
-                <div class="stat-label">{{ t('extension_officers', lang) or 'Extension Officers' }}</div>
-                <small class="text-warning">{{ t('pending', lang) or 'Pending' }}: {{ stats.get('pending_officers', 0) }}</small>
+                <div class="stat-label">{{ t('extension_officers', session.get('language', 'en')) or 'Extension Officers' }}</div>
+                <small class="text-warning">{{ t('pending', session.get('language', 'en')) or 'Pending' }}: {{ stats.get('pending_officers', 0) }}</small>
             </div>
         </div>
         <div class="col-md-3 col-sm-6">
@@ -63,7 +63,7 @@
                     <i class="fas fa-chart-line text-white"></i>
                 </div>
                 <div class="stat-value">{{ stats.get('total_predictions', 0) }}</div>
-                <div class="stat-label">{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</div>
+                <div class="stat-label">{{ t('total_diagnoses', session.get('language', 'en')) or 'Total Diagnoses' }}</div>
             </div>
         </div>
     </div>
@@ -74,35 +74,34 @@
             <ul class="nav nav-tabs-custom" id="adminTabs" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#farmers">
-                        <i class="fas fa-user-friends me-2"></i>{{ t('farmers', lang) or 'Farmers' }}
+                        <i class="fas fa-user-friends me-2"></i>{{ t('farmers', session.get('language', 'en')) or 'Farmers' }}
                         <span class="badge bg-success ms-2">{{ farmers|length }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#officers">
-                        <i class="fas fa-chalkboard-teacher me-2"></i>{{ t('extension_officers', lang) or 'Extension Officers' }}
+                        <i class="fas fa-chalkboard-teacher me-2"></i>{{ t('extension_officers', session.get('language', 'en')) or 'Extension Officers' }}
                         <span class="badge bg-info ms-2">{{ officers|length }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#pending">
-                        <i class="fas fa-clock me-2"></i>{{ t('pending_approvals', lang) or 'Pending Approvals' }}
+                        <i class="fas fa-clock me-2"></i>{{ t('pending_approvals', session.get('language', 'en')) or 'Pending Approvals' }}
                         <span class="badge bg-danger ms-2">{{ pending_officers|length }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#admins">
-                        <i class="fas fa-user-shield me-2"></i>{{ t('admins', lang) or 'Admins' }}
+                        <i class="fas fa-user-shield me-2"></i>{{ t('admins', session.get('language', 'en')) or 'Admins' }}
                         <span class="badge bg-warning ms-2">{{ admins|length }}</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#diseases">
-                        <i class="fas fa-leaf me-2"></i>{{ t('diseases', lang) or 'Diseases' }}
+                        <i class="fas fa-leaf me-2"></i>{{ t('diseases', session.get('language', 'en')) or 'Diseases' }}
                         <span class="badge bg-success ms-2">{{ diseases|length }}</span>
                     </a>
                 </li>
-                
             </ul>
         </div>
         
@@ -112,22 +111,22 @@
                 <div class="tab-pane fade show active" id="farmers">
                     <div class="p-3">
                         <button class="btn btn-success" onclick="showAddFarmerModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_farmer', lang) or 'Add New Farmer' }}
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_farmer', session.get('language', 'en')) or 'Add New Farmer' }}
                         </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ t('id', lang) or 'ID' }}</th>
-                                    <th>{{ t('name', lang) or 'Name' }}</th>
-                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
-                                    <th>{{ t('email', lang) or 'Email' }}</th>
-                                    <th>{{ t('location', lang) or 'Location' }}</th>
-                                    <th>{{ t('district', lang) or 'District' }}</th>
-                                    <th>{{ t('region', lang) or 'Region' }}</th>
-                                    <th>{{ t('status', lang) or 'Status' }}</th>
-                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
+                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
+                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
+                                    <th>{{ t('location', session.get('language', 'en')) or 'Location' }}</th>
+                                    <th>{{ t('district', session.get('language', 'en')) or 'District' }}</th>
+                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
+                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
+                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -140,15 +139,15 @@
                                     <td>{{ farmer.location or '-' }}</td>
                                     <td>{{ farmer.district or '-' }}</td>
                                     <td>{{ farmer.region or '-' }}</td>
-                                    <td><span class="badge bg-success">{{ t('active', lang) or 'Active' }}</span></td>
+                                    <td><span class="badge bg-success">{{ t('active', session.get('language', 'en')) or 'Active' }}</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ farmer.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ farmer.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ farmer.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ farmer.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ farmer.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ farmer.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -163,21 +162,21 @@
                 <div class="tab-pane fade" id="officers">
                     <div class="p-3">
                         <button class="btn btn-primary" onclick="showAddOfficerModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_officer', lang) or 'Add New Officer' }}
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_officer', session.get('language', 'en')) or 'Add New Officer' }}
                         </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ t('id', lang) or 'ID' }}</th>
-                                    <th>{{ t('name', lang) or 'Name' }}</th>
-                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
-                                    <th>{{ t('email', lang) or 'Email' }}</th>
-                                    <th>{{ t('region', lang) or 'Region' }}</th>
-                                    <th>{{ t('status', lang) or 'Status' }}</th>
-                                    <th>{{ t('approved', lang) or 'Approved' }}</th>
-                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
+                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
+                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
+                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
+                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
+                                    <th>{{ t('approved', session.get('language', 'en')) or 'Approved' }}</th>
+                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,27 +189,27 @@
                                     <td>{{ officer.region or '-' }}</td>
                                     <td>
                                         <span class="badge {% if officer.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if officer.is_active %}{{ t('active', lang) or 'Active' }}{% else %}{{ t('inactive', lang) or 'Inactive' }}{% endif %}
+                                            {% if officer.is_active %}{{ t('active', session.get('language', 'en')) or 'Active' }}{% else %}{{ t('inactive', session.get('language', 'en')) or 'Inactive' }}{% endif %}
                                         </span>
                                     </td>
                                     <td>
                                         <span class="badge {% if officer.is_approved %}bg-success{% else %}bg-warning{% endif %}">
-                                            {% if officer.is_approved %}{{ t('approved', lang) or 'Approved' }}{% else %}{{ t('pending', lang) or 'Pending' }}{% endif %}
+                                            {% if officer.is_approved %}{{ t('approved', session.get('language', 'en')) or 'Approved' }}{% else %}{{ t('pending', session.get('language', 'en')) or 'Pending' }}{% endif %}
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ officer.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ officer.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ officer.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ officer.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         {% if not officer.is_approved %}
-                                            <button class="btn btn-sm btn-success" onclick="approveOfficer('{{ officer.user_id }}')" title="{{ t('approve', lang) or 'Approve' }}">
+                                            <button class="btn btn-sm btn-success" onclick="approveOfficer('{{ officer.user_id }}')" title="{{ t('approve', session.get('language', 'en')) or 'Approve' }}">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         {% endif %}
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ officer.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ officer.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -221,71 +220,71 @@
                     </div>
                 </div>
 
-               <!-- Pending Approvals Tab  -->
-<div class="tab-pane fade" id="pending">
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>{{ t('id', lang) or 'ID' }}</th>
-                    <th>{{ t('name', lang) or 'Name' }}</th>
-                    <th>{{ t('phone', lang) or 'Phone' }}</th>
-                    <th>{{ t('email', lang) or 'Email' }}</th>
-                    <th>{{ t('region', lang) or 'Region' }}</th>
-                    <th>{{ t('registered', lang) or 'Registered' }}</th>
-                    <th>{{ t('actions', lang) or 'Actions' }}</th>
-                </tr>
-            </thead>
-            <tbody id="pending-officers-tbody">
-                {% for officer in pending_officers %}
-                <tr id="officer-row-{{ officer.user_id }}">
-                    <td>{{ officer.user_id or 'N/A' }}</td>
-                    <td><strong>{{ officer.full_name }}</strong></td>
-                    <td>{{ officer.phone_number }}</td>
-                    <td>{{ officer.email or '-' }}</td>
-                    <td>{{ officer.region or '-' }}</td>
-                    <td>{{ officer.created_at.strftime('%Y-%m-%d') if officer.created_at else '-' }}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-sm btn-success approve-btn" 
-                                data-user-id="{{ officer.user_id }}"
-                                onclick="approveOfficer('{{ officer.user_id }}', this)">
-                            <i class="fas fa-check me-1"></i> {{ t('approve', lang) or 'Approve' }}
-                        </button>
-                        <button class="btn btn-sm btn-danger reject-btn" 
-                                data-user-id="{{ officer.user_id }}"
-                                onclick="showRejectModal('{{ officer.user_id }}', '{{ officer.full_name }}')">
-                            <i class="fas fa-times me-1"></i> {{ t('reject', lang) or 'Reject' }}
-                        </button>
-                        <button class="btn btn-sm btn-info view-btn" 
-                                onclick="viewUser('{{ officer.user_id }}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+                <!-- Pending Approvals Tab -->
+                <div class="tab-pane fade" id="pending">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
+                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
+                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
+                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
+                                    <th>{{ t('registered', session.get('language', 'en')) or 'Registered' }}</th>
+                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-officers-tbody">
+                                {% for officer in pending_officers %}
+                                <tr id="officer-row-{{ officer.user_id }}">
+                                    <td>{{ officer.user_id or 'N/A' }}</td>
+                                    <td><strong>{{ officer.full_name }}</strong></td>
+                                    <td>{{ officer.phone_number }}</td>
+                                    <td>{{ officer.email or '-' }}</td>
+                                    <td>{{ officer.region or '-' }}</td>
+                                    <td>{{ officer.created_at.strftime('%Y-%m-%d') if officer.created_at else '-' }}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-success approve-btn" 
+                                                data-user-id="{{ officer.user_id }}"
+                                                onclick="approveOfficer('{{ officer.user_id }}', this)">
+                                            <i class="fas fa-check me-1"></i> {{ t('approve', session.get('language', 'en')) or 'Approve' }}
+                                        </button>
+                                        <button class="btn btn-sm btn-danger reject-btn" 
+                                                data-user-id="{{ officer.user_id }}"
+                                                onclick="showRejectModal('{{ officer.user_id }}', '{{ officer.full_name }}')">
+                                            <i class="fas fa-times me-1"></i> {{ t('reject', session.get('language', 'en')) or 'Reject' }}
+                                        </button>
+                                        <button class="btn btn-sm btn-info view-btn" 
+                                                onclick="viewUser('{{ officer.user_id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <!-- Admins Tab -->
                 <div class="tab-pane fade" id="admins">
                     <div class="p-3">
                         <button class="btn btn-primary" onclick="showAddAdminModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_admin', lang) or 'Add New Admin' }}
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_admin', session.get('language', 'en')) or 'Add New Admin' }}
                         </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ t('id', lang) or 'ID' }}</th>
-                                    <th>{{ t('name', lang) or 'Name' }}</th>
-                                    <th>{{ t('phone', lang) or 'Phone' }}</th>
-                                    <th>{{ t('email', lang) or 'Email' }}</th>
-                                    <th>{{ t('role', lang) or 'Role' }}</th>
-                                    <th>{{ t('status', lang) or 'Status' }}</th>
-                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
+                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
+                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
+                                    <th>{{ t('role', session.get('language', 'en')) or 'Role' }}</th>
+                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
+                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -298,18 +297,18 @@
                                     <td><span class="badge bg-info">{{ admin.role }}</span></td>
                                     <td>
                                         <span class="badge {% if admin.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if admin.is_active %}{{ t('active', lang) or 'Active' }}{% else %}{{ t('inactive', lang) or 'Inactive' }}{% endif %}
+                                            {% if admin.is_active %}{{ t('active', session.get('language', 'en')) or 'Active' }}{% else %}{{ t('inactive', session.get('language', 'en')) or 'Inactive' }}{% endif %}
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ admin.user_id }}')" title="{{ t('view', lang) or 'View' }}">
+                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ admin.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ admin.user_id }}')" title="{{ t('edit', lang) or 'Edit' }}">
+                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ admin.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         {% if admin.user_id != session.user_id %}
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ admin.user_id }}')" title="{{ t('delete', lang) or 'Delete' }}">
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ admin.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                         {% endif %}
@@ -325,18 +324,18 @@
                 <div class="tab-pane fade" id="diseases">
                     <div class="p-3">
                         <button class="btn btn-primary" onclick="showAddDiseaseModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_disease', lang) or 'Add New Disease' }}
+                            <i class="fas fa-plus me-2"></i>{{ t('add_new_disease', session.get('language', 'en')) or 'Add New Disease' }}
                         </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ t('id', lang) or 'ID' }}</th>
-                                    <th>{{ t('disease_name_en', lang) or 'Disease Name (EN)' }}</th>
-                                    <th>{{ t('disease_name_sw', lang) or 'Disease Name (SW)' }}</th>
-                                    <th>{{ t('scientific_name', lang) or 'Scientific Name' }}</th>
-                                    <th>{{ t('actions', lang) or 'Actions' }}</th>
+                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                                    <th>{{ t('disease_name_en', session.get('language', 'en')) or 'Disease Name (EN)' }}</th>
+                                    <th>{{ t('disease_name_sw', session.get('language', 'en')) or 'Disease Name (SW)' }}</th>
+                                    <th>{{ t('scientific_name', session.get('language', 'en')) or 'Scientific Name' }}</th>
+                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -363,104 +362,6 @@
                         </table>
                     </div>
                 </div>
-
-                                
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-calendar me-2"></i>Registrations (Last 6 Months)
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="registrationsChart" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-body">
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ t('role', session.get('language', 'en')) }}</th>
-                                                        <th>{{ t('count', session.get('language', 'en')) }}</th>
-                                                        <th>{{ t('percentage', session.get('language', 'en')) }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="usersByRoleTable"></tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-                        <div id="analyticsReports" class="report-content" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-4 mb-4">
-                                    <div class="card border-0 shadow-sm text-center">
-                                        <div class="card-body">
-                                            <i class="fas fa-chart-line fa-3x text-primary mb-2"></i>
-                                            <h3 id="totalPredictionsStat" class="mb-0">-</h3>
-                                            <p class="text-muted">{{ t('total_predictions', session.get('language', 'en')) }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-4">
-                                    <div class="card border-0 shadow-sm text-center">
-                                        <div class="card-body">
-                                            <i class="fas fa-percent fa-3x text-success mb-2"></i>
-                                            <h3 id="avgConfidenceStat" class="mb-0">-</h3>
-                                            <p class="text-muted">{{ t('avg_confidence', session.get('language', 'en')) }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-4">
-                                    <div class="card border-0 shadow-sm text-center">
-                                        <div class="card-body">
-                                            <i class="fas fa-users fa-3x text-info mb-2"></i>
-                                            <h3 id="activeUsersStat" class="mb-0">-</h3>
-                                            <p class="text-muted">{{ t('active_users_30d', session.get('language', 'en')) }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12 mb-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-chart-line me-2"></i>Daily Predictions (Last 30 Days)
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="dailyPredictionsChart" height="250"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-chart-pie me-2"></i>User Activity Breakdown
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="activityBreakdownChart" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -470,11 +371,10 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 <script>
-// Override the approveOfficer and rejectOfficer functions to ensure they work with string IDs
+// Override the approveOfficer and rejectOfficer functions
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Admin dashboard loaded with language: {{ lang }}');
+    console.log('Admin dashboard loaded with language: {{ session.get("language", "en") }}');
     
-    // Fix for any None values in buttons
     document.querySelectorAll('button[onclick*="None"]').forEach(function(btn) {
         console.warn('Found button with None:', btn);
         btn.disabled = true;
@@ -483,7 +383,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Make sure functions handle string IDs properly
 window.approveOfficer = function(userId, buttonElement) {
     if (!userId || userId === 'None' || userId === 'null' || userId === 'undefined' || userId === '') {
         showToast('Invalid officer ID. Please refresh the page.', 'danger');
@@ -491,7 +390,7 @@ window.approveOfficer = function(userId, buttonElement) {
         return;
     }
     
-    if (!confirm('Are you sure you want to approve this extension officer? They will receive email notification.')) {
+    if (!confirm('Are you sure you want to approve this extension officer?')) {
         return;
     }
 
