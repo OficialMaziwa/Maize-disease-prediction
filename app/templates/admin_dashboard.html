@@ -397,44 +397,7 @@
                             </div>
                         </div>
                         
-                        <!-- Disease Reports -->
-                        <div id="diseaseReports" class="report-content" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-chart-bar me-2"></i>Disease Frequency
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="diseaseFrequencyChart" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-trophy me-2"></i>Most Common Disease
-                                        </div>
-                                        <div class="card-body text-center">
-                                            <div id="mostCommonDisease" class="display-4 fw-bold text-success">-</div>
-                                            <p class="text-muted">Total Detections</p>
-                                            <div id="mostCommonCount" class="fs-3">-</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-body">
-                                            <canvas id="monthlyDetectionsChart" height="250"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         
-                        <!-- Analytics Reports -->
                         <div id="analyticsReports" class="report-content" style="display: none;">
                             <div class="row">
                                 <div class="col-md-4 mb-4">
@@ -494,30 +457,7 @@
                 </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <i class="fas fa-leaf fa-2x text-success mb-2"></i>
-                                        <h5>{{ t('disease_reports', lang) or 'Disease Reports' }}</h5>
-                                        <p>{{ t('generate_disease_reports', lang) or 'Disease prediction and outbreak reports' }}</p>
-                                        <button class="btn btn-sm btn-success" onclick="generateReport('diseases')">
-                                            {{ t('generate_report', lang) or 'Generate Report' }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <i class="fas fa-chart-bar fa-2x text-info mb-2"></i>
-                                        <h5>{{ t('analytics', lang) or 'Analytics' }}</h5>
-                                        <p>{{ t('system_analytics', lang) or 'System usage and performance analytics' }}</p>
-                                        <button class="btn btn-sm btn-info" onclick="generateReport('analytics')">
-                                            {{ t('generate_report', lang) or 'Generate Report' }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>
