@@ -119,6 +119,7 @@ except:
 # Flask-Mail Configuration
 try:
     from flask_mail import Mail, Message
+
     MAIL_AVAILABLE = True
 except:
     MAIL_AVAILABLE = False
@@ -127,7 +128,7 @@ MAIL_SERVER = "smtp.gmail.com"
 MAIL_PORT = 587
 MAIL_USE_TLS = True
 MAIL_USERNAME = "malabamalaba26@gmail.com"
-MAIL_PASSWORD = "gjgbawyjlciutgrd"  
+MAIL_PASSWORD = "gjgbawyjlciutgrd"
 MAIL_DEFAULT_SENDER = "malabamalaba26@gmail.com"
 APP_URL = "http://localhost:5000"
 
@@ -449,7 +450,8 @@ def register():
         password_hash = generate_password_hash(
             password, method="pbkdf2:sha256", salt_length=32
         )
-        is_approved = False if role == "extension_officer" else 1
+        # FIXED: Use proper boolean values for Neon
+        is_approved = True if role == "farmer" else False
 
         try:
             cursor.execute(
@@ -457,7 +459,7 @@ def register():
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                   location, district, region, is_approved, is_active, 
                                   created_at, ip_address, user_agent, password_last_changed)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1, CURRENT_TIMESTAMP, %s, %s, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, True, CURRENT_TIMESTAMP, %s, %s, CURRENT_TIMESTAMP)
             """,
                 (
                     full_name,
@@ -482,6 +484,7 @@ def register():
             return redirect(url_for("main.login"))
         except Exception as e:
             user_db.connection.rollback()
+            print(f"Registration error: {e}")
             flash("Registration failed. Please try again.", "danger")
         finally:
             cursor.close()
@@ -582,10 +585,7 @@ def logout():
 def index():
     lang = session.get("language", "en")
     return render_template(
-        "index.html", 
-        lang=lang, 
-        t=lang_manager.get_text, 
-        request=request
+        "index.html", lang=lang, t=lang_manager.get_text, request=request
     )
 
 
@@ -1389,32 +1389,14 @@ def admin_approve_officer(user_id):
         admin_name = session.get("user_name", "Admin")
         officer_name = officer["full_name"]
 
-        # Send BOTH SMS and Email notifications
-        notifications = []
-
-        # Send SMS
-        sms_sent = send_approval_sms(officer["phone_number"], officer_name, admin_name)
-        if sms_sent:
-            notifications.append("SMS")
-
-        # Send Email
-        email_sent = send_approval_email(officer["email"], officer_name, admin_name)
-        if email_sent:
-            notifications.append("Email")
-
-        # Create in-app notification
+        # Send in-app notification only (no email/SMS)
         create_in_app_notification(
             officer["user_id"],
             "Account Approved",
             f"Your account has been approved by {admin_name}. You can now login to the system.",
         )
 
-        if notifications:
-            message = f"Officer approved successfully! Notifications sent via: {', '.join(notifications)}"
-        else:
-            message = (
-                "Officer approved but no notifications sent (SMS/Email both failed)."
-            )
+        message = f"Officer {officer_name} approved successfully! They will see the notification when they login."
 
         return jsonify({"success": True, "message": message})
 
@@ -2177,7 +2159,7 @@ def admin_add_farmer():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                   location, district, region, is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, True, True, CURRENT_TIMESTAMP)
             """,
                 (
                     full_name,
@@ -2255,7 +2237,7 @@ def admin_add_officer():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                   region, is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, 0, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, False, True, CURRENT_TIMESTAMP)
             """,
                 (
                     full_name,
@@ -2330,7 +2312,7 @@ def admin_add_admin():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                   is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, 1, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, True, True, CURRENT_TIMESTAMP)
             """,
                 (
                     full_name,
@@ -2364,55 +2346,117 @@ def admin_add_admin():
 @main.route("/api/translations/<lang>")
 def api_translations(lang):
     """Get all translations for a language via AJAX (no page reload)"""
-    if lang not in ['en', 'sw']:
-        lang = 'en'
+    if lang not in ["en", "sw"]:
+        lang = "en"
 
     # Common keys used throughout the app
     keys = [
         # Navigation
-        'home', 'about', 'dashboard', 'farmers', 'predict_disease', 'history',
-        'profile', 'logout', 'login', 'register', 'my_profile', 'prediction_history',
-        'farmer', 'officer', 'admin',
-        
+        "home",
+        "about",
+        "dashboard",
+        "farmers",
+        "predict_disease",
+        "history",
+        "profile",
+        "logout",
+        "login",
+        "register",
+        "my_profile",
+        "prediction_history",
+        "farmer",
+        "officer",
+        "admin",
         # Actions
-        'edit', 'delete', 'view', 'add', 'save', 'cancel', 'close', 'back',
-        'search', 'refresh', 'export', 'approve', 'reject',
-        
+        "edit",
+        "delete",
+        "view",
+        "add",
+        "save",
+        "cancel",
+        "close",
+        "back",
+        "search",
+        "refresh",
+        "export",
+        "approve",
+        "reject",
         # Dashboard
-        'admin_dashboard', 'officer_dashboard', 'total_users', 'total_farmers',
-        'total_officers', 'total_predictions', 'pending', 'add_new_farmer',
-        'add_new_officer', 'add_new_admin', 'add_new_disease', 'user_activity_logs',
-        'refresh_data', 'reports', 'generate_report', 'user_reports',
-        'disease_reports', 'analytics',
-        
+        "admin_dashboard",
+        "officer_dashboard",
+        "total_users",
+        "total_farmers",
+        "total_officers",
+        "total_predictions",
+        "pending",
+        "add_new_farmer",
+        "add_new_officer",
+        "add_new_admin",
+        "add_new_disease",
+        "user_activity_logs",
+        "refresh_data",
+        "reports",
+        "generate_report",
+        "user_reports",
+        "disease_reports",
+        "analytics",
         # Table headers
-        'id', 'name', 'phone', 'email', 'location', 'district', 'region',
-        'status', 'role', 'actions', 'registered', 'approved', 'active', 'inactive',
-        
+        "id",
+        "name",
+        "phone",
+        "email",
+        "location",
+        "district",
+        "region",
+        "status",
+        "role",
+        "actions",
+        "registered",
+        "approved",
+        "active",
+        "inactive",
         # Disease management
-        'disease_management', 'disease_name_en', 'disease_name_sw', 'scientific_name',
-        
+        "disease_management",
+        "disease_name_en",
+        "disease_name_sw",
+        "scientific_name",
         # Prediction page
-        'maize_disease_detection', 'upload_image', 'take_photo', 'click_or_drag',
-        'choose_image', 'analyze_disease', 'new_prediction', 'analyzing',
-        'change_image', 'retake', 'maize_leaf_only',
-        
+        "maize_disease_detection",
+        "upload_image",
+        "take_photo",
+        "click_or_drag",
+        "choose_image",
+        "analyze_disease",
+        "new_prediction",
+        "analyzing",
+        "change_image",
+        "retake",
+        "maize_leaf_only",
         # Results
-        'diagnosis_result', 'description', 'symptoms', 'organic_treatment',
-        'chemical_treatment', 'cultural_practices', 'action_plan', 'confidence',
-        
+        "diagnosis_result",
+        "description",
+        "symptoms",
+        "organic_treatment",
+        "chemical_treatment",
+        "cultural_practices",
+        "action_plan",
+        "confidence",
         # Welcome
-        'welcome_back', 'full_system_control',
-        
+        "welcome_back",
+        "full_system_control",
         # Footer
-        'maize_disease_system', 'helping_farmers', 'powered_by_ai', 'accuracy', 'instant_results'
+        "maize_disease_system",
+        "helping_farmers",
+        "powered_by_ai",
+        "accuracy",
+        "instant_results",
     ]
 
     translations = {}
     for key in keys:
         translations[key] = {
-            'en': lang_manager.get_text(key, 'en'),
-            'sw': lang_manager.get_text(key, 'sw')
+            "en": lang_manager.get_text(key, "en"),
+            "sw": lang_manager.get_text(key, "sw"),
         }
 
     return jsonify(translations)
@@ -2509,11 +2553,12 @@ def upload_profile_photo():
     except Exception as e:
         print(f"Error uploading profile photo: {e}")
         return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
-    
+
+
 @main.route("/health", methods=["GET", "HEAD"])
 def health_check():
     """Health check endpoint for UptimeRobot to keep the service awake.
-       This endpoint does not affect your database or application data.
+    This endpoint does not affect your database or application data.
     """
     return {"status": "healthy", "message": "Maize Disease Detection System is running"}
 
