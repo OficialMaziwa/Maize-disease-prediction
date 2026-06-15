@@ -14,7 +14,7 @@ class LanguageManager:
     def __init__(self):
         self.connection = None
         try:
-            self.connection = psycopg2.connect(os.environ.get("DATABASE_URL", "host=127.0.0.1 user=postgres password=Malaba@2003 dbname=maize_disease_db"))
+            self.connection = psycopg2.connect(database_url) if database_url else None)
             print("Language Manager connected to PostgreSQL")
         except Error as e:
             print(f"Language Manager DB connection error: {e}")
