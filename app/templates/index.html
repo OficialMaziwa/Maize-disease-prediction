@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t('home', lang) }} - {{ t('maize_disease_system', lang) }}{% endblock %}
+{% block title %}Home - Maize Disease Detection System{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
@@ -12,15 +12,15 @@
     <div class="container">
         <div class="hero-content">
             <h1 class="hero-title text-white">
-                🌽 {{ t('welcome_title', lang) }}<br>
-                {{ t('welcome_subtitle', lang) }}
+                🌽 Maize Disease Detection System<br>
+                Early Detection for Better Harvest
             </h1>
             <p class="hero-subtitle text-white">
-                {{ t('hero_description', lang) }}
+                Protect your maize crops with our advanced AI technology. Upload a photo and get instant diagnosis and treatment recommendations.
             </p>
             <div class="text-center">
                 <a href="{{ url_for('main.predict') }}" class="btn btn-get-started">
-                    <strong>🌿 {{ t('get_started', lang) }} →</strong>
+                    <strong>🌿 Get Started →</strong>
                 </a>
             </div>
         </div>
@@ -31,17 +31,17 @@
 <div class="container my-5 py-4">
     <div class="text-center">
         <h2 class="section-title">
-            <i class="fas fa-cogs me-2"></i> {{ t('how_it_works', lang) }}
+            <i class="fas fa-cogs me-2"></i> How It Works
         </h2>
-        <p class="text-muted">{{ t('step_desc', lang) if t('step_desc', lang) != 'step_desc' else 'Three simple steps to protect your maize crop' }}</p>
+        <p class="text-muted">Three simple steps to protect your maize crop</p>
     </div>
     <div class="row mt-4">
         <div class="col-md-4 mb-4">
             <div class="card feature-card h-100 border-0 shadow">
                 <div class="card-body text-center p-4">
                     <div class="option-icon">📸</div>
-                    <h5 class="card-title fw-bold">{{ t('step1_title', lang) }}</h5>
-                    <p class="card-text text-muted">{{ t('step1_desc', lang) }}</p>
+                    <h5 class="card-title fw-bold">Capture or Upload</h5>
+                    <p class="card-text text-muted">Take a clear photo of the affected maize leaf using your phone camera, or upload an existing image from your gallery.</p>
                 </div>
             </div>
         </div>
@@ -49,8 +49,8 @@
             <div class="card feature-card h-100 border-0 shadow">
                 <div class="card-body text-center p-4">
                     <div class="option-icon">🤖</div>
-                    <h5 class="card-title fw-bold">{{ t('step2_title', lang) }}</h5>
-                    <p class="card-text text-muted">{{ t('step2_desc', lang) }}</p>
+                    <h5 class="card-title fw-bold">AI Detection</h5>
+                    <p class="card-text text-muted">Our advanced AI model analyzes the image and identifies the specific maize disease with high accuracy (95%+).</p>
                 </div>
             </div>
         </div>
@@ -58,8 +58,8 @@
             <div class="card feature-card h-100 border-0 shadow">
                 <div class="card-body text-center p-4">
                     <div class="option-icon">💊</div>
-                    <h5 class="card-title fw-bold">{{ t('step3_title', lang) }}</h5>
-                    <p class="card-text text-muted">{{ t('step3_desc', lang) }}</p>
+                    <h5 class="card-title fw-bold">Get Recommendations</h5>
+                    <p class="card-text text-muted">Receive instant treatment recommendations including chemical, organic, and cultural control methods.</p>
                 </div>
             </div>
         </div>
@@ -72,15 +72,15 @@
         <div class="row text-center">
             <div class="col-md-4 mb-3">
                 <div class="stat-number">95%+</div>
-                <div class="stat-label">{{ t('detection_accuracy', lang) }}</div>
+                <div class="stat-label">Detection Accuracy</div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="stat-number">4+</div>
-                <div class="stat-label">{{ t('disease_types', lang) }}</div>
+                <div class="stat-label">Disease Types</div>
             </div>
             <div class="col-md-4 mb-3">
                 <div class="stat-number">&lt;5s</div>
-                <div class="stat-label">{{ t('avg_response_time', lang) }}</div>
+                <div class="stat-label">Average Response Time</div>
             </div>
         </div>
     </div>
@@ -90,17 +90,17 @@
 <div class="container my-5 py-3">
     <div class="text-center">
         <h2 class="section-title">
-            <i class="fas fa-leaf me-2"></i> {{ t('common_diseases', lang) }}
+            <i class="fas fa-leaf me-2"></i> Common Maize Diseases We Detect
         </h2>
-        <p class="text-muted">{{ t('common_diseases_desc', lang) if t('common_diseases_desc', lang) != 'common_diseases_desc' else 'Our AI can identify these common maize diseases with high accuracy' }}</p>
+        <p class="text-muted">Our AI can identify these common maize diseases with high accuracy</p>
     </div>
     <div class="row mt-4">
         <div class="col-md-3 mb-4">
             <div class="disease-card card bg-light border-0 shadow-sm h-100">
                 <div class="card-body text-center p-4">
                     <div class="disease-icon">🌽</div>
-                    <h6 class="card-title fw-bold mt-2">{{ t('common_rust', lang) }}</h6>
-                    <small class="text-muted">{{ t('common_rust_desc', lang) }}</small>
+                    <h6 class="card-title fw-bold mt-2">Common Rust</h6>
+                    <small class="text-muted">Reddish-brown pustules on leaves causing reduced yield</small>
                 </div>
             </div>
         </div>
@@ -108,8 +108,8 @@
             <div class="disease-card card bg-light border-0 shadow-sm h-100">
                 <div class="card-body text-center p-4">
                     <div class="disease-icon">🍂</div>
-                    <h6 class="card-title fw-bold mt-2">{{ t('gray_leaf_spot', lang) }}</h6>
-                    <small class="text-muted">{{ t('gray_leaf_spot_desc', lang) }}</small>
+                    <h6 class="card-title fw-bold mt-2">Gray Leaf Spot</h6>
+                    <small class="text-muted">Rectangular gray lesions causing premature leaf death</small>
                 </div>
             </div>
         </div>
@@ -117,8 +117,8 @@
             <div class="disease-card card bg-light border-0 shadow-sm h-100">
                 <div class="card-body text-center p-4">
                     <div class="disease-icon">🌿</div>
-                    <h6 class="card-title fw-bold mt-2">{{ t('northern_leaf_blight', lang) }}</h6>
-                    <small class="text-muted">{{ t('northern_leaf_blight_desc', lang) }}</small>
+                    <h6 class="card-title fw-bold mt-2">Northern Leaf Blight</h6>
+                    <small class="text-muted">Long cigar-shaped lesions that reduce photosynthesis</small>
                 </div>
             </div>
         </div>
@@ -126,8 +126,8 @@
             <div class="disease-card card bg-light border-0 shadow-sm h-100">
                 <div class="card-body text-center p-4">
                     <div class="disease-icon">✨</div>
-                    <h6 class="card-title fw-bold mt-2">{{ t('healthy_leaf', lang) }}</h6>
-                    <small class="text-muted">{{ t('healthy_leaf_desc', lang) }}</small>
+                    <h6 class="card-title fw-bold mt-2">Healthy Leaf</h6>
+                    <small class="text-muted">No disease symptoms detected</small>
                 </div>
             </div>
         </div>
@@ -138,10 +138,10 @@
 <div class="container my-5">
     <div class="cta-section alert alert-success text-center p-5 rounded-4 shadow-sm">
         <i class="fas fa-heartbeat fa-3x mb-3" style="color: #1e8c3c;"></i>
-        <h3 class="fw-bold">{{ t('protect_crop_title', lang) }}</h3>
-        <p class="mb-3">{{ t('protect_crop_message', lang) }}</p>
+        <h3 class="fw-bold">Protect Your Maize Crop Today!</h3>
+        <p class="mb-3">Early detection saves your harvest. Upload a photo now and get instant diagnosis and treatment recommendations.</p>
         <a href="{{ url_for('main.predict') }}" class="btn btn-success btn-lg px-5 mt-2">
-            <i class="fas fa-microscope me-2"></i> {{ t('start_detection', lang) }}
+            <i class="fas fa-microscope me-2"></i> Start Disease Detection
         </a>
     </div>
 </div>
