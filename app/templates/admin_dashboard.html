@@ -102,11 +102,7 @@
                         <span class="badge bg-success ms-2">{{ diseases|length }}</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#reports">
-                        <i class="fas fa-chart-bar me-2"></i>{{ t('reports', lang) or 'Reports' }}
-                    </a>
-                </li>
+                
             </ul>
         </div>
         
@@ -368,34 +364,7 @@
                     </div>
                 </div>
 
-                                <!-- Reports Tab -->
-                <div class="tab-pane fade" id="reports">
-                    <div class="p-4">
-                        <!-- Report Type Selector -->
-                        <div class="btn-group w-100 mb-4" role="group">
-                            <button type="button" class="btn btn-outline-primary active" onclick="showReport('users')">
-                                <i class="fas fa-users me-2"></i>{{ t('user_reports', session.get('language', 'en')) }}
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="showReport('diseases')">
-                                <i class="fas fa-leaf me-2"></i>{{ t('disease_reports', session.get('language', 'en')) }}
-                            </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="showReport('analytics')">
-                                <i class="fas fa-chart-line me-2"></i>{{ t('analytics', session.get('language', 'en')) }}
-                            </button>
-                        </div>
-                        
-                        <!-- User Reports -->
-                        <div id="userReports" class="report-content">
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <div class="card border-0 shadow-sm">
-                                        <div class="card-header bg-white fw-bold">
-                                            <i class="fas fa-chart-pie me-2"></i>Users by Role
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="usersByRoleChart" height="200"></canvas>
-                                        </div>
-                                    </div>
+                                
                                 </div>
                                 <div class="col-md-6 mb-4">
                                     <div class="card border-0 shadow-sm">
