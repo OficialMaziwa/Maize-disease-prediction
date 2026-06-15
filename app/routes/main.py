@@ -1343,7 +1343,7 @@ def admin_update_user(user_id):
 
 
 # ==================== ADMIN OFFICER APPROVAL ====================
-def admin_approve_officer(user_id):
+@main.route("/admin/officer/<user_id>/approve", methods=["POST"])\n@log_activity\n\1
     if session.get("user_role") != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
