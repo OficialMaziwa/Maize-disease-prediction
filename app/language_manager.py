@@ -1,4 +1,4 @@
-﻿import os
+import os
 """
 Language Manager for Maize Disease Detection System
 PostgreSQL Version - Complete Website Translation
@@ -21,12 +21,12 @@ class LanguageManager:
         if database_url:
             try:
                 self.connection = psycopg2.connect(database_url)
-                print("✅ Language Manager connected to PostgreSQL")
+                print("? Language Manager connected to PostgreSQL")
             except Error as e:
-                print(f"❌ Language Manager DB connection error: {e}")
+                print(f"? Language Manager DB connection error: {e}")
                 self.connection = None
         else:
-            print("⚠️ Language Manager: DATABASE_URL not set, running without DB")
+            print("?? Language Manager: DATABASE_URL not set, running without DB")
             self.connection = None
 
     def get_text(self, key, language="en"):
@@ -100,7 +100,7 @@ class LanguageManager:
             "region": {"en": "Region", "sw": "Mkoa"},
             
             # ==================== PREDICTION PAGE ====================
-            "maize_disease_detection": {"en": "🌽 Maize Disease Detection", "sw": "🌽 Utambuzi wa Magonjwa ya Mahindi"},
+            "maize_disease_detection": {"en": "?? Maize Disease Detection", "sw": "?? Utambuzi wa Magonjwa ya Mahindi"},
             "upload_image": {"en": "Upload Image", "sw": "Pakia Picha"},
             "take_photo": {"en": "Take Photo", "sw": "Piga Picha"},
             "choose_image": {"en": "Choose Image", "sw": "Chagua Picha"},
@@ -113,14 +113,14 @@ class LanguageManager:
             "maize_leaf_only": {"en": "Please upload a clear image of a maize leaf", "sw": "Tafadhali pakia picha wazi ya jani la mahindi"},
             
             # ==================== RESULTS ====================
-            "diagnosis_result": {"en": "🌿 Diagnosis Result", "sw": "🌿 Matokeo ya Utambuzi"},
+            "diagnosis_result": {"en": "?? Diagnosis Result", "sw": "?? Matokeo ya Utambuzi"},
             "description": {"en": "Description", "sw": "Maelezo"},
             "symptoms": {"en": "Symptoms", "sw": "Dalili"},
             "treatment": {"en": "Treatment", "sw": "Matibabu"},
-            "organic_treatment": {"en": "🌿 Organic Treatment", "sw": "🌿 Matibabu Asilia"},
-            "chemical_treatment": {"en": "🧪 Chemical Treatment", "sw": "🧪 Matibabu ya Kemikali"},
-            "cultural_practices": {"en": "🌾 Cultural Practices", "sw": "🌾 Mbinu za Kitamaduni"},
-            "action_plan": {"en": "📋 Action Plan", "sw": "📋 Mpango wa Utekelezaji"},
+            "organic_treatment": {"en": "?? Organic Treatment", "sw": "?? Matibabu Asilia"},
+            "chemical_treatment": {"en": "?? Chemical Treatment", "sw": "?? Matibabu ya Kemikali"},
+            "cultural_practices": {"en": "?? Cultural Practices", "sw": "?? Mbinu za Kitamaduni"},
+            "action_plan": {"en": "?? Action Plan", "sw": "?? Mpango wa Utekelezaji"},
             "confidence": {"en": "Confidence", "sw": "Uhakika"},
             
             # ==================== FOOTER ====================
