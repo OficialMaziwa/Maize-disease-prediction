@@ -248,7 +248,7 @@
                     <td>{{ officer.phone_number }}</td>
                     <td>{{ officer.email or '-' }}</td>
                     <td>{{ officer.region or '-' }}</td>
-                    <td>{{ officer.created_at[:10] if officer.created_at else '-' }}</td>
+                    <td>{{ officer.created_at.strftime('%Y-%m-%d') if officer.created_at else '-' }}</td>
                     <td class="action-buttons">
                         <button class="btn btn-sm btn-success approve-btn" 
                                 data-user-id="{{ officer.user_id }}"
