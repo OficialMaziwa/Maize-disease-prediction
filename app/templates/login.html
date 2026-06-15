@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ t('login', lang) }} - {{ t('maize_disease_detection', lang) }}{% endblock %}
+{% block title %}{{ t('login', session.get('language', 'en')) }} - {{ t('maize_disease_detection', session.get('language', 'en')) }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
@@ -14,8 +14,8 @@
                 <div class="auth-card">
                     <div class="auth-header text-white">
                         <div class="auth-icon">🔐</div>
-                        <h3 class="mb-0">{{ t('welcome_back', lang) }}</h3>
-                        <p class="mb-0 mt-2">{{ t('login_to_account', lang) }}</p>
+                        <h3 class="mb-0">{{ t('welcome_back', session.get('language', 'en')) }}</h3>
+                        <p class="mb-0 mt-2">{{ t('login_to_account', session.get('language', 'en')) }}</p>
                     </div>
                     
                     <div class="auth-body">
@@ -37,7 +37,7 @@
                             <!-- Phone/Email -->
                             <div class="form-group mb-3">
                                 <label for="identifier" class="form-label">
-                                    <i class="fas fa-phone-alt me-2"></i>{{ t('phone_or_email', lang) }} *
+                                    <i class="fas fa-phone-alt me-2"></i>{{ t('phone_or_email', session.get('language', 'en')) }} *
                                 </label>
                                 <input type="text" class="form-control" id="identifier" name="identifier" 
                                        placeholder="0712345678 au mkulima@example.com" required>
@@ -46,7 +46,7 @@
                             <!-- Password with Toggle Button -->
                             <div class="form-group mb-4">
                                 <label for="password" class="form-label">
-                                    <i class="fas fa-lock me-2"></i>{{ t('password', lang) }} *
+                                    <i class="fas fa-lock me-2"></i>{{ t('password', session.get('language', 'en')) }} *
                                 </label>
                                 <div class="password-wrapper">
                                     <input type="password" class="form-control" id="password" name="password" required>
@@ -57,19 +57,19 @@
                             </div>
                             
                             <button type="submit" class="btn btn-auth text-white w-100">
-                                <i class="fas fa-sign-in-alt me-2"></i>{{ t('login_btn', lang) }}
+                                <i class="fas fa-sign-in-alt me-2"></i>{{ t('login_btn', session.get('language', 'en')) }}
                             </button>
                         </form>
                         
                         <div class="divider">
-                            <span>{{ t('or', lang) }}</span>
+                            <span>{{ t('or', session.get('language', 'en')) }}</span>
                         </div>
                         
                         <div class="text-center">
                             <p class="mb-0">
-                                {{ t('no_account', lang) }} 
+                                {{ t('no_account', session.get('language', 'en')) }} 
                                 <a href="{{ url_for('main.register') }}" class="auth-link">
-                                    {{ t('register_here', lang) }} <i class="fas fa-arrow-right"></i>
+                                    {{ t('register_here', session.get('language', 'en')) }} <i class="fas fa-arrow-right"></i>
                                 </a>
                             </p>
                         </div>
