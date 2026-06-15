@@ -195,7 +195,85 @@ class LanguageManager:
             "confirm_register": {"en": "Confirm Registration", "sw": "Thibitisha Usajili"},
             "officer_warning_title": {"en": "Pending Approval", "sw": "Inasubiri Idhini"},
             "officer_warning_text": {"en": "As an Extension Officer, your account will require admin approval before you can access the system.", "sw": "Kama Afisa Ugani, akaunti yako itahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
-            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},
+            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},            # Dashboard translations
+            "officer_dashboard": {"en": "Officer Dashboard", "sw": "Dashibodi ya Afisa"},
+            "welcome_back_officer": {"en": "Welcome back", "sw": "Karibu tena"},
+            "your_region": {"en": "Your Region", "sw": "Mkoa Wako"},
+            "total_diagnoses": {"en": "Total Diagnoses", "sw": "Jumla ya Uchunguzi"},
+            "diseases_detected": {"en": "Diseases Detected", "sw": "Magonjwa Yaliyogunduliwa"},
+            "active_farmers_30d": {"en": "Active Farmers (30 days)", "sw": "Wakulima Wanafanya kazi (Siku 30)"},
+            "all_farmers": {"en": "All Farmers", "sw": "Wakulima Wote"},
+            "search_farmers": {"en": "Search Farmers", "sw": "Tafuta Wakulima"},
+            "recent_predictions": {"en": "Recent Predictions", "sw": "Utabiri wa Hivi Karibuni"},
+            "all_diseases": {"en": "All Diseases", "sw": "Magonjwa Yote"},
+            "disease_management": {"en": "Disease Management", "sw": "Udhibiti wa Magonjwa"},
+            "add_new_disease": {"en": "Add New Disease", "sw": "Ongeza Ugonjwa Mpya"},
+            
+            # Officer dashboard stats
+            "total_farmers": {"en": "Total Farmers", "sw": "Jumla ya Wakulima"},
+            "total_predictions": {"en": "Total Predictions", "sw": "Jumla ya Utabiri"},
+            
+            # Table headers
+            "farmer_name": {"en": "Farmer Name", "sw": "Jina la Mkulima"},
+            "date": {"en": "Date", "sw": "Tarehe"},
+            "action": {"en": "Action", "sw": "Kitendo"},
+            "confidence": {"en": "Confidence", "sw": "Uhakika"},
+            "disease": {"en": "Disease", "sw": "Ugonjwa"},
+            
+            # User activity logs
+            "user_activity_logs": {"en": "User Activity Logs", "sw": "Rekodi za Shughuli za Watumiaji"},
+            "total_logins": {"en": "Total Logins", "sw": "Jumla ya Kuingia"},
+            "total_logouts": {"en": "Total Logouts", "sw": "Jumla ya Kutoka"},
+            "active_users": {"en": "Active Users", "sw": "Watumiaji Wanafanya kazi"},
+            "user_activities": {"en": "User Activities", "sw": "Shughuli za Watumiaji"},
+            "date_time": {"en": "Date & Time", "sw": "Tarehe na Saa"},
+            "user": {"en": "User", "sw": "Mtumiaji"},
+            "activity_type": {"en": "Activity Type", "sw": "Aina ya Shughuli"},
+            "details": {"en": "Details", "sw": "Maelezo"},
+            "ip_address": {"en": "IP Address", "sw": "Anwani ya IP"},
+            
+            # Profile page
+            "profile_photo": {"en": "Profile Photo", "sw": "Picha ya Wasifu"},
+            "upload_photo": {"en": "Upload Photo", "sw": "Pakia Picha"},
+            "account_info": {"en": "Account Information", "sw": "Taarifa za Akaunti"},
+            "member_since": {"en": "Member since", "sw": "Amejiunga tangu"},
+            "last_login": {"en": "Last login", "sw": "Mara ya mwisho kuingia"},
+            "edit_profile": {"en": "Edit Profile", "sw": "Hariri Wasifu"},
+            "save_changes": {"en": "Save Changes", "sw": "Hifadhi Mabadiliko"},
+            "change_password": {"en": "Change Password", "sw": "Badilisha Nenosiri"},
+            "current_password": {"en": "Current Password", "sw": "Nenosiri la Sasa"},
+            "new_password": {"en": "New Password", "sw": "Nenosiri Jipya"},
+            "update_password": {"en": "Update Password", "sw": "Sasisha Nenosiri"},
+            
+            # Back button
+            "back_to_dashboard": {"en": "Back to Dashboard", "sw": "Rudi kwenye Dashibodi"},
+            
+            # Add Disease Modal
+            "disease_name_en": {"en": "Disease Name (English)", "sw": "Jina la Ugonjwa (Kiingereza)"},
+            "disease_name_sw": {"en": "Disease Name (Swahili)", "sw": "Jina la Ugonjwa (Kiswahili)"},
+            "scientific_name": {"en": "Scientific Name", "sw": "Jina la Kisayansi"},
+            "description_en": {"en": "Description (English)", "sw": "Maelezo (Kiingereza)"},
+            "description_sw": {"en": "Description (Swahili)", "sw": "Maelezo (Kiswahili)"},
+            "symptoms_en": {"en": "Symptoms (English)", "sw": "Dalili (Kiingereza)"},
+            "symptoms_sw": {"en": "Symptoms (Swahili)", "sw": "Dalili (Kiswahili)"},
+            "treatment_en": {"en": "Treatment (English)", "sw": "Matibabu (Kiingereza)"},
+            "treatment_sw": {"en": "Treatment (Swahili)", "sw": "Matibabu (Kiswahili)"},
+            
+            # Prediction page
+            "upload_image": {"en": "Upload Image", "sw": "Pakia Picha"},
+            "take_photo": {"en": "Take Photo", "sw": "Piga Picha"},
+            "click_or_drag": {"en": "Click or drag image here", "sw": "Bonyeza au buruta picha hapa"},
+            "maize_leaf_only": {"en": "Please upload a clear image of a maize leaf", "sw": "Tafadhali pakia picha wazi ya jani la mahindi"},
+            
+            # Register page additional
+            "farmer": {"en": "Farmer", "sw": "Mkulima"},
+            "extension_officer": {"en": "Extension Officer", "sw": "Afisa Ugani"},
+            
+            # Role badge
+            "officer_role": {"en": "Officer", "sw": "Afisa"},
+            
+            # Footer
+            "maize_disease_system": {"en": "Maize Disease Detection System", "sw": "Mfumo wa Utambuzi wa Magonjwa ya Mahindi"},
         }
         
         if key in translations:
@@ -255,7 +333,85 @@ class LanguageManager:
             "confirm_register": {"en": "Confirm Registration", "sw": "Thibitisha Usajili"},
             "officer_warning_title": {"en": "Pending Approval", "sw": "Inasubiri Idhini"},
             "officer_warning_text": {"en": "As an Extension Officer, your account will require admin approval before you can access the system.", "sw": "Kama Afisa Ugani, akaunti yako itahitaji idhini ya msimamizi kabla ya kufikia mfumo."},
-            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},
+            "farmer_warning_text": {"en": "As a Farmer, you can start using the system immediately after registration.", "sw": "Kama Mkulima, unaweza kuanza kutumia mfumo mara baada ya usajili."},            # Dashboard translations
+            "officer_dashboard": {"en": "Officer Dashboard", "sw": "Dashibodi ya Afisa"},
+            "welcome_back_officer": {"en": "Welcome back", "sw": "Karibu tena"},
+            "your_region": {"en": "Your Region", "sw": "Mkoa Wako"},
+            "total_diagnoses": {"en": "Total Diagnoses", "sw": "Jumla ya Uchunguzi"},
+            "diseases_detected": {"en": "Diseases Detected", "sw": "Magonjwa Yaliyogunduliwa"},
+            "active_farmers_30d": {"en": "Active Farmers (30 days)", "sw": "Wakulima Wanafanya kazi (Siku 30)"},
+            "all_farmers": {"en": "All Farmers", "sw": "Wakulima Wote"},
+            "search_farmers": {"en": "Search Farmers", "sw": "Tafuta Wakulima"},
+            "recent_predictions": {"en": "Recent Predictions", "sw": "Utabiri wa Hivi Karibuni"},
+            "all_diseases": {"en": "All Diseases", "sw": "Magonjwa Yote"},
+            "disease_management": {"en": "Disease Management", "sw": "Udhibiti wa Magonjwa"},
+            "add_new_disease": {"en": "Add New Disease", "sw": "Ongeza Ugonjwa Mpya"},
+            
+            # Officer dashboard stats
+            "total_farmers": {"en": "Total Farmers", "sw": "Jumla ya Wakulima"},
+            "total_predictions": {"en": "Total Predictions", "sw": "Jumla ya Utabiri"},
+            
+            # Table headers
+            "farmer_name": {"en": "Farmer Name", "sw": "Jina la Mkulima"},
+            "date": {"en": "Date", "sw": "Tarehe"},
+            "action": {"en": "Action", "sw": "Kitendo"},
+            "confidence": {"en": "Confidence", "sw": "Uhakika"},
+            "disease": {"en": "Disease", "sw": "Ugonjwa"},
+            
+            # User activity logs
+            "user_activity_logs": {"en": "User Activity Logs", "sw": "Rekodi za Shughuli za Watumiaji"},
+            "total_logins": {"en": "Total Logins", "sw": "Jumla ya Kuingia"},
+            "total_logouts": {"en": "Total Logouts", "sw": "Jumla ya Kutoka"},
+            "active_users": {"en": "Active Users", "sw": "Watumiaji Wanafanya kazi"},
+            "user_activities": {"en": "User Activities", "sw": "Shughuli za Watumiaji"},
+            "date_time": {"en": "Date & Time", "sw": "Tarehe na Saa"},
+            "user": {"en": "User", "sw": "Mtumiaji"},
+            "activity_type": {"en": "Activity Type", "sw": "Aina ya Shughuli"},
+            "details": {"en": "Details", "sw": "Maelezo"},
+            "ip_address": {"en": "IP Address", "sw": "Anwani ya IP"},
+            
+            # Profile page
+            "profile_photo": {"en": "Profile Photo", "sw": "Picha ya Wasifu"},
+            "upload_photo": {"en": "Upload Photo", "sw": "Pakia Picha"},
+            "account_info": {"en": "Account Information", "sw": "Taarifa za Akaunti"},
+            "member_since": {"en": "Member since", "sw": "Amejiunga tangu"},
+            "last_login": {"en": "Last login", "sw": "Mara ya mwisho kuingia"},
+            "edit_profile": {"en": "Edit Profile", "sw": "Hariri Wasifu"},
+            "save_changes": {"en": "Save Changes", "sw": "Hifadhi Mabadiliko"},
+            "change_password": {"en": "Change Password", "sw": "Badilisha Nenosiri"},
+            "current_password": {"en": "Current Password", "sw": "Nenosiri la Sasa"},
+            "new_password": {"en": "New Password", "sw": "Nenosiri Jipya"},
+            "update_password": {"en": "Update Password", "sw": "Sasisha Nenosiri"},
+            
+            # Back button
+            "back_to_dashboard": {"en": "Back to Dashboard", "sw": "Rudi kwenye Dashibodi"},
+            
+            # Add Disease Modal
+            "disease_name_en": {"en": "Disease Name (English)", "sw": "Jina la Ugonjwa (Kiingereza)"},
+            "disease_name_sw": {"en": "Disease Name (Swahili)", "sw": "Jina la Ugonjwa (Kiswahili)"},
+            "scientific_name": {"en": "Scientific Name", "sw": "Jina la Kisayansi"},
+            "description_en": {"en": "Description (English)", "sw": "Maelezo (Kiingereza)"},
+            "description_sw": {"en": "Description (Swahili)", "sw": "Maelezo (Kiswahili)"},
+            "symptoms_en": {"en": "Symptoms (English)", "sw": "Dalili (Kiingereza)"},
+            "symptoms_sw": {"en": "Symptoms (Swahili)", "sw": "Dalili (Kiswahili)"},
+            "treatment_en": {"en": "Treatment (English)", "sw": "Matibabu (Kiingereza)"},
+            "treatment_sw": {"en": "Treatment (Swahili)", "sw": "Matibabu (Kiswahili)"},
+            
+            # Prediction page
+            "upload_image": {"en": "Upload Image", "sw": "Pakia Picha"},
+            "take_photo": {"en": "Take Photo", "sw": "Piga Picha"},
+            "click_or_drag": {"en": "Click or drag image here", "sw": "Bonyeza au buruta picha hapa"},
+            "maize_leaf_only": {"en": "Please upload a clear image of a maize leaf", "sw": "Tafadhali pakia picha wazi ya jani la mahindi"},
+            
+            # Register page additional
+            "farmer": {"en": "Farmer", "sw": "Mkulima"},
+            "extension_officer": {"en": "Extension Officer", "sw": "Afisa Ugani"},
+            
+            # Role badge
+            "officer_role": {"en": "Officer", "sw": "Afisa"},
+            
+            # Footer
+            "maize_disease_system": {"en": "Maize Disease Detection System", "sw": "Mfumo wa Utambuzi wa Magonjwa ya Mahindi"},
         }
         
         if disease_name in disease_translations:
