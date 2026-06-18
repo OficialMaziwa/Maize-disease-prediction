@@ -287,61 +287,20 @@ def send_approval_sms(phone_number, officer_name, admin_name):
 def send_approval_email(email, officer_name, admin_name):
     """Send email approval notification via Gmail"""
     if not MAIL_AVAILABLE:
-        print("⚠️ Email service not available")
+        print("?? Email service not available")
         return False
 
     if not email:
-        print("⚠️ No email address provided")
+        print("?? No email address provided")
         return False
 
     try:
-        print(f"📧 Sending email to: {email}")
+        print(f"?? Sending email to: {email}")
+        print(f"?? From: malabamalaba26@gmail.com")
 
-        subject = "✅ Account Approved - Maize Disease Detection System"
-
-        # HTML email content
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
-                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background: #28a745; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }}
-                .content {{ background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }}
-                .button {{ display: inline-block; background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
-                .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2>🌽 Maize Disease Detection System</h2>
-                </div>
-                <div class="content">
-                    <h3>Congratulations, {officer_name}! 🎉</h3>
-                    <p>Your account has been <strong>APPROVED</strong> by <strong>{admin_name}</strong>.</p>
-                    <p>You can now login to the system and start helping farmers detect maize diseases.</p>
-                    <p style="text-align: center;">
-                        <a href="{APP_URL}/login" class="button">🔐 Login to Your Account</a>
-                    </p>
-                    <p><strong>Login credentials:</strong><br>
-                    Phone number: Your registered phone number<br>
-                    Password: Your chosen password</p>
-                    <p><em>If you have any questions, please contact the system administrator.</em></p>
-                </div>
-                <div class="footer">
-                    <p>Maize Disease Detection System - Helping Farmers Make Better Decisions</p>
-                    <p>&copy; 2024 All Rights Reserved</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        # Plain text version as fallback
-        text_content = f"""
+        subject = "? Account Approved - Maize Disease Detection System"
+        
+        body = f"""
         CONGRATULATIONS! Dear {officer_name},
         
         Your account has been APPROVED by {admin_name}.
@@ -355,18 +314,14 @@ def send_approval_email(email, officer_name, admin_name):
         """
 
         msg = Message(subject, recipients=[email])
-        msg.body = text_content
-        msg.html = html_content
-
+        msg.body = body
         mail.send(msg)
-        print(f"✅ Email sent successfully to {email}")
+        print(f"? Email sent successfully to {email}")
         return True
 
     except Exception as e:
-        print(f"❌ Email error: {e}")
+        print(f"? Email error: {e}")
         return False
-
-
 def create_in_app_notification(user_id, title, message, notification_type="SYSTEM"):
     try:
         if not ensure_db_connection():
@@ -734,12 +689,12 @@ def change_language(lang):
                     cursor.close()
             except:
                 pass
+    
+    # Get the next page from query parameter or referrer
     next_page = request.args.get("next") or request.referrer or url_for("main.index")
-    return redirect(next_page)
-
-
-# ==================== ADMIN DASHBOARD ====================
-@main.route("/admin")
+    
+    # Redirect back to the same page
+    return redirect(next_page)@main.route("/admin")
 def admin_dashboard():
     if session.get("user_role") != "admin":
         flash("Access denied. Admin privileges required.", "danger")
@@ -1687,6 +1642,10 @@ def api_predict():
         disease_name = "Healthy"
         confidence = 85.5
         try:
+            # Ensure image data is valid
+            if not image_data or len(image_data) < 100:
+                return jsonify({"error": "Invalid image data"}), 400
+                
             image_bytes = base64.b64decode(image_data)
             img = Image.open(io.BytesIO(image_bytes))
             if img.mode in ("RGBA", "LA", "P"):
@@ -1694,22 +1653,28 @@ def api_predict():
             temp_filename = f"temp_{uuid.uuid4().hex}.jpg"
             temp_path = os.path.join(UPLOAD_FOLDER, temp_filename)
             img.save(temp_path, "JPEG", quality=90)
-
-            # ============ FIXED PREDICTION CODE - LOAD MODEL DIRECTLY ============
+            
+            # Force flush to ensure file is written
+            import time
+            time.sleep(0.5)
+            
+            # Reload image to ensure it's properly written
+            if not os.path.exists(temp_path):
+                return jsonify({"error": "Failed to save image"}), 400
+                
+            # Load model and predict
             import tensorflow as tf
             from tensorflow.keras.preprocessing import image
             import numpy as np
             import json as json_lib
 
-            # Path to model
             model_path = "app/models/maize_disease_model.h5"
-
+            
             if os.path.exists(model_path):
-                print(f"✅ Loading model from {model_path}")
+                print(f"? Loading model from {model_path}")
                 model = tf.keras.models.load_model(model_path)
-                print(f"✅ Model loaded, input shape: {model.input_shape}")
-
-                # Load class names
+                print(f"? Model loaded, input shape: {model.input_shape}")
+                
                 class_names_path = "class_names.json"
                 if os.path.exists(class_names_path):
                     with open(class_names_path, "r") as f:
@@ -1719,325 +1684,50 @@ def api_predict():
                 else:
                     class_names = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
 
-                print(f"✅ Class names: {class_names}")
-
-                # Preprocess image
+                print(f"? Class names: {class_names}")
+                
                 img_pred = image.load_img(temp_path, target_size=(224, 224))
                 img_array = image.img_to_array(img_pred)
                 img_array = np.expand_dims(img_array, axis=0)
                 img_array = img_array / 255.0
-
-                # Predict
+                
                 predictions = model.predict(img_array, verbose=0)[0]
                 predicted_idx = np.argmax(predictions)
                 confidence = float(predictions[predicted_idx] * 100)
                 disease_name = class_names[predicted_idx] if class_names else "Unknown"
 
-                print(f"🎯 API Prediction: {disease_name} ({confidence:.1f}%)")
-                print(f"🎯 Raw predictions: {predictions}")
+                print(f"?? API Prediction: {disease_name} ({confidence:.1f}%)")
+                print(f"?? Raw predictions: {predictions}")
             else:
-                print(f"❌ Model not found at {model_path}")
+                print(f"? Model not found at {model_path}")
                 disease_name = "Healthy"
                 confidence = 85.5
-            # ============ END OF FIXED PREDICTION CODE ============
 
-            # Translate disease name based on language
-            if language == "sw":
-                display_disease_name = disease_name
-            else:
-                display_disease_name = disease_name
-
-            # Recommendations based on disease - WITH TRANSLATION SUPPORT
-            if "Blight" in disease_name:
-                # English versions
-                description_en = "Northern corn leaf blight is a fungal disease caused by Exserohilum turcicum. It thrives in cool, humid conditions and can cause significant yield loss if left untreated."
-                symptoms_en = "• Long, elliptical, cigar-shaped lesions (2.5-15 cm long)\n• Lesions are grayish-green to tan in color\n• Lesions may coalesce and kill entire leaves\n• Symptoms first appear on lower leaves"
-                treatment_en = "• Apply fungicides containing azoxystrobin or pyraclostrobin\n• Use resistant hybrid varieties\n• Crop rotation with non-host crops\n• Tillage to bury infected crop residue"
-                organic_treatment_en = [
-                    "🌿 Apply neem oil solution (10ml per liter water) - spray every 7 days",
-                    "🍃 Use compost tea as foliar spray - rich in beneficial microbes",
-                    "🌱 Plant marigolds as companion plants - natural fungicide properties",
-                    "💧 Ensure proper drainage and air circulation between plants",
-                ]
-                chemical_treatment_en = [
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml per liter of water",
-                    "🧪 Pyraclostrobin (Headline) - 0.75ml per liter of water",
-                    "🧪 Mancozeb (Dithane) - 2g per liter of water",
-                    "🧪 Apply every 7-14 days during wet conditions",
-                ]
-                cultural_practices_en = [
-                    "🌾 Practice crop rotation (2-3 years with soybeans or wheat)",
-                    "🚜 Remove and destroy infected crop residue after harvest",
-                    "💨 Space plants properly (75cm between rows, 25cm within row)",
-                    "🌱 Plant disease-resistant hybrid varieties",
-                ]
-                action_plan_en = [
-                    "📅 Day 1-3: Apply fungicide immediately at first sign of disease",
-                    "📅 Day 4-7: Remove severely infected leaves to reduce spread",
-                    "📅 Day 8-14: Monitor and reapply fungicide if needed",
-                    "📅 Next Season: Plan crop rotation and use resistant varieties",
-                ]
-
-                # Swahili versions
-                description_sw = "Ugonjwa wa kuvu unaosababishwa na Exserohilum turcicum. Huenea katika hali ya hewa ya baridi na unyevunyevu na unaweza kusababisha hasara kubwa ya mavuno ikiachwa bila kudhibitiwa."
-                symptoms_sw = "• Madoa marefu, ya umbo la sigara (urefu wa 2.5-15 cm)\n• Madoa ni ya kijivu-kijani hadi kahawia\n• Madoa yanaweza kuungana na kufisha majani yote\n• Dalili huonekana kwanza kwenye majani ya chini"
-                treatment_sw = "• Tumia dawa za kuvu zilizo na azoxystrobin au pyraclostrobin\n• Tumia aina za mahindi zinazostahimili ugonjwa\n• Zungusha mazao\n• Fukia mabaki ya mazao baada ya mavuno"
-                organic_treatment_sw = [
-                    "🌿 Tumia mafuta ya mwarobaini (10ml kwa lita moja ya maji) - piga kila siku 7",
-                    "🍃 Tumia chai ya mbolea asili",
-                    "🌱 Panda marigolds kama mimea shirikishi",
-                    "💧 Hakikisha maji yanatoka vizuri na hewa inazunguka kati ya mimea",
-                ]
-                chemical_treatment_sw = [
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml kwa lita moja ya maji",
-                    "🧪 Pyraclostrobin (Headline) - 0.75ml kwa lita moja ya maji",
-                    "🧪 Mancozeb (Dithane) - 2g kwa lita moja ya maji",
-                    "🧪 Tumia kila siku 7-14 wakati wa mvua",
-                ]
-                cultural_practices_sw = [
-                    "🌾 Zungusha mazao kwa miaka 2-3 na maharage au ngano",
-                    "🚜 Ondoa na uharibu mabaki ya mazao yaliyoathirika baada ya mavuno",
-                    "💨 Panda kwa umbali sahihi (75cm kati ya mistari, 25cm kati ya mimea)",
-                    "🌱 Panda aina za mahindi zinazostahimili magonjwa",
-                ]
-                action_plan_sw = [
-                    "📅 Siku 1-3: Tumia dawa ya kuvu mara moja unapoona dalili za kwanza",
-                    "📅 Siku 4-7: Ondoa majani yaliyoathirika sana",
-                    "📅 Siku 8-14: Fuatilia na tumia dawa tena ikiwa ni lazima",
-                    "📅 Msimu Ujao: Panda aina zinazostahimili na zungusha mazao",
-                ]
-
-            elif "Rust" in disease_name:
-                description_en = "Common rust is caused by the fungus Puccinia sorghi. It appears as small pustules on leaves and can reduce yield in severe cases."
-                symptoms_en = "• Small, circular to oval pustules (1-2 mm diameter)\n• Pustules are reddish-brown to dark brown in color\n• Pustules appear on both leaf surfaces\n• Severely infected leaves may turn yellow and die"
-                treatment_en = "• Apply fungicides at first sign of disease\n• Plant resistant hybrid varieties\n• Avoid late planting dates\n• Maintain adequate plant nutrition"
-                organic_treatment_en = [
-                    "🍃 Apply baking soda solution (1 tbsp per liter water) - weekly spray",
-                    "🪴 Use garlic-pepper spray",
-                    "🌿 Remove infected leaves promptly",
-                    "💧 Improve air circulation by proper plant spacing",
-                ]
-                chemical_treatment_en = [
-                    "🧪 Tebuconazole (Folicur) - 0.5ml per liter",
-                    "🧪 Propiconazole (Tilt) - 1ml per liter",
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml per liter",
-                    "🧪 Apply at first sign of rust pustules",
-                ]
-                cultural_practices_en = [
-                    "🌾 Plant resistant hybrid varieties",
-                    "🚜 Avoid overhead irrigation",
-                    "💨 Space plants properly for air flow",
-                    "🌱 Plant early to avoid peak rust season",
-                ]
-                action_plan_en = [
-                    "📅 Day 1-2: Apply fungicide immediately when rust is observed",
-                    "📅 Day 3-5: Remove severely affected leaves",
-                    "📅 Day 7-10: Monitor for new pustules, reapply if needed",
-                    "📅 Next Season: Select resistant varieties and plant early",
-                ]
-
-                # Swahili versions
-                description_sw = "Kutu wa kawaida husababishwa na fangasi aitwaye Puccinia sorghi. Huonekana kama madoa madogo kwenye majani na unaweza kupunguza mavuno ikiwa mkali."
-                symptoms_sw = "• Madoa madogo ya mviringo (kipenyo cha 1-2 mm)\n• Madoa ni mekundu-kahawia hadi kahawia iliyokolea\n• Madoa huonekana pande zote za jani\n• Majani yaliyoathirika sana yanaweza kuwa njano na kukauka"
-                treatment_sw = "• Tumia dawa za kuvu unapoona dalili za kwanza\n• Panda aina za mahindi zinazostahimili\n• Epuka kupanda kuchelewa\n• Dumisha lishe bora ya mimea"
-                organic_treatment_sw = [
-                    "🍃 Tumia suluhisho la baking soda (kijiko 1 kwa lita moja ya maji)",
-                    "🪴 Tumia dawa ya kitunguu saumu na pilipili",
-                    "🌿 Ondoa majani yaliyoathirika mara moja",
-                    "💧 Boresha mzunguko wa hewa kwa umbali sahihi wa kupanda",
-                ]
-                chemical_treatment_sw = [
-                    "🧪 Tebuconazole (Folicur) - 0.5ml kwa lita moja",
-                    "🧪 Propiconazole (Tilt) - 1ml kwa lita moja",
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml kwa lita moja",
-                    "🧪 Tumia unapoona dalili za kwanza za kutu",
-                ]
-                cultural_practices_sw = [
-                    "🌾 Panda aina za mahindi zinazostahimili",
-                    "🚜 Epuka kumwagilia kwa njia ya kunyunyuzia juu",
-                    "💨 Panda kwa umbali unaoruhusu hewa kuzunguka",
-                    "🌱 Panda mapema ili kuepuka kipindi cha kutu",
-                ]
-                action_plan_sw = [
-                    "📅 Siku 1-2: Tumia dawa ya kuvu mara moja unapoona kutu",
-                    "📅 Siku 3-5: Ondoa majani yaliyoathirika sana",
-                    "📅 Siku 7-10: Fuatilia kwa madoa mapya, tumia tena ikiwa ni lazima",
-                    "📅 Msimu Ujao: Panda aina zinazostahimili na panda mapema",
-                ]
-
-            elif "Spot" in disease_name:
-                description_en = "Gray leaf spot is caused by Cercospora zeae-maydis. It produces rectangular lesions that can severely damage leaves."
-                symptoms_en = "• Small pinpoint spots become rectangular lesions\n• Lesions are gray to tan with dark borders\n• Lesions restricted by leaf veins\n• Severely infected leaves die prematurely"
-                treatment_en = "• Apply fungicides preventatively at tasseling\n• Use resistant hybrids\n• Crop rotation with non-host crops\n• Tillage to reduce residue"
-                organic_treatment_en = [
-                    "🍃 Apply potassium bicarbonate solution (1 tbsp per liter)",
-                    "🪴 Use chamomile tea spray",
-                    "🌿 Remove infected lower leaves",
-                    "💧 Water early morning only",
-                ]
-                chemical_treatment_en = [
-                    "🧪 Chlorothalonil (Bravo) - 2ml per liter",
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml per liter",
-                    "🧪 Pyraclostrobin (Headline) - 0.75ml per liter",
-                    "🧪 Apply at tasseling stage",
-                ]
-                cultural_practices_en = [
-                    "🌾 Rotate with soybeans or wheat for 2 years",
-                    "🚜 Bury residue with deep plowing",
-                    "💨 Improve air circulation",
-                    "🌱 Plant moderately resistant varieties",
-                ]
-                action_plan_en = [
-                    "📅 Pre-planting: Select resistant varieties",
-                    "📅 At tasseling: Apply preventative fungicide",
-                    "📅 After harvest: Deep plow to bury residue",
-                    "📅 Next Season: Rotate with non-host crop",
-                ]
-
-                # Swahili versions
-                description_sw = "Madoa meusi ya majani husababishwa na fangasi aitwaye Cercospora zeae-maydis. Husababisha madoa yenye umbo la mstatili yanayoweza kuharibu majani."
-                symptoms_sw = "• Madoa madogo huwa makubwa na kuwa umbo la mstatili\n• Madoa ni ya kijivu hadi kahawia yenye kingo nyeusi\n• Madoa huzuiliwa na mishipa ya jani\n• Majani yaliyoathirika sana hukauka mapema"
-                treatment_sw = "• Tumia dawa za kuvu kabla ya ugonjwa kuonekana wakati wa kuchanua jani la juu\n• Tumia aina zinazostahimili\n• Zungusha mazao\n• Fukia mabaki ya mazao"
-                organic_treatment_sw = [
-                    "🍃 Tumia suluhisho la bicarbonate ya potasiamu (kijiko 1 kwa lita moja)",
-                    "🪴 Tumia dawa ya chai ya chamomile",
-                    "🌿 Ondoa majani ya chini yaliyoathirika",
-                    "💧 Mugilia maji asubuhi tu",
-                ]
-                chemical_treatment_sw = [
-                    "🧪 Chlorothalonil (Bravo) - 2ml kwa lita moja",
-                    "🧪 Azoxystrobin (Amistar) - 0.5ml kwa lita moja",
-                    "🧪 Pyraclostrobin (Headline) - 0.75ml kwa lita moja",
-                    "🧪 Tumia wakati wa kuchanua jani la juu",
-                ]
-                cultural_practices_sw = [
-                    "🌾 Zungusha mazao na maharage au ngano kwa miaka 2",
-                    "🚜 Fukia mabaki ya mazao kwa kulima kwa kina",
-                    "💨 Boresha mzunguko wa hewa",
-                    "🌱 Panda aina zinazostahimili wastani",
-                ]
-                action_plan_sw = [
-                    "📅 Kabla ya kupanda: Chagua aina zinazostahimili",
-                    "📅 Wakati wa kuchanua: Tumia dawa ya kuvu",
-                    "📅 Baada ya mavuno: Lima kwa kina kufukia mabaki",
-                    "📅 Msimu Ujao: Zungusha mazao",
-                ]
-
-            else:  # Healthy
-                description_en = "Your maize plant appears healthy with no signs of disease. Continue good agricultural practices to maintain plant health."
-                symptoms_en = "• No visible disease symptoms\n• Leaves are green and healthy\n• Normal growth and development\n• Good overall plant vigor"
-                treatment_en = "• Continue regular monitoring\n• Maintain good nutrition\n• Practice preventative measures\n• Keep field records"
-                organic_treatment_en = [
-                    "🍃 Apply compost tea monthly",
-                    "🪴 Use neem oil as preventative spray",
-                    "🌿 Maintain good soil health",
-                    "💧 Water consistently but not excessively",
-                ]
-                chemical_treatment_en = [
-                    "🧪 No chemical treatment needed",
-                    "🧪 Consider preventative fungicides in high-risk areas",
-                    "🧪 Maintain balanced fertilizer program",
-                ]
-                cultural_practices_en = [
-                    "🌾 Practice crop rotation with legumes",
-                    "🚜 Maintain field sanitation",
-                    "💨 Ensure proper plant spacing",
-                    "🌱 Use certified disease-free seeds",
-                ]
-                action_plan_en = [
-                    "📅 Weekly: Scout fields for early detection",
-                    "📅 Monthly: Apply compost tea",
-                    "📅 Season: Maintain good nutrition",
-                    "📅 Long term: Keep good field records",
-                ]
-
-                # Swahili versions
-                description_sw = "Mmea wako wa mahindi unaonekana kuwa na afya na hakuna dalili za ugonjwa. Endelea na mazoea mazuri ya kilimo kudumisha afya ya mmea."
-                symptoms_sw = "• Hakuna dalili za ugonjwa zinazoonekana\n• Majani ni mabichi na yenye afya\n• Ukuaji na maendeleo ya kawaida\n• Nguvu nzuri ya mmea kwa ujumla"
-                treatment_sw = "• Endelea kufuatilia mara kwa mara\n• Dumisha lishe bora\n• Fuata hatua za kuzuia magonjwa\n• Weka rekodi za shamba"
-                organic_treatment_sw = [
-                    "🍃 Tumia chai ya mbolea asili kila mwezi",
-                    "🪴 Tumia mafuta ya mwarobaini kama dawa ya kuzuia",
-                    "🌿 Dumisha afya bora ya udongo",
-                    "💧 Mugilia maji kwa uwiano lakini si kupita kiasi",
-                ]
-                chemical_treatment_sw = [
-                    "🧪 Hakuna matibabu ya kemikali yanayohitajika",
-                    "🧪 Fikiria dawa za kuvu za kuzuia katika maeneo yenye hatari kubwa",
-                    "🧪 Dumisha programu bora ya mbolea",
-                ]
-                cultural_practices_sw = [
-                    "🌾 Zungusha mazao na mikunde",
-                    "🚜 Dumisha usafi wa shamba",
-                    "💨 Hakikisha umbali sahihi wa kupanda",
-                    "🌱 Tumia mbolea za asili",
-                ]
-                action_plan_sw = [
-                    "📅 Kila wiki: Kagua mashamba kwa ugunduzi wa mapema",
-                    "📅 Kila mwezi: Tumia chai ya mbolea asili",
-                    "📅 Msimu: Dumisha lishe bora",
-                    "📅 Muda mrefu: Weka rekodi nzuri za shamba",
-                ]
-
-            # Select language version
-            if language == "sw":
-                description = description_sw
-                symptoms = symptoms_sw
-                treatment = treatment_sw
-                organic_treatment = organic_treatment_sw
-                chemical_treatment = chemical_treatment_sw
-                cultural_practices = cultural_practices_sw
-                action_plan = action_plan_sw
-            else:
-                description = description_en
-                symptoms = symptoms_en
-                treatment = treatment_en
-                organic_treatment = organic_treatment_en
-                chemical_treatment = chemical_treatment_en
-                cultural_practices = cultural_practices_en
-                action_plan = action_plan_en
-
-            return jsonify(
-                {
-                    "success": True,
-                    "disease": display_disease_name,
-                    "confidence": confidence,
-                    "description": description,
-                    "symptoms": symptoms,
-                    "treatment": treatment,
-                    "organic_treatment": organic_treatment,
-                    "chemical_treatment": chemical_treatment,
-                    "cultural_practices": cultural_practices,
-                    "action_plan": action_plan,
-                }
-            )
+            # Return results
+            return jsonify({
+                "success": True,
+                "disease": disease_name,
+                "confidence": confidence,
+                "description": "Disease detected successfully",
+                "symptoms": "See treatment recommendations",
+                "treatment": "Consult agricultural officer",
+                "organic_treatment": [],
+                "chemical_treatment": [],
+                "cultural_practices": [],
+                "action_plan": []
+            })
         except Exception as e:
             print(f"Error in prediction: {e}")
             import traceback
-
             traceback.print_exc()
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "error": str(e),
-                        "disease": "Healthy",
-                        "confidence": 50.0,
-                    }
-                ),
-                200,
-            )
+            return jsonify({"success": False, "error": str(e), "disease": "Healthy", "confidence": 50.0}), 200
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.remove(temp_path)
                 except:
                     pass
-    return jsonify({"error": "No image data provided", "success": False}), 400
-
-
-# ==================== FARMER HISTORY API ====================
-@main.route("/farmer/history")
+    return jsonify({"error": "No image data provided", "success": False}), 400@main.route("/farmer/history")
 def farmer_history():
     if session.get("user_id") is None:
         flash("Please login to access this page.", "warning")

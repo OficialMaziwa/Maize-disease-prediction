@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +19,7 @@
         <div class="container">
             <!-- Brand/Logo -->
             <a class="navbar-brand" href="/">
-                🌽 {{ t('maize_disease_detection', session.get('language', 'en')) }}
+                ?? {{ t('maize_disease_detection', session.get('language', 'en')) }}
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -87,7 +87,7 @@
                         </li>
                     {% endif %}
                     
-                    <!-- Language Switcher -->
+                                        <!-- Language Switcher -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-globe me-1"></i> 
@@ -95,10 +95,17 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow">
                             <li>
-                                <a class="dropdown-item" href="/change-language/en">
+                                <a class="dropdown-item" href="/change-language/en?next={{ request.path }}">
                                     <i class="fas fa-flag-usa me-2"></i> English
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item" href="/change-language/sw?next={{ request.path }}">
+                                    <i class="fas fa-flag-tanzania me-2"></i> Kiswahili
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                             <li>
                                 <a class="dropdown-item" href="/change-language/sw">
                                     <i class="fas fa-flag-tanzania me-2"></i> Kiswahili
