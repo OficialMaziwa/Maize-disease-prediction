@@ -2,6 +2,7 @@
 
 let currentImageData = null;
 let stream = null;
+let cameraMode = 'environment'; // default: back camera
 
 // Initialize camera when camera tab is shown
 document.addEventListener('DOMContentLoaded', function () {
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cameraTab = document.getElementById('camera-tab');
     if (cameraTab) {
         cameraTab.addEventListener('shown.bs.tab', function () {
-            initCamera();
+            initCamera(cameraMode);
         });
     }
 
@@ -72,7 +73,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Process image file
+// Set camera mode (front/back)
+function setCameraMode(mode) {
+    cameraMode = mode;
+    // Update button styles
+    document.getElementById('backCameraBtn').className = 'btn btn-sm btn-outline-primary' + (mode === 'environment' ? ' active' : '');
+    document.getElementById('frontCameraBtn').className = 'btn btn-sm btn-outline-secondary' + (mode === 'user' ? ' active' : '');
+    // Reinitialize camera with new mode
+    if (document.getElementById('camera-tab').classList.contains('active')) {
+        initCamera(mode);
+    }
+}
+
+// Process image file - UPLOAD MARA MOJA
 function processImageFile(file, previewImg, imagePreview, uploadArea, rejectMessage, rejectText) {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -82,9 +95,9 @@ function processImageFile(file, previewImg, imagePreview, uploadArea, rejectMess
         return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        rejectText.textContent = 'File too large. Maximum size is 10MB';
+    // Validate file size (max 50MB for mobile)
+    if (file.size > 50 * 1024 * 1024) {
+        rejectText.textContent = 'File too large. Maximum size is 50MB';
         rejectMessage.style.display = 'flex';
         return;
     }
@@ -100,20 +113,26 @@ function processImageFile(file, previewImg, imagePreview, uploadArea, rejectMess
         // Store image data for prediction
         currentImageData = e.target.result;
 
-        // Automatically analyze
+        // ANALYZE IMMEDIATELY - NO SECOND UPLOAD
         analyzeImage(currentImageData);
     };
     reader.readAsDataURL(file);
 }
 
 // Initialize camera
-async function initCamera() {
+async function initCamera(mode) {
     const video = document.getElementById('video');
     const cameraPreview = document.getElementById('cameraPreview');
     const cameraRejectMessage = document.getElementById('cameraRejectMessage');
 
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { exact: mode } }
+        });
         video.srcObject = stream;
         video.style.display = 'block';
         cameraPreview.style.display = 'none';
@@ -121,12 +140,24 @@ async function initCamera() {
 
         // Setup capture button
         const captureBtn = document.getElementById('captureBtn');
+        captureBtn.style.display = 'flex';
         captureBtn.onclick = capturePhoto;
     } catch (err) {
         console.error('Camera error:', err);
-        const cameraRejectText = document.getElementById('cameraRejectText');
-        cameraRejectText.textContent = 'Unable to access camera. Please check permissions.';
-        cameraRejectMessage.style.display = 'flex';
+        // Fallback: try any camera
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            cameraRejectMessage.style.display = 'none';
+            const captureBtn = document.getElementById('captureBtn');
+            captureBtn.style.display = 'flex';
+            captureBtn.onclick = capturePhoto;
+        } catch (err2) {
+            const cameraRejectText = document.getElementById('cameraRejectText');
+            cameraRejectText.textContent = 'Unable to access camera. Please check permissions.';
+            cameraRejectMessage.style.display = 'flex';
+        }
     }
 }
 
@@ -158,7 +189,7 @@ function capturePhoto() {
         // Stop camera stream
         stopCamera();
 
-        // Analyze image
+        // ANALYZE IMMEDIATELY - NO SECOND UPLOAD
         analyzeImage(currentImageData);
     }
 }
@@ -203,7 +234,7 @@ function resetCamera() {
     loading.style.display = 'none';
 
     // Reinitialize camera
-    initCamera();
+    initCamera(cameraMode);
 }
 
 // Reset all
@@ -219,7 +250,7 @@ function resetAll() {
     }
 }
 
-// Analyze image
+// Analyze image - UPLOAD MARA MOJA
 function analyzeImage(imageData) {
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');

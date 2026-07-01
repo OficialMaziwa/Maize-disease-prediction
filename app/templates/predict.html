@@ -69,6 +69,15 @@
                         
                         <!-- Camera Tab -->
                         <div class="tab-pane fade" id="camera" role="tabpanel">
+                            <!-- Camera selection buttons -->
+                            <div class="camera-select-buttons mb-3 text-center">
+                                <button class="btn btn-sm btn-outline-primary active" onclick="setCameraMode('environment')" id="backCameraBtn">
+                                    <i class="fas fa-camera me-1"></i> Nyuma
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="setCameraMode('user')" id="frontCameraBtn">
+                                    <i class="fas fa-camera me-1"></i> Mbele
+                                </button>
+                            </div>
                             <div class="camera-container">
                                 <video id="video" autoplay playsinline></video>
                                 <button id="captureBtn" class="btn-capture" onclick="capturePhoto()">
@@ -190,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (langSelector) {
         langSelector.addEventListener('change', function() {
             const newLang = this.value;
-            // Change language via backend route
             window.location.href = '/change-language/' + newLang + '?next=' + encodeURIComponent(window.location.pathname);
         });
     }
