@@ -1294,7 +1294,6 @@ def admin_update_user(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-
 # ==================== ADMIN OFFICER APPROVAL ====================
 @main.route("/admin/officer/<user_id>/approve", methods=["POST"])
 @log_activity
@@ -1373,7 +1372,6 @@ def admin_approve_officer(user_id):
     except Exception as e:
         print(f"Error approving officer: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
-
 
 
 @main.route("/officer-dashboard")
@@ -1642,23 +1640,22 @@ def api_predict():
             # Ensure image data is valid
             if not image_data or len(image_data) < 100:
                 return jsonify({"error": "Invalid image data"}), 400
-                
+
             image_bytes = base64.b64decode(image_data)
             img = Image.open(io.BytesIO(image_bytes))
             if img.mode in ("RGBA", "LA", "P"):
                 img = img.convert("RGB")
             temp_filename = f"temp_{uuid.uuid4().hex}.jpg"
             temp_path = os.path.join(UPLOAD_FOLDER, temp_filename)
-            img.save(temp_path, "JPEG", quality=90)\n            import time\n            time.sleep(0.5)
-            
-            # Force flush to ensure file is written
+            img.save(temp_path, "JPEG", quality=90)
             import time
+
             time.sleep(0.5)
-            
+
             # Reload image to ensure it's properly written
             if not os.path.exists(temp_path):
                 return jsonify({"error": "Failed to save image"}), 400
-                
+
             # Load model and predict
             import tensorflow as tf
             from tensorflow.keras.preprocessing import image
@@ -1666,12 +1663,12 @@ def api_predict():
             import json as json_lib
 
             model_path = "app/models/maize_disease_model.h5"
-            
-            if not os.path.exists(temp_path):\n                return jsonify({"error": "Failed to save image"}), 400\n            \n            if os.path.exists(model_path):
-                print(f"? Loading model from {model_path}")
+
+            if os.path.exists(model_path):
+                print(f"✅ Loading model from {model_path}")
                 model = tf.keras.models.load_model(model_path)
-                print(f"? Model loaded, input shape: {model.input_shape}")
-                
+                print(f"✅ Model loaded, input shape: {model.input_shape}")
+
                 class_names_path = "class_names.json"
                 if os.path.exists(class_names_path):
                     with open(class_names_path, "r") as f:
@@ -1681,65 +1678,63 @@ def api_predict():
                 else:
                     class_names = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
 
-                print(f"? Class names: {class_names}")
-                
+                print(f"✅ Class names: {class_names}")
+
                 img_pred = image.load_img(temp_path, target_size=(224, 224))
                 img_array = image.img_to_array(img_pred)
                 img_array = np.expand_dims(img_array, axis=0)
                 img_array = img_array / 255.0
-                
+
                 predictions = model.predict(img_array, verbose=0)[0]
                 predicted_idx = np.argmax(predictions)
                 confidence = float(predictions[predicted_idx] * 100)
                 disease_name = class_names[predicted_idx] if class_names else "Unknown"
 
-                print(f"?? API Prediction: {disease_name} ({confidence:.1f}%)")
-                print(f"?? Raw predictions: {predictions}")
+                print(f"🎯 API Prediction: {disease_name} ({confidence:.1f}%)")
+                print(f"🎯 Raw predictions: {predictions}")
             else:
-                print(f"? Model not found at {model_path}")
+                print(f"❌ Model not found at {model_path}")
                 disease_name = "Healthy"
                 confidence = 85.5
 
             # Return results
-            return jsonify({
-                "success": True,
-                "disease": disease_name,
-                "confidence": confidence,
-                "description": "Disease detected successfully",
-                "symptoms": "See treatment recommendations",
-                "treatment": "Consult agricultural officer",
-                "organic_treatment": [],
-                "chemical_treatment": [],
-                "cultural_practices": [],
-                "action_plan": []
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "disease": disease_name,
+                    "confidence": confidence,
+                    "description": "Disease detected successfully",
+                    "symptoms": "See treatment recommendations",
+                    "treatment": "Consult agricultural officer",
+                    "organic_treatment": [],
+                    "chemical_treatment": [],
+                    "cultural_practices": [],
+                    "action_plan": [],
+                }
+            )
         except Exception as e:
             print(f"Error in prediction: {e}")
             import traceback
+
             traceback.print_exc()
-            return jsonify({"success": False, "error": str(e), "disease": "Healthy", "confidence": 50.0}), 200
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": str(e),
+                        "disease": "Healthy",
+                        "confidence": 50.0,
+                    }
+                ),
+                200,
+            )
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
-                    try: os.remove(temp_path)\nexcept: pass
+                    os.remove(temp_path)
                 except:
                     pass
-    return jsonify({"error": "No image data provided", "success": False}), 400@main.route("/farmer/history")
-def farmer_history():
-    if session.get("user_id") is None:
-        flash("Please login to access this page.", "warning")
-        return redirect(url_for("main.login"))
-    if session.get("user_role") != "farmer":
-        flash("Access denied. Farmer privileges required.", "danger")
-        return redirect(url_for("main.index"))
-    lang = session.get("language", "en")
-    return render_template(
-        "history.html",
-        lang=lang,
-        t=lang_manager.get_text,
-        request=request,
-        user_id=session.get("user_id"),
-    )
+    return jsonify({"error": "No image data provided", "success": False}), 400
 
 
 @main.route("/api/farmer/predictions")
