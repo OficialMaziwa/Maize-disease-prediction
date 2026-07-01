@@ -691,6 +691,8 @@ def change_language(lang):
                 pass
     
     next_page = request.args.get("next") or request.referrer or url_for("main.index")
+    return redirect(next_page)
+
     return redirect(next_page)@main.route("/admin")
 def admin_dashboard():
     if session.get("user_role") != "admin":
