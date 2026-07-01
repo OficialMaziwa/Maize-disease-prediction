@@ -690,10 +690,7 @@ def change_language(lang):
             except:
                 pass
     
-    # Get the next page from query parameter or referrer
     next_page = request.args.get("next") or request.referrer or url_for("main.index")
-    
-    # Redirect back to the same page
     return redirect(next_page)@main.route("/admin")
 def admin_dashboard():
     if session.get("user_role") != "admin":
@@ -1652,7 +1649,7 @@ def api_predict():
                 img = img.convert("RGB")
             temp_filename = f"temp_{uuid.uuid4().hex}.jpg"
             temp_path = os.path.join(UPLOAD_FOLDER, temp_filename)
-            img.save(temp_path, "JPEG", quality=90)
+            img.save(temp_path, "JPEG", quality=90)\n            import time\n            time.sleep(0.5)
             
             # Force flush to ensure file is written
             import time
@@ -1670,7 +1667,7 @@ def api_predict():
 
             model_path = "app/models/maize_disease_model.h5"
             
-            if os.path.exists(model_path):
+            if not os.path.exists(temp_path):\n                return jsonify({"error": "Failed to save image"}), 400\n            \n            if os.path.exists(model_path):
                 print(f"? Loading model from {model_path}")
                 model = tf.keras.models.load_model(model_path)
                 print(f"? Model loaded, input shape: {model.input_shape}")
@@ -1724,7 +1721,7 @@ def api_predict():
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
-                    os.remove(temp_path)
+                    try: os.remove(temp_path)\nexcept: pass
                 except:
                     pass
     return jsonify({"error": "No image data provided", "success": False}), 400@main.route("/farmer/history")
