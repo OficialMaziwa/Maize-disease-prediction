@@ -143,7 +143,7 @@ class LanguageManager:
             # Other
             "welcome_back": {"en": "Welcome back", "sw": "Karibu tena"},
             "full_system_control": {"en": "You have full control over the system", "sw": "Una udhibiti kamili wa mfumo"},
-            "reports": {"en": "Reports", "sw": "Ripoti"},
+             "sw": "Ripoti"},
             "diseases": {"en": "Diseases", "sw": "Magonjwa"},
             "extension_officers": {"en": "Extension Officers", "sw": "Maafisa Ugani"},
             "farmers": {"en": "Farmers", "sw": "Wakulima"},
