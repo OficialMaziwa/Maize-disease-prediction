@@ -250,7 +250,7 @@ function resetAll() {
     }
 }
 
-// Analyze image - UPLOAD MARA MOJA
+// Analyze image - UPLOAD MARA MOJA - REDIRECT TO RESULT PAGE
 function analyzeImage(imageData) {
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
@@ -279,8 +279,19 @@ function analyzeImage(imageData) {
             loading.style.display = 'none';
 
             if (data.success) {
-                displayResults(data);
-                results.style.display = 'block';
+                // Redirect to result page with data
+                const params = new URLSearchParams({
+                    disease: data.disease,
+                    confidence: data.confidence,
+                    description: data.description,
+                    symptoms: data.symptoms,
+                    treatment: data.treatment,
+                    organic: JSON.stringify(data.organic_treatment),
+                    chemical: JSON.stringify(data.chemical_treatment),
+                    cultural: JSON.stringify(data.cultural_practices),
+                    action: JSON.stringify(data.action_plan)
+                });
+                window.location.href = `/result?${params.toString()}`;
             } else {
                 showToast(data.error || 'Prediction failed. Please try again.', 'error');
             }
@@ -292,7 +303,7 @@ function analyzeImage(imageData) {
         });
 }
 
-// Display results
+// Display results (kept for backward compatibility)
 function displayResults(data) {
     // Disease name and confidence
     document.getElementById('diseaseName').innerHTML = `<span class="badge bg-success fs-4">${data.disease}</span>`;
