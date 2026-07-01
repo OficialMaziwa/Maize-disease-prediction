@@ -1642,7 +1642,7 @@ def api_predict():
             # Ensure image data is valid
             if not image_data or len(image_data) < 100:
                 return jsonify({"error": "Invalid image data"}), 400
-
+                
             image_bytes = base64.b64decode(image_data)
             img = Image.open(io.BytesIO(image_bytes))
             if img.mode in ("RGBA", "LA", "P"):
@@ -1651,13 +1651,12 @@ def api_predict():
             temp_path = os.path.join(UPLOAD_FOLDER, temp_filename)
             img.save(temp_path, "JPEG", quality=90)
             import time
-
             time.sleep(0.3)
-
+            
             # Check if file exists
             if not os.path.exists(temp_path):
                 return jsonify({"error": "Failed to save image"}), 400
-
+                
             # Load model and predict
             import tensorflow as tf
             from tensorflow.keras.preprocessing import image
@@ -1665,12 +1664,12 @@ def api_predict():
             import json as json_lib
 
             model_path = "app/models/maize_disease_model.h5"
-
+            
             if os.path.exists(model_path):
                 print(f"✅ Loading model from {model_path}")
                 model = tf.keras.models.load_model(model_path)
                 print(f"✅ Model loaded, input shape: {model.input_shape}")
-
+                
                 class_names_path = "class_names.json"
                 if os.path.exists(class_names_path):
                     with open(class_names_path, "r") as f:
@@ -1681,12 +1680,12 @@ def api_predict():
                     class_names = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
 
                 print(f"✅ Class names: {class_names}")
-
+                
                 img_pred = image.load_img(temp_path, target_size=(224, 224))
                 img_array = image.img_to_array(img_pred)
                 img_array = np.expand_dims(img_array, axis=0)
                 img_array = img_array / 255.0
-
+                
                 predictions = model.predict(img_array, verbose=0)[0]
                 predicted_idx = np.argmax(predictions)
                 confidence = float(predictions[predicted_idx] * 100)
@@ -1699,37 +1698,59 @@ def api_predict():
                 disease_name = "Healthy"
                 confidence = 85.5
 
-            # Return results
-            return jsonify(
-                {
-                    "success": True,
-                    "disease": disease_name,
-                    "confidence": confidence,
-                    "description": "Disease detected successfully",
-                    "symptoms": "See treatment recommendations",
-                    "treatment": "Consult agricultural officer",
-                    "organic_treatment": [],
-                    "chemical_treatment": [],
-                    "cultural_practices": [],
-                    "action_plan": [],
-                }
-            )
+            # Get disease details from database
+            cursor = user_db.get_cursor()
+            cursor.execute("SELECT * FROM diseases WHERE disease_name_en = %s", (disease_name,))
+            disease_info = cursor.fetchone()
+            cursor.close()
+
+            # Translate based on language
+            if language == "sw":
+                display_disease_name = disease_info["disease_name_sw"] if disease_info else disease_name
+                description = disease_info["description_sw"] if disease_info else "No description available."
+                symptoms = disease_info["symptoms_sw"] if disease_info else "No symptoms information available."
+                treatment = disease_info["treatment_sw"] if disease_info else "No treatment information available."
+                organic = disease_info.get("organic_treatment_sw", []) if disease_info else []
+                chemical = disease_info.get("chemical_treatment_sw", []) if disease_info else []
+                cultural = disease_info.get("cultural_practices_sw", []) if disease_info else []
+                action = disease_info.get("action_plan_sw", []) if disease_info else []
+            else:
+                display_disease_name = disease_info["disease_name_en"] if disease_info else disease_name
+                description = disease_info["description_en"] if disease_info else "No description available."
+                symptoms = disease_info["symptoms_en"] if disease_info else "No symptoms information available."
+                treatment = disease_info["treatment_en"] if disease_info else "No treatment information available."
+                organic = disease_info.get("organic_treatment_en", []) if disease_info else []
+                chemical = disease_info.get("chemical_treatment_en", []) if disease_info else []
+                cultural = disease_info.get("cultural_practices_en", []) if disease_info else []
+                action = disease_info.get("action_plan_en", []) if disease_info else []
+
+            # Save prediction history
+            if "user_id" in session:
+                cursor = user_db.get_cursor(dictionary=False)
+                cursor.execute("""
+                    INSERT INTO diagnosis_history (user_id, disease_name, confidence_score, image_path)
+                    VALUES (%s, %s, %s, %s)
+                """, (session["user_id"], disease_name, confidence, temp_path))
+                user_db.connection.commit()
+                cursor.close()
+
+            return jsonify({
+                "success": True,
+                "disease": display_disease_name,
+                "confidence": confidence,
+                "description": description,
+                "symptoms": symptoms,
+                "treatment": treatment,
+                "organic_treatment": organic,
+                "chemical_treatment": chemical,
+                "cultural_practices": cultural,
+                "action_plan": action
+            })
         except Exception as e:
             print(f"Error in prediction: {e}")
             import traceback
-
             traceback.print_exc()
-            return (
-                jsonify(
-                    {
-                        "success": False,
-                        "error": str(e),
-                        "disease": "Healthy",
-                        "confidence": 50.0,
-                    }
-                ),
-                200,
-            )
+            return jsonify({"success": False, "error": str(e), "disease": "Healthy", "confidence": 50.0}), 200
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
@@ -1737,7 +1758,6 @@ def api_predict():
                 except:
                     pass
     return jsonify({"error": "No image data provided", "success": False}), 400
-
 
 @main.route("/api/farmer/predictions")
 def api_farmer_predictions():
