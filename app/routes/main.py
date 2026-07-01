@@ -1650,9 +1650,9 @@ def api_predict():
             img.save(temp_path, "JPEG", quality=90)
             import time
 
-            time.sleep(0.5)
+            time.sleep(0.3)
 
-            # Reload image to ensure it's properly written
+            # Check if file exists
             if not os.path.exists(temp_path):
                 return jsonify({"error": "Failed to save image"}), 400
 
