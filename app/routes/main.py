@@ -1710,19 +1710,19 @@ def api_predict():
                 description = disease_info["description_sw"] if disease_info else "No description available."
                 symptoms = disease_info["symptoms_sw"] if disease_info else "No symptoms information available."
                 treatment = disease_info["treatment_sw"] if disease_info else "No treatment information available."
-                organic = disease_info.get("organic_treatment_sw", []) if disease_info else []
-                chemical = disease_info.get("chemical_treatment_sw", []) if disease_info else []
-                cultural = disease_info.get("cultural_practices_sw", []) if disease_info else []
-                action = disease_info.get("action_plan_sw", []) if disease_info else []
+                organic = disease_info["organic_treatment_sw"].split('|') if disease_info and disease_info.get("organic_treatment_sw") else []
+                chemical = disease_info["chemical_treatment_sw"].split('|') if disease_info and disease_info.get("chemical_treatment_sw") else []
+                cultural = disease_info["cultural_practices_sw"].split('|') if disease_info and disease_info.get("cultural_practices_sw") else []
+                action = disease_info["action_plan_sw"].split('|') if disease_info and disease_info.get("action_plan_sw") else []
             else:
                 display_disease_name = disease_info["disease_name_en"] if disease_info else disease_name
                 description = disease_info["description_en"] if disease_info else "No description available."
                 symptoms = disease_info["symptoms_en"] if disease_info else "No symptoms information available."
                 treatment = disease_info["treatment_en"] if disease_info else "No treatment information available."
-                organic = disease_info.get("organic_treatment_en", []) if disease_info else []
-                chemical = disease_info.get("chemical_treatment_en", []) if disease_info else []
-                cultural = disease_info.get("cultural_practices_en", []) if disease_info else []
-                action = disease_info.get("action_plan_en", []) if disease_info else []
+                organic = disease_info["organic_treatment_en"].split('|') if disease_info and disease_info.get("organic_treatment_en") else []
+                chemical = disease_info["chemical_treatment_en"].split('|') if disease_info and disease_info.get("chemical_treatment_en") else []
+                cultural = disease_info["cultural_practices_en"].split('|') if disease_info and disease_info.get("cultural_practices_en") else []
+                action = disease_info["action_plan_en"].split('|') if disease_info and disease_info.get("action_plan_en") else []
 
             # Save prediction history
             if "user_id" in session:
