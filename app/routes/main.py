@@ -1213,54 +1213,171 @@ def api_predict():
 def result():
     lang = session.get("language", "en")
     stored_result = session.get("last_prediction_result", {})
+
+    # Get disease name from URL or session
     disease = request.args.get("disease") or stored_result.get("disease", "Unknown")
     confidence = request.args.get("confidence") or stored_result.get("confidence", "0")
-    description = request.args.get("description") or stored_result.get(
-        "description", "No description available."
-    )
-    symptoms = request.args.get("symptoms") or stored_result.get(
-        "symptoms", "No symptoms information available."
-    )
-    treatment = request.args.get("treatment") or stored_result.get(
-        "treatment", "No treatment information available."
-    )
     image_data = request.args.get("image_data", "")
+
+    # Default values
+    description = "No description available."
+    symptoms = "No symptoms information available."
+    treatment = "No treatment information available."
+    organic = []
+    chemical = []
+    cultural = []
+    action = []
+
+    # Try to get disease info from database
     try:
-        organic = (
-            json.loads(request.args.get("organic"))
-            if request.args.get("organic")
-            else stored_result.get("organic_treatment", [])
-        )
-        chemical = (
-            json.loads(request.args.get("chemical"))
-            if request.args.get("chemical")
-            else stored_result.get("chemical_treatment", [])
-        )
-        cultural = (
-            json.loads(request.args.get("cultural"))
-            if request.args.get("cultural")
-            else stored_result.get("cultural_practices", [])
-        )
-        action = (
-            json.loads(request.args.get("action"))
-            if request.args.get("action")
-            else stored_result.get("action_plan", [])
-        )
+        if ensure_db_connection():
+            cursor = user_db.get_cursor()
+            cursor.execute(
+                """SELECT disease_name_en, disease_name_sw, scientific_name, 
+                   description_en, description_sw, symptoms_en, symptoms_sw, 
+                   treatment_en, treatment_sw,
+                   organic_treatment_en, chemical_treatment_en, cultural_practices_en,
+                   action_plan_en
+                FROM diseases 
+                WHERE disease_name_en ILIKE %s OR disease_name_sw ILIKE %s
+                LIMIT 1""",
+                (f"%{disease}%", f"%{disease}%"),
+            )
+            disease_info = cursor.fetchone()
+            cursor.close()
+
+            if disease_info:
+                print(f"📊 Found disease in DB: {disease_info.get('disease_name_en')}")
+
+                # Get data based on language
+                if lang == "sw":
+                    description = (
+                        disease_info.get("description_sw")
+                        or disease_info.get("description_en")
+                        or "Maelezo hayapatikani."
+                    )
+                    symptoms = (
+                        disease_info.get("symptoms_sw")
+                        or disease_info.get("symptoms_en")
+                        or "Dalili hazipatikani."
+                    )
+                    treatment = (
+                        disease_info.get("treatment_sw")
+                        or disease_info.get("treatment_en")
+                        or "Matibabu hayapatikani."
+                    )
+                    organic_str = (
+                        disease_info.get("organic_treatment_sw")
+                        or disease_info.get("organic_treatment_en")
+                        or ""
+                    )
+                    chemical_str = (
+                        disease_info.get("chemical_treatment_sw")
+                        or disease_info.get("chemical_treatment_en")
+                        or ""
+                    )
+                    cultural_str = (
+                        disease_info.get("cultural_practices_sw")
+                        or disease_info.get("cultural_practices_en")
+                        or ""
+                    )
+                    action_str = (
+                        disease_info.get("action_plan_sw")
+                        or disease_info.get("action_plan_en")
+                        or ""
+                    )
+                else:
+                    description = (
+                        disease_info.get("description_en")
+                        or "No description available."
+                    )
+                    symptoms = (
+                        disease_info.get("symptoms_en") or "No symptoms available."
+                    )
+                    treatment = (
+                        disease_info.get("treatment_en") or "No treatment available."
+                    )
+                    organic_str = disease_info.get("organic_treatment_en") or ""
+                    chemical_str = disease_info.get("chemical_treatment_en") or ""
+                    cultural_str = disease_info.get("cultural_practices_en") or ""
+                    action_str = disease_info.get("action_plan_en") or ""
+
+                # Parse lists if they are strings with separators
+                if organic_str:
+                    organic = [
+                        item.strip() for item in organic_str.split("|") if item.strip()
+                    ]
+                if chemical_str:
+                    chemical = [
+                        item.strip() for item in chemical_str.split("|") if item.strip()
+                    ]
+                if cultural_str:
+                    cultural = [
+                        item.strip() for item in cultural_str.split("|") if item.strip()
+                    ]
+                if action_str:
+                    action = [
+                        item.strip() for item in action_str.split("|") if item.strip()
+                    ]
+
+    except Exception as e:
+        print(f"❌ Error fetching disease info from database: {e}")
+
+    # If still no data, try stored_result
+    if description == "No description available." or not description:
+        description = stored_result.get("description", description)
+    if symptoms == "No symptoms information available." or not symptoms:
+        symptoms = stored_result.get("symptoms", symptoms)
+    if treatment == "No treatment information available." or not treatment:
+        treatment = stored_result.get("treatment", treatment)
+
+    # Try stored_result for lists
+    if not organic:
+        organic = stored_result.get("organic_treatment", [])
+    if not chemical:
+        chemical = stored_result.get("chemical_treatment", [])
+    if not cultural:
+        cultural = stored_result.get("cultural_practices", [])
+    if not action:
+        action = stored_result.get("action_plan", [])
+
+    # Parse strings to lists if needed
+    try:
+        if isinstance(organic, str):
+            organic = json.loads(organic) if organic else []
+        if isinstance(chemical, str):
+            chemical = json.loads(chemical) if chemical else []
+        if isinstance(cultural, str):
+            cultural = json.loads(cultural) if cultural else []
+        if isinstance(action, str):
+            action = json.loads(action) if action else []
     except:
-        organic = []
-        chemical = []
-        cultural = []
-        action = []
+        pass
+
+    # Ensure lists
+    organic = organic if isinstance(organic, list) else []
+    chemical = chemical if isinstance(chemical, list) else []
+    cultural = cultural if isinstance(cultural, list) else []
+    action = action if isinstance(action, list) else []
+
+    # If organic is empty and treatment exists, split treatment
+    if not organic and treatment and "|" in treatment:
+        organic = [item.strip() for item in treatment.split("|") if item.strip()]
+
     try:
         confidence = float(confidence)
     except:
         confidence = 0.0
+
+    # Determine severity
     severity = "Low"
-    if disease.lower() != "healthy":
+    if disease.lower() != "healthy" and disease.lower() != "afya":
         if confidence > 80:
             severity = "High"
         elif confidence > 50:
             severity = "Medium"
+
+    # Determine confidence level
     confidence_level = "Medium"
     if confidence > 80:
         confidence_level = "Very High"
@@ -1270,17 +1387,35 @@ def result():
         confidence_level = "Medium"
     else:
         confidence_level = "Low"
-    report_data = {
-        "detection_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "follow_up": "Re-evaluate after 7 days",
-    }
+
+    # If still no description, create default message
+    if description == "No description available." or not description:
+        description = f"Information about {disease} is being updated. Please consult your local extension officer for more details."
+    if symptoms == "No symptoms information available." or not symptoms:
+        symptoms = f"Symptoms for {disease} are being updated. Please consult your local extension officer."
+    if treatment == "No treatment information available." or not treatment:
+        treatment = f"Treatment information for {disease} is being updated. Please consult your local extension officer."
+
+    # If no action plan, create default
+    if not action:
+        action = [
+            "Consult your local extension officer for specific recommendations",
+            f"Monitor your maize crop regularly for further symptoms of {disease}",
+            "Document and track the spread of the disease in your field",
+        ]
+
+    print(f"📊 Final data - Disease: {disease}, Description: {description[:50]}...")
+
     return render_template(
         "result.html",
         lang=lang,
         t=lang_manager.get_text,
         request=request,
+        disease_name=disease,
         disease=disease,
         confidence=confidence,
+        confidence_level=confidence_level,
+        severity=severity,
         description=description,
         symptoms=symptoms,
         treatment=treatment,
@@ -1288,14 +1423,11 @@ def result():
         chemical_treatment=chemical,
         cultural_practices=cultural,
         action_plan=action,
-        detection_date=report_data["detection_date"],
-        disease_name=disease,
-        severity=severity,
-        confidence_level=confidence_level,
-        economic_impact="Significant yield losses if not controlled promptly",
+        detection_date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         response_deadline="Immediate action required",
         monitoring_frequency="Weekly monitoring recommended",
-        follow_up=report_data["follow_up"],
+        follow_up="Re-evaluate after 7 days",
+        economic_impact="Significant yield losses if not controlled promptly",
         image_data=image_data,
     )
 
