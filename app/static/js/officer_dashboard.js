@@ -1,6 +1,6 @@
-﻿// Officer Dashboard JavaScript - Complete Version
-
-let currentEditDiseaseId = null;
+﻿let currentEditDiseaseId = null;
+let allFarmersData = [];
+let allPredictionsData = [];
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Officer Dashboard loaded");
@@ -9,15 +9,12 @@ document.addEventListener('DOMContentLoaded', function () {
     loadFarmers();
     loadPredictions();
 
-    // Search functionality
     const searchInput = document.getElementById('farmerSearch');
     if (searchInput) {
         searchInput.addEventListener('keyup', function () {
             filterFarmers(this.value);
         });
     }
-
-    // Disease filter
     const diseaseFilter = document.getElementById('diseaseFilter');
     if (diseaseFilter) {
         diseaseFilter.addEventListener('change', function () {
@@ -201,7 +198,6 @@ function showDiseaseDetailsModal(disease) {
 
     modalBody.innerHTML = html;
 
-    // Set up edit button
     const editBtn = document.getElementById('editDiseaseFromModalBtn');
     if (editBtn) {
         editBtn.onclick = function () {
@@ -514,11 +510,12 @@ function addDisease() {
 }
 
 function loadFarmers() {
-    fetch('/api/officer/dashboard-data')
+    fetch('/api/officer/farmers?limit=1000')
         .then(response => response.json())
         .then(data => {
-            if (data.success && data.recent_farmers) {
-                updateFarmersTable(data.recent_farmers);
+            if (data.success) {
+                allFarmersData = data.farmers || [];
+                updateFarmersTable(allFarmersData);
             }
         })
         .catch(error => console.error("Error loading farmers:", error));
@@ -563,7 +560,8 @@ function loadPredictions() {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.recent_predictions) {
-                updatePredictionsTable(data.recent_predictions);
+                allPredictionsData = data.recent_predictions || [];
+                updatePredictionsTable(allPredictionsData);
             }
         })
         .catch(error => console.error("Error loading predictions:", error));
@@ -588,7 +586,7 @@ function updatePredictionsTable(predictions) {
         html += '<td><span class="badge bg-danger">' + escapeHtml(pred.disease_name || '-') + '</span></td>';
         html += '<td>' + confidence + '</td>';
         html += '<td>' + escapeHtml(pred.diagnosis_date || '-') + '</td>';
-        html += '<td><button class="btn btn-sm btn-info" onclick="viewPredictionDetails(' + pred.id + ')">View Details</button></td>';
+        html += '<td><button class="btn btn-sm btn-info" onclick="viewPredictionDetails(' + pred.id + ')"><i class="fas fa-eye me-1"></i>View Details</button></td>';
         html += '</tr>';
     });
     tbody.innerHTML = html;
@@ -608,19 +606,350 @@ function filterPredictions(diseaseName) {
     });
 }
 
+// ============================================================
+// PREDICTION DETAILS - VIEW, DOWNLOAD, DELETE
+// ============================================================
+
 function viewPredictionDetails(predictionId) {
-    showToast('Prediction details feature coming soon', 'info');
+    if (!predictionId) {
+        showToast('Invalid prediction ID', 'danger');
+        return;
+    }
+
+    showLoading(true);
+
+    fetch('/api/officer/prediction/' + predictionId)
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            if (data.success) {
+                showPredictionDetailsModal(data.prediction);
+            } else {
+                showToast(data.message || 'Error loading prediction details', 'danger');
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error:', error);
+            showToast('Network error loading prediction details', 'danger');
+        });
+}
+
+function showPredictionDetailsModal(prediction) {
+    // Check if modal exists, if not create it
+    let modalElement = document.getElementById('predictionDetailsModal');
+    if (!modalElement) {
+        const modalHtml = `
+        <div class="modal fade" id="predictionDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-microscope me-2"></i>Prediction Details
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="predictionDetailsModalBody">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-success"></div>
+                            Loading...
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="downloadPredictionReport(${prediction.id || 0})">
+                            <i class="fas fa-download me-1"></i>Download Report
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="deletePrediction(${prediction.id || 0})">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modalElement = document.getElementById('predictionDetailsModal');
+    }
+
+    const modalBody = document.getElementById('predictionDetailsModalBody');
+    if (!modalBody) return;
+
+    // Format confidence
+    let confidence = prediction.confidence_score || 0;
+    if (typeof confidence === 'string') {
+        confidence = parseFloat(confidence) || 0;
+    }
+    const confidenceDisplay = confidence.toFixed(1) + '%';
+
+    // Determine confidence level
+    let confidenceLevel = 'Low';
+    let confidenceBadge = 'bg-danger';
+    if (confidence > 80) {
+        confidenceLevel = 'Very High';
+        confidenceBadge = 'bg-success';
+    } else if (confidence > 70) {
+        confidenceLevel = 'High';
+        confidenceBadge = 'bg-primary';
+    } else if (confidence > 50) {
+        confidenceLevel = 'Medium';
+        confidenceBadge = 'bg-warning';
+    }
+
+    // Determine disease severity
+    let severity = 'Low';
+    let severityBadge = 'bg-success';
+    if (prediction.disease_name && prediction.disease_name.toLowerCase() !== 'healthy') {
+        if (confidence > 80) {
+            severity = 'High';
+            severityBadge = 'bg-danger';
+        } else if (confidence > 50) {
+            severity = 'Medium';
+            severityBadge = 'bg-warning';
+        }
+    } else {
+        severity = 'None - Healthy';
+        severityBadge = 'bg-success';
+    }
+
+    const html = `
+        <div class="row">
+            <!-- Prediction ID -->
+            <div class="col-12 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Prediction ID</label>
+                                <p class="fw-bold">#${prediction.id || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Diagnosis Date</label>
+                                <p class="fw-bold">${prediction.diagnosis_date || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farmer Information -->
+            <div class="col-12 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <strong><i class="fas fa-user me-2"></i>Farmer Information</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Full Name</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_name || 'Unknown')}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Phone Number</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_phone || 'N/A')}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Email</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_email || 'N/A')}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Location</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_location || 'N/A')}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">District</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_district || 'N/A')}</p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Region</label>
+                                <p class="fw-bold">${escapeHtml(prediction.farmer_region || 'N/A')}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prediction Results -->
+            <div class="col-12 mb-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <strong><i class="fas fa-chart-bar me-2"></i>Prediction Results</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Disease Detected</label>
+                                <p class="fw-bold">
+                                    <span class="badge bg-danger">${escapeHtml(prediction.disease_name || 'Unknown')}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Confidence Score</label>
+                                <p class="fw-bold">
+                                    <span class="badge ${confidenceBadge}">${confidenceDisplay}</span>
+                                    <span class="ms-2 text-muted small">(${confidenceLevel})</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Severity</label>
+                                <p class="fw-bold">
+                                    <span class="badge ${severityBadge}">${severity}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Mode</label>
+                                <p class="fw-bold">
+                                    <span class="badge bg-info">${escapeHtml(prediction.mode || 'online')}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="text-muted small">Synced</label>
+                                <p class="fw-bold">
+                                    <span class="badge ${prediction.is_synced === '1' ? 'bg-success' : 'bg-warning'}">
+                                        ${prediction.is_synced === '1' ? 'Yes' : 'No'}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modalBody.innerHTML = html;
+
+    // Update footer buttons with correct prediction ID
+    const footerButtons = document.querySelectorAll('#predictionDetailsModal .modal-footer .btn');
+    footerButtons.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes('downloadPredictionReport')) {
+            btn.setAttribute('onclick', `downloadPredictionReport(${prediction.id})`);
+        }
+        if (onclickAttr && onclickAttr.includes('deletePrediction')) {
+            btn.setAttribute('onclick', `deletePrediction(${prediction.id})`);
+        }
+    });
+
+    // Show modal
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
+function downloadPredictionReport(predictionId) {
+    if (!predictionId) {
+        showToast('Invalid prediction ID', 'danger');
+        return;
+    }
+
+    showToast('Downloading report...', 'info');
+
+    // Open download URL in new tab
+    const downloadUrl = '/api/officer/prediction/' + predictionId + '/download?format=csv';
+    window.open(downloadUrl, '_blank');
+}
+
+function deletePrediction(predictionId) {
+    if (!predictionId) {
+        showToast('Invalid prediction ID', 'danger');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this prediction? This action cannot be undone.')) {
+        return;
+    }
+
+    showLoading(true);
+
+    fetch('/api/officer/prediction/' + predictionId + '/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            if (data.success) {
+                showToast(data.message || 'Prediction deleted successfully', 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('predictionDetailsModal'));
+                if (modal) modal.hide();
+                // Refresh predictions
+                setTimeout(() => loadPredictions(), 1000);
+            } else {
+                showToast(data.message || 'Error deleting prediction', 'danger');
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error:', error);
+            showToast('Network error deleting prediction', 'danger');
+        });
 }
 
 function exportFarmers() {
-    showToast('Export CSV feature coming soon', 'info');
+    if (!allFarmersData || allFarmersData.length === 0) {
+        showToast('No farmers data to export', 'warning');
+        return;
+    }
+
+    const headers = ['Full Name', 'Phone Number', 'Email', 'Location', 'District', 'Region', 'Registered Date'];
+    let csvContent = headers.join(',') + '\n';
+
+    allFarmersData.forEach(farmer => {
+        const row = [
+            `"${farmer.full_name || ''}"`,
+            `"${farmer.phone_number || ''}"`,
+            `"${farmer.email || ''}"`,
+            `"${farmer.location || ''}"`,
+            `"${farmer.district || ''}"`,
+            `"${farmer.region || ''}"`,
+            `"${farmer.created_at || ''}"`
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+
+    downloadCSV(csvContent, 'farmers_export.csv');
+    showToast('Farmers CSV exported successfully!', 'success');
 }
 
 function exportPredictions() {
-    showToast('Export CSV feature coming soon', 'info');
+    if (!allPredictionsData || allPredictionsData.length === 0) {
+        showToast('No predictions data to export', 'warning');
+        return;
+    }
+
+    const headers = ['Farmer Name', 'Phone', 'Location', 'Disease', 'Confidence', 'Date'];
+    let csvContent = headers.join(',') + '\n';
+
+    allPredictionsData.forEach(pred => {
+        const confidence = pred.confidence_score ? parseFloat(pred.confidence_score).toFixed(1) + '%' : 'N/A';
+        const row = [
+            `"${pred.farmer_name || ''}"`,
+            `"${pred.farmer_phone || ''}"`,
+            `"${pred.location || ''}"`,
+            `"${pred.disease_name || ''}"`,
+            `"${confidence}"`,
+            `"${pred.diagnosis_date || ''}"`
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+
+    downloadCSV(csvContent, 'predictions_export.csv');
+    showToast('Predictions CSV exported successfully!', 'success');
 }
 
-// Helper Functions
+function downloadCSV(csvContent, filename) {
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function showLoading(show) {
     let overlay = document.getElementById('loadingOverlay');
     if (show) {
@@ -685,7 +1014,7 @@ function scrollToPredictions() {
     document.getElementById('predictionsSection').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Make functions global
+// Make functions available globally
 window.refreshDashboard = refreshDashboard;
 window.viewDiseaseDetails = viewDiseaseDetails;
 window.showEditDiseaseModal = showEditDiseaseModal;
@@ -697,5 +1026,8 @@ window.scrollToPredictions = scrollToPredictions;
 window.exportFarmers = exportFarmers;
 window.exportPredictions = exportPredictions;
 window.viewPredictionDetails = viewPredictionDetails;
+window.updateDisease = updateDisease;
+window.downloadPredictionReport = downloadPredictionReport;
+window.deletePrediction = deletePrediction;
 
 console.log("Officer Dashboard JS loaded successfully");

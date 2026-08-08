@@ -1,4 +1,4 @@
-// PWA (Progressive Web App) Service Worker Registration
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
         navigator.serviceWorker.register('/static/service-worker.js')
@@ -11,7 +11,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Handle online/offline status
 window.addEventListener('online', function () {
     const offlineBadge = document.getElementById('offlineBadge');
     if (offlineBadge) {
@@ -32,7 +31,6 @@ window.addEventListener('offline', function () {
     }
 });
 
-// Check if online initially
 if (!navigator.onLine) {
     const offlineBadge = document.getElementById('offlineBadge');
     if (offlineBadge) {

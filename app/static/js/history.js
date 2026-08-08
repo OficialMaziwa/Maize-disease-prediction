@@ -1,4 +1,3 @@
-// Prediction History JavaScript
 class PredictionHistory {
     constructor() {
         this.currentUserId = null;
@@ -57,14 +56,12 @@ class PredictionHistory {
         const div = document.createElement('div');
         div.className = 'history-item';
 
-        // Try multiple possible ID field names
         let predictionId = item.prediction_id || item.id || item.diagnosis_id || item.predictionId;
 
-        // If still no ID, log error and skip this item
         if (!predictionId) {
             console.error('No ID found in item. Available keys:', Object.keys(item));
             console.log('Problematic item:', item);
-            return null; // Skip this item
+            return null;
         }
 
         div.setAttribute('data-id', predictionId);
@@ -103,7 +100,7 @@ class PredictionHistory {
                             <i class="fas fa-calendar-alt"></i> ${diagnosisDate}
                         </span>
                         <span class="mode-badge ${mode === 'online' ? 'mode-online' : 'mode-offline'}">
-                            <i class="fas fa-${mode === 'online' ? 'wifi' : 'plug'}"></i> 
+                            <i class="fas fa-${mode === 'online' ? 'wifi' : 'plug'}"></i>
                             ${mode === 'online' ? getTranslation('online') : getTranslation('offline')}
                         </span>
                         <span class="mode-badge ${isSynced ? 'mode-online' : 'mode-offline'}">
@@ -155,10 +152,8 @@ class PredictionHistory {
 
         if (!confirm(getTranslation('confirm_delete'))) return;
 
-        // Show loading state on button
         const deleteBtn = event?.target?.closest('.btn-delete');
         if (deleteBtn) {
-            const originalHtml = deleteBtn.innerHTML;
             deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             deleteBtn.disabled = true;
         }
@@ -169,19 +164,16 @@ class PredictionHistory {
                 headers: { 'Content-Type': 'application/json' }
             });
 
-            console.log('Response status:', response.status);
-
             if (response.status === 404) {
                 this.showToast('Delete endpoint not found', 'error');
                 return;
             }
 
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (data.success) {
                 this.showToast('Prediction deleted successfully', 'success');
-                await this.loadHistory(); // Reload history
+                await this.loadHistory();
             } else {
                 this.showToast(data.error || 'Failed to delete', 'error');
             }
@@ -263,7 +255,7 @@ class PredictionHistory {
     getEmptyStateHTML() {
         return `
             <div class="empty-state">
-                <i class="fas fa-history fa-3x mb-3"></i>
+                <i class="fas fa-history"></i>
                 <h4>${getTranslation('no_history')}</h4>
                 <p class="text-muted">${getTranslation('no_history_message')}</p>
                 <a href="/predict" class="btn btn-success mt-3">
@@ -278,7 +270,7 @@ class PredictionHistory {
         if (container) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
                     <h4 class="text-danger">Error</h4>
                     <p class="text-muted">${escapeHtml(message)}</p>
                     <button class="btn btn-primary mt-3" onclick="location.reload()">
@@ -289,30 +281,44 @@ class PredictionHistory {
         }
     }
 
-    showToast(message, type) {
-        // Remove existing toasts
+    showToast(message, type = 'success') {
         const existingToasts = document.querySelectorAll('.custom-toast');
         existingToasts.forEach(toast => toast.remove());
 
         const toast = document.createElement('div');
-        toast.className = `custom-toast alert alert-${type === 'success' ? 'success' : 'danger'} fade show`;
+        toast.className = `custom-toast alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'danger'} fade show`;
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
         toast.style.right = '20px';
         toast.style.zIndex = '9999';
         toast.style.minWidth = '280px';
-        toast.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
-        toast.style.color = type === 'success' ? '#155724' : '#721c24';
-        toast.style.border = type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+        toast.style.maxWidth = '400px';
+
+        if (type === 'success') {
+            toast.style.backgroundColor = '#d4edda';
+            toast.style.color = '#155724';
+            toast.style.border = '1px solid #c3e6cb';
+        } else if (type === 'info') {
+            toast.style.backgroundColor = '#d1ecf1';
+            toast.style.color = '#0c5460';
+            toast.style.border = '1px solid #bee5eb';
+        } else {
+            toast.style.backgroundColor = '#f8d7da';
+            toast.style.color = '#721c24';
+            toast.style.border = '1px solid #f5c6cb';
+        }
+
         toast.style.borderRadius = '8px';
         toast.style.padding = '12px 20px';
         toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
         toast.style.fontSize = '14px';
         toast.style.fontWeight = '500';
+
+        const icon = type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle';
         toast.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    <i class="fas fa-${icon} me-2"></i>
                     ${escapeHtml(message)}
                 </div>
                 <button type="button" class="btn-close" style="background: none; border: none; font-size: 20px; cursor: pointer; margin-left: 15px; opacity: 0.7;">&times;</button>
@@ -320,12 +326,10 @@ class PredictionHistory {
         `;
         document.body.appendChild(toast);
 
-        // Auto remove after 3 seconds
         setTimeout(() => {
             if (toast && toast.remove) toast.remove();
-        }, 3000);
+        }, 4000);
 
-        // Close button functionality
         const closeBtn = toast.querySelector('.btn-close');
         if (closeBtn) {
             closeBtn.onclick = () => toast.remove();
@@ -347,7 +351,6 @@ class PredictionHistory {
     }
 }
 
-// Helper functions
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -355,12 +358,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Get translation function
 function getTranslation(key) {
     if (window.historyTranslations && window.historyTranslations[key]) {
         return window.historyTranslations[key];
     }
-    // Default translations
     const defaults = {
         'confidence': 'Confidence',
         'online': 'Online',
@@ -368,6 +369,7 @@ function getTranslation(key) {
         'synced': 'Synced',
         'pending_sync': 'Pending Sync',
         'delete': 'Delete',
+        'download': 'Download',
         'no_history': 'No History Found',
         'no_history_message': 'You haven\'t made any predictions yet.',
         'make_prediction': 'Make a Prediction',
@@ -381,15 +383,22 @@ function getTranslation(key) {
     return defaults[key] || key;
 }
 
-// Initialize history manager
+
 let historyManager;
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Check if already initialized
     if (!historyManager) {
         historyManager = new PredictionHistory();
     }
 });
 
-// Export for debugging (optional)
+window.downloadPredictions = function() {
+    if (historyManager) {
+        historyManager.downloadPredictions();
+    } else {
+        showToast('History manager not initialized', 'error');
+    }
+};
+
 window.historyManager = historyManager;
+console.log('✅ Prediction History JS loaded successfully');

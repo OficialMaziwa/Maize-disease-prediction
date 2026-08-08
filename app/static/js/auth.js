@@ -1,6 +1,4 @@
-// ==================== AUTHENTICATION JAVASCRIPT ====================
 
-// Initialize all auth functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
     initPasswordToggle();
     initPasswordStrength();
@@ -8,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initRoleChange();
 });
 
-// ==================== PASSWORD TOGGLE (EYE ICON) ====================
 function initPasswordToggle() {
     const toggleButtons = document.querySelectorAll('.toggle-password');
 
@@ -21,7 +18,6 @@ function initPasswordToggle() {
                 const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
                 input.setAttribute('type', type);
 
-                // Toggle eye icon
                 const icon = this.querySelector('i');
                 if (icon) {
                     icon.classList.toggle('fa-eye');
@@ -49,7 +45,6 @@ function initPasswordStrength() {
                 return;
             }
 
-            // Calculate password strength
             let strength = 0;
             let strengthText = '';
             let strengthClass = '';
@@ -81,7 +76,6 @@ function initPasswordStrength() {
     }
 }
 
-// ==================== PASSWORD MATCH CHECKER ====================
 function initPasswordMatch() {
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirm_password');
@@ -113,7 +107,6 @@ function initPasswordMatch() {
     }
 }
 
-// ==================== ROLE CHANGE HANDLER ====================
 function initRoleChange() {
     const roleSelect = document.getElementById('role');
     const roleInfoText = document.getElementById('roleInfoText');
@@ -130,12 +123,10 @@ function initRoleChange() {
 }
 
 function showConfirmation() {
-    // Get all form values
     const fullName = document.getElementById('full_name')?.value || '-';
     const phoneNumber = document.getElementById('phone_number')?.value || '-';
     const email = document.getElementById('email')?.value || '-';
 
-    // Get location values from dropdowns
     const regionSelect = document.getElementById('region');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
@@ -149,7 +140,6 @@ function showConfirmation() {
     const roleText = roleSelect ? roleSelect.options[roleSelect.selectedIndex]?.text || '-' : '-';
     const roleValue = roleSelect ? roleSelect.value : '';
 
-    // Set confirmation modal values
     const confirmFullName = document.getElementById('confirm_full_name');
     const confirmPhone = document.getElementById('confirm_phone_number');
     const confirmEmail = document.getElementById('confirm_email');
@@ -162,19 +152,17 @@ function showConfirmation() {
 
     if (confirmFullName) confirmFullName.innerText = fullName;
     if (confirmPhone) confirmPhone.innerText = phoneNumber;
-    if (confirmEmail) confirmEmail.innerText = email || 'Hakujazwa';
-    if (confirmRegion) confirmRegion.innerText = region || 'Hakujazwa';
-    if (confirmDistrict) confirmDistrict.innerText = district || 'Hakujazwa';
-    if (confirmWard) confirmWard.innerText = ward || 'Hakujazwa';
-    if (confirmStreet) confirmStreet.innerText = street || 'Hakujazwa';
+    if (confirmEmail) confirmEmail.innerText = email || 'Haikujazwa';
+    if (confirmRegion) confirmRegion.innerText = region || 'Haikujazwa';
+    if (confirmDistrict) confirmDistrict.innerText = district || 'Haikujazwa';
+    if (confirmWard) confirmWard.innerText = ward || 'Haikujazwa';
+    if (confirmStreet) confirmStreet.innerText = street || 'Haikujazwa';
     if (confirmRole) confirmRole.innerText = roleText;
 
-    // Show warning for extension officers
     if (officerWarning) {
         officerWarning.style.display = roleValue === 'extension_officer' ? 'block' : 'none';
     }
 
-    // Validate required fields
     if (!fullName || fullName === '-') {
         showErrorAlert('Tafadhali ingiza jina lako kamili');
         document.getElementById('full_name')?.focus();
@@ -205,7 +193,6 @@ function showConfirmation() {
         return;
     }
 
-    // Check password match
     const password = document.getElementById('password')?.value;
     const confirmPassword = document.getElementById('confirm_password')?.value;
 
@@ -227,13 +214,12 @@ function showConfirmation() {
         return;
     }
 
-    // Show modal
+
     const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
     modal.show();
 }
-// ==================== SUBMIT FORM ====================
+
 function submitForm() {
-    // Final validation before submission
     const password = document.getElementById('password')?.value;
     const confirmPassword = document.getElementById('confirm_password')?.value;
     const fullName = document.getElementById('full_name')?.value;
@@ -259,17 +245,13 @@ function submitForm() {
         return;
     }
 
-    // Submit form
     document.getElementById('registerForm')?.submit();
 }
 
-// ==================== SHOW ERROR ALERT ====================
 function showErrorAlert(message) {
-    // Remove any existing alerts
     const existingAlert = document.querySelector('.alert-danger');
     if (existingAlert) existingAlert.remove();
 
-    // Create new alert
     const alertHtml = `
         <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>
@@ -278,12 +260,10 @@ function showErrorAlert(message) {
         </div>
     `;
 
-    // Insert at top of auth-body
     const authBody = document.querySelector('.auth-body');
     if (authBody) {
         authBody.insertAdjacentHTML('afterbegin', alertHtml);
 
-        // Auto-scroll to alert
         const alert = document.querySelector('.alert-danger');
         if (alert) {
             alert.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -1,9 +1,8 @@
-// Service Worker for Maize Disease Detection System
+
 const CACHE_NAME = 'maize-detection-v1';
 const STATIC_CACHE = 'maize-static-v1';
 const DYNAMIC_CACHE = 'maize-dynamic-v1';
 
-// Files to cache on install
 const urlsToCache = [
     '/',
     '/static/css/base.css',
@@ -12,7 +11,6 @@ const urlsToCache = [
     '/offline'
 ];
 
-// Install event - cache static assets
 self.addEventListener('install', event => {
     console.log('Service Worker installing...');
     event.waitUntil(
@@ -25,7 +23,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', event => {
     console.log('Service Worker activating...');
     event.waitUntil(
@@ -42,23 +39,18 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch event - serve from cache then network
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Return cached response if found
                 if (response) {
                     return response;
                 }
-                // Otherwise fetch from network
                 return fetch(event.request)
                     .then(fetchResponse => {
-                        // Don't cache non-GET requests or external URLs
                         if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
                             return fetchResponse;
                         }
-                        // Cache the fetched response
                         return caches.open(DYNAMIC_CACHE)
                             .then(cache => {
                                 cache.put(event.request, fetchResponse.clone());
@@ -66,7 +58,6 @@ self.addEventListener('fetch', event => {
                             });
                     })
                     .catch(() => {
-                        // If offline and fetch fails, return offline page
                         if (event.request.mode === 'navigate') {
                             return caches.match('/offline');
                         }

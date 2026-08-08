@@ -1,211 +1,341 @@
-{% extends "base.html" %}
-
-{% block title %}{{ t('predict_disease', lang) or 'Predict Disease' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease Detection' }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/predict.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ t('predict_disease', lang) or
+'Predict Disease' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease
+Detection' }}{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/predict.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header bg-success text-white rounded-top-4">
-                    <h4 class="mb-0">
-                        <i class="fas fa-leaf me-2"></i> {{ t('maize_disease_detection', lang) or 'Maize Disease Detection' }}
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    <!-- Language selector inside card -->
-                    <div class="text-end mb-3">
-                        <select id="languageSelector" class="form-select form-select-sm w-auto d-inline-block" style="width: auto;">
-                            <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
-                            <option value="sw" {% if lang == 'sw' %}selected{% endif %}>Kiswahili</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Tab buttons -->
-                    <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">
-                                <i class="fas fa-upload me-2"></i> {{ t('upload_image', lang) or 'Upload Image' }}
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab">
-                                <i class="fas fa-camera me-2"></i> {{ t('take_photo', lang) or 'Take Photo' }}
-                            </button>
-                        </li>
-                    </ul>
-                    
-                    <div class="tab-content" id="myTabContent">
-                        <!-- Upload Tab -->
-                        <div class="tab-pane fade show active" id="upload" role="tabpanel">
-                            <div class="upload-area" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-4x text-success mb-3"></i>
-                                <h5>{{ t('click_or_drag', lang) or 'Click or drag image here' }}</h5>
-                                <p class="text-muted">{{ t('maize_leaf_only', lang) or 'Please upload a clear image of a maize leaf only' }}</p>
-                                <input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
-                                <button class="btn btn-success mt-2" onclick="document.getElementById('fileInput').click()">
-                                    <i class="fas fa-folder-open me-2"></i> {{ t('choose_image', lang) or 'Choose Image' }}
-                                </button>
-                            </div>
-                            
-                            <div id="imagePreview" class="image-preview" style="display: none;">
-                                <img id="previewImg" class="preview-img">
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-secondary" onclick="resetUpload()">
-                                        <i class="fas fa-sync-alt me-1"></i> {{ t('change_image', lang) or 'Change Image' }}
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="rejectMessage" class="reject-message" style="display: none;">
-                                <i class="fas fa-exclamation-triangle me-2"></i> 
-                                <span id="rejectText"></span>
-                            </div>
-                        </div>
-                        
-                        <!-- Camera Tab -->
-                        <div class="tab-pane fade" id="camera" role="tabpanel">
-                            <!-- Camera selection buttons -->
-                            <div class="camera-select-buttons mb-3 text-center">
-                                <button class="btn btn-sm btn-outline-primary active" onclick="setCameraMode('environment')" id="backCameraBtn">
-                                    <i class="fas fa-camera me-1"></i> Nyuma
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="setCameraMode('user')" id="frontCameraBtn">
-                                    <i class="fas fa-camera me-1"></i> Mbele
-                                </button>
-                            </div>
-                            <div class="camera-container">
-                                <video id="video" autoplay playsinline></video>
-                                <button id="captureBtn" class="btn-capture" onclick="capturePhoto()">
-                                    <i class="fas fa-camera fa-2x text-success"></i>
-                                </button>
-                            </div>
-                            <canvas id="canvas" style="display: none;"></canvas>
-                            
-                            <div id="cameraPreview" class="image-preview" style="display: none;">
-                                <img id="cameraPreviewImg" class="preview-img">
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-secondary" onclick="resetCamera()">
-                                        <i class="fas fa-sync-alt me-1"></i> {{ t('retake', lang) or 'Retake' }}
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="cameraRejectMessage" class="reject-message" style="display: none;">
-                                <i class="fas fa-exclamation-triangle me-2"></i> 
-                                <span id="cameraRejectText"></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Loading Spinner -->
-                    <div class="loading-spinner" id="loading" style="display: none;">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="mt-2">{{ t('analyzing', lang) or 'Analyzing' }} <span class="dots">...</span></p>
-                    </div>
-                    
-                    <!-- Results Section -->
-                    <div id="results" style="display: none;">
-                        <div class="prediction-result">
-                            <h5><i class="fas fa-chart-line me-2"></i> {{ t('diagnosis_result', lang) or 'Diagnosis Result' }}</h5>
-                            <hr>
-                            <h2 id="diseaseName" class="text-center"></h2>
-                            <div class="progress confidence-progress">
-                                <div id="confidenceBar" class="progress-bar" role="progressbar" style="width: 0%">
-                                    <span id="confidenceText" class="fw-bold">0%</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> {{ t('description', lang) or 'Description' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <p id="description" class="mb-0"></p>
-                            </div>
-                        </div>
-                        
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-danger text-white">
-                                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i> {{ t('symptoms', lang) or 'Symptoms' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="symptoms"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Organic Treatment -->
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0"><i class="fas fa-leaf me-2"></i> {{ t('organic_treatment', lang) or 'Organic Treatment' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul id="organicList" class="list-unstyled mb-0"></ul>
-                            </div>
-                        </div>
-                        
-                        <!-- Chemical Treatment -->
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-warning text-dark">
-                                <h5 class="mb-0"><i class="fas fa-flask me-2"></i> {{ t('chemical_treatment', lang) or 'Chemical Treatment' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul id="chemicalList" class="list-unstyled mb-0"></ul>
-                            </div>
-                        </div>
-                        
-                        <!-- Cultural Practices -->
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="fas fa-tractor me-2"></i> {{ t('cultural_practices', lang) or 'Cultural Practices' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul id="culturalList" class="list-unstyled mb-0"></ul>
-                            </div>
-                        </div>
-                        
-                        <!-- Action Plan -->
-                        <div class="card result-card mt-3">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-list-check me-2"></i> {{ t('action_plan', lang) or 'Action Plan' }}</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul id="actionPlan" class="list-unstyled mb-0"></ul>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-outline-success w-100 mt-4 py-2" onclick="resetAll()">
-                            <i class="fas fa-plus me-2"></i> {{ t('new_prediction', lang) or 'New Prediction' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-success text-white rounded-top-4">
+          <h4 class="mb-0">
+            <i class="fas fa-leaf me-2"></i>
+            <span data-i18n="maize_disease_detection"
+              >{{ t('maize_disease_detection', lang) or 'Maize Disease
+              Detection' }}</span
+            >
+          </h4>
         </div>
+        <div class="card-body p-4">
+          <!-- Tab buttons -->
+          <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active"
+                id="upload-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#upload"
+                type="button"
+                role="tab"
+              >
+                <i class="fas fa-upload me-2"></i>
+                <span data-i18n="upload_image"
+                  >{{ t('upload_image', lang) or 'Upload Image' }}</span
+                >
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link"
+                id="camera-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#camera"
+                type="button"
+                role="tab"
+              >
+                <i class="fas fa-camera me-2"></i>
+                <span data-i18n="take_photo"
+                  >{{ t('take_photo', lang) or 'Take Photo' }}</span
+                >
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="myTabContent">
+            <!-- Upload Tab -->
+            <div class="tab-pane fade show active" id="upload" role="tabpanel">
+              <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt fa-4x text-success mb-3"></i>
+                <h5 data-i18n="click_or_drag">
+                  {{ t('click_or_drag', lang) or 'Click or drag image here' }}
+                </h5>
+                <p class="text-muted" data-i18n="maize_leaf_only">
+                  {{ t('maize_leaf_only', lang) or 'Please upload a clear image
+                  of a maize leaf from your phone or computer' }}
+                </p>
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="image/*,.heic,.heif,.bmp,.tif,.tiff"
+                  style="display: none"
+                />
+                <button
+                  type="button"
+                  id="chooseFileButton"
+                  class="btn btn-success mt-2"
+                >
+                  <i class="fas fa-folder-open me-2"></i>
+                  <span data-i18n="choose_image"
+                    >{{ t('choose_image', lang) or 'Choose Image' }}</span
+                  >
+                </button>
+              </div>
+
+              <div
+                id="imagePreview"
+                class="image-preview"
+                style="display: none"
+              >
+                <img id="previewImg" class="preview-img" />
+                <div class="mt-2">
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    onclick="resetUpload()"
+                  >
+                    <i class="fas fa-sync-alt me-1"></i>
+                    <span data-i18n="change_image"
+                      >{{ t('change_image', lang) or 'Change Image' }}</span
+                    >
+                  </button>
+                </div>
+              </div>
+
+              <div
+                id="rejectMessage"
+                class="reject-message"
+                style="display: none"
+              >
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="rejectText"></span>
+              </div>
+            </div>
+
+            <!-- Camera Tab -->
+            <div class="tab-pane fade" id="camera" role="tabpanel">
+              <div class="camera-select-buttons mb-3 text-center">
+                <button
+                  class="btn btn-sm btn-outline-primary active"
+                  onclick="setCameraMode('environment')"
+                  id="backCameraBtn"
+                >
+                  <i class="fas fa-camera me-1"></i> Nyuma
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  onclick="setCameraMode('user')"
+                  id="frontCameraBtn"
+                >
+                  <i class="fas fa-camera me-1"></i> Mbele
+                </button>
+              </div>
+              <div class="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <button
+                  id="captureBtn"
+                  class="btn-capture"
+                  onclick="capturePhoto()"
+                >
+                  <i class="fas fa-camera fa-2x text-success"></i>
+                </button>
+              </div>
+              <canvas id="canvas" style="display: none"></canvas>
+
+              <div
+                id="cameraPreview"
+                class="image-preview"
+                style="display: none"
+              >
+                <img id="cameraPreviewImg" class="preview-img" />
+                <div class="mt-2">
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    onclick="resetCamera()"
+                  >
+                    <i class="fas fa-sync-alt me-1"></i>
+                    <span data-i18n="retake"
+                      >{{ t('retake', lang) or 'Retake' }}</span
+                    >
+                  </button>
+                </div>
+              </div>
+
+              <div
+                id="cameraRejectMessage"
+                class="reject-message"
+                style="display: none"
+              >
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="cameraRejectText"></span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="text-center my-3"
+            id="predictAction"
+            style="display: none"
+          >
+            <button
+              type="button"
+              id="predictButton"
+              class="btn btn-success btn-lg px-5"
+            >
+              <i class="fas fa-play me-2"></i>
+              <span data-i18n="predict_now"
+                >{{ t('predict_now', lang) or 'Predict' }}</span
+              >
+            </button>
+            <p
+              id="predictHint"
+              class="text-muted small mt-2"
+              data-i18n="select_or_capture_image_then_predict"
+            >
+              {{ t('select_or_capture_image_then_predict', lang) or 'Select or
+              capture an image first, then tap Predict.' }}
+            </p>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div class="loading-spinner" id="loading" style="display: none">
+            <div class="spinner-border text-success" role="status"></div>
+            <p class="mt-2" data-i18n="analyzing">
+              {{ t('analyzing', lang) or 'Analyzing' }}
+              <span class="dots">...</span>
+            </p>
+          </div>
+
+          <!-- Results Section -->
+          <div id="results" style="display: none">
+            <div class="prediction-result">
+              <h5>
+                <i class="fas fa-chart-line me-2"></i>
+                <span data-i18n="diagnosis_result"
+                  >{{ t('diagnosis_result', lang) or 'Diagnosis Result' }}</span
+                >
+              </h5>
+              <hr />
+              <h2 id="diseaseName" class="text-center"></h2>
+              <div class="progress confidence-progress">
+                <div
+                  id="confidenceBar"
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: 0%"
+                >
+                  <span id="confidenceText" class="fw-bold">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <span data-i18n="description"
+                    >{{ t('description', lang) or 'Description' }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <p id="description" class="mb-0"></p>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  <span data-i18n="symptoms"
+                    >{{ t('symptoms', lang) or 'Symptoms' }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <div id="symptoms"></div>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-leaf me-2"></i>
+                  <span data-i18n="organic_treatment"
+                    >{{ t('organic_treatment', lang) or 'Organic Treatment'
+                    }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <ul id="organicList" class="list-unstyled mb-0"></ul>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                  <i class="fas fa-flask me-2"></i>
+                  <span data-i18n="chemical_treatment"
+                    >{{ t('chemical_treatment', lang) or 'Chemical Treatment'
+                    }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <ul id="chemicalList" class="list-unstyled mb-0"></ul>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-tractor me-2"></i>
+                  <span data-i18n="cultural_practices"
+                    >{{ t('cultural_practices', lang) or 'Cultural Practices'
+                    }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <ul id="culturalList" class="list-unstyled mb-0"></ul>
+              </div>
+            </div>
+
+            <div class="card result-card mt-3">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-list-check me-2"></i>
+                  <span data-i18n="action_plan"
+                    >{{ t('action_plan', lang) or 'Action Plan' }}</span
+                  >
+                </h5>
+              </div>
+              <div class="card-body">
+                <ul id="actionPlan" class="list-unstyled mb-0"></ul>
+              </div>
+            </div>
+
+            <button
+              class="btn btn-outline-success w-100 mt-4 py-2"
+              onclick="resetAll()"
+            >
+              <i class="fas fa-plus me-2"></i>
+              <span data-i18n="new_prediction"
+                >{{ t('new_prediction', lang) or 'New Prediction' }}</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
+{% endblock %} {% block extra_js %}
 <script>
-// Language switching for predict page
-window.currentLang = '{{ lang }}';
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Language selector
-    const langSelector = document.getElementById('languageSelector');
-    if (langSelector) {
-        langSelector.addEventListener('change', function() {
-            const newLang = this.value;
-            window.location.href = '/change-language/' + newLang + '?next=' + encodeURIComponent(window.location.pathname);
-        });
-    }
-});
+  window.apiPredictUrl = "{{ url_for('main.api_predict') }}";
 </script>
-{% endblock %}
-
-{% block extra_js %}
 <script src="{{ url_for('static', filename='js/predict.js') }}"></script>
 {% endblock %}

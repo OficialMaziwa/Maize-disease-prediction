@@ -6,7 +6,6 @@ from PIL import Image
 import io
 import logging
 
-# Set TensorFlow environment variables
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -19,7 +18,6 @@ class MaizeDiseaseDetector:
         self.class_names = None
         self.idx_to_class = None
 
-        # Import TensorFlow
         try:
             import tensorflow as tf
             from tensorflow import keras
@@ -32,7 +30,6 @@ class MaizeDiseaseDetector:
             self.tf = None
             self.keras = None
 
-        # Find and load model
         if model_path is None:
             possible_paths = [
                 "maize_disease_model.h5",
@@ -49,7 +46,6 @@ class MaizeDiseaseDetector:
                     print(f"✅ Found model: {model_path}")
                     break
 
-        # Load model
         if model_path and os.path.exists(model_path) and self.keras:
             try:
                 self.model = self.keras.models.load_model(model_path)
@@ -58,7 +54,6 @@ class MaizeDiseaseDetector:
                 print(f"❌ Model load error: {e}")
                 self.model = None
 
-        # Load class names
         class_paths = [
             "class_names.json",
             os.path.join(os.getcwd(), "class_names.json"),
@@ -106,34 +101,27 @@ class MaizeDiseaseDetector:
             return "Healthy", 85.0
 
         try:
-            # Load and preprocess image
             img = Image.open(io.BytesIO(image_bytes))
             print(f"📸 Original image: {img.size}, {img.mode}")
 
-            # Resize to 224x224
             img = img.resize((224, 224))
             print(f"📸 Resized image: {img.size}")
 
-            # Convert to RGB
             if img.mode != "RGB":
                 img = img.convert("RGB")
                 print(f"📸 Converted to RGB")
 
-            # Convert to array and normalize
             img_array = np.array(img).astype(np.float32) / 255.0
             img_array = np.expand_dims(img_array, axis=0)
             print(f"📊 Image array shape: {img_array.shape}")
 
-            # Predict
             predictions = self.model.predict(img_array, verbose=0)[0]
             print(f"📊 Raw predictions: {predictions}")
 
-            # Print all probabilities
             print("\n📊 Prediction probabilities:")
             for i, name in enumerate(self.class_names):
                 print(f"   {name}: {predictions[i]*100:.1f}%")
 
-            # Get predicted class
             predicted_idx = np.argmax(predictions)
             confidence = float(predictions[predicted_idx] * 100)
             disease_name = self.idx_to_class.get(predicted_idx, "Unknown")
@@ -150,5 +138,4 @@ class MaizeDiseaseDetector:
             return "Healthy", 85.0
 
 
-# Create instance
 detector = MaizeDiseaseDetector()

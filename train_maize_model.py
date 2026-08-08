@@ -15,19 +15,14 @@ from pathlib import Path
 import shutil
 import random
 
-# Set random seeds for reproducibility
 np.random.seed(42)
 tf.random.set_seed(42)
-
-# Configuration
 IMAGE_SIZE = (224, 224)
 BATCH_SIZE = 32
 EPOCHS = 50
 
-# Path to your dataset
 DATASET_PATH = r"C:\Users\Official Maziwa\maize-disease-prediction\maize-disease-detection\dataset\training"
 
-# Map your folder names to display names
 FOLDER_TO_DISPLAY = {
     "Blight": "Turcicum Leaf Blight",
     "Common_Rust": "Common Rust",
@@ -35,10 +30,7 @@ FOLDER_TO_DISPLAY = {
     "Healthy": "Healthy",
 }
 
-
-# ============================================
 # FUNCTION: CREATE TEST SET FROM TRAINING DATA
-# ============================================
 def create_test_set(train_path, test_path, test_size=0.15, min_images_per_class=20):
     """
     Create a test set by copying random images from training to test folder
@@ -53,10 +45,7 @@ def create_test_set(train_path, test_path, test_size=0.15, min_images_per_class=
     print("📁 CREATING TEST SET")
     print("=" * 60)
 
-    # Create test directory
     os.makedirs(test_path, exist_ok=True)
-
-    # Get all class folders
     class_folders = [
         d
         for d in os.listdir(train_path)
@@ -69,29 +58,19 @@ def create_test_set(train_path, test_path, test_size=0.15, min_images_per_class=
     for class_name in class_folders:
         source_dir = os.path.join(train_path, class_name)
         target_dir = os.path.join(test_path, class_name)
-
-        # Create class subdirectory in test
         os.makedirs(target_dir, exist_ok=True)
-
-        # Get all image files
         images = [
             f
             for f in os.listdir(source_dir)
             if f.endswith((".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"))
         ]
 
-        # Calculate how many images to copy to test
         n_test = max(1, int(len(images) * test_size))
-
-        # Ensure we don't take too many (leave at least min_images_per_class in training)
         n_test = min(n_test, len(images) - min_images_per_class)
         n_test = max(1, n_test)
-
-        # Randomly select images for test set
-        random.seed(42)  # For reproducibility
+        random.seed(42)
         test_images = random.sample(images, n_test)
 
-        # Copy images to test folder
         for img in test_images:
             src = os.path.join(source_dir, img)
             dst = os.path.join(target_dir, img)
@@ -115,10 +94,6 @@ def create_test_set(train_path, test_path, test_size=0.15, min_images_per_class=
 
     return test_stats
 
-
-# ============================================
-# FUNCTION: VALIDATE TEST SET
-# ============================================
 def validate_test_set(test_path):
     """Validate that test set exists and has images"""
     print("\n" + "=" * 60)
@@ -155,18 +130,13 @@ def validate_test_set(test_path):
     return True
 
 
-# ============================================
-# MODIFIED: Create data generators (now includes test set)
-# ============================================
 def create_data_generators():
     """Create data generators for training, validation, and testing"""
 
-    # Define paths
     train_path = DATASET_PATH
     parent_dir = os.path.dirname(DATASET_PATH)
     test_path = os.path.join(parent_dir, "test")
 
-    # Create test set from training data if it doesn't exist
     if not os.path.exists(test_path) or len(os.listdir(test_path)) == 0:
         print("\n⚠️ Test folder is empty or doesn't exist!")
         print("📁 Creating test set from training data...")
@@ -175,7 +145,6 @@ def create_data_generators():
         print("\n✅ Test folder already exists, validating...")
         validate_test_set(test_path)
 
-    # Data augmentation for training
     train_datagen = ImageDataGenerator(
         rescale=1.0 / 255,
         rotation_range=30,
@@ -185,23 +154,18 @@ def create_data_generators():
         zoom_range=0.2,
         horizontal_flip=True,
         fill_mode="nearest",
-        validation_split=0.2,  # Use 20% for validation from training data
+        validation_split=0.2,
     )
 
-    # Only rescaling for validation (no augmentation)
     val_datagen = ImageDataGenerator(rescale=1.0 / 255, validation_split=0.2)
 
-    # Test datagen (no augmentation, no splitting)
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
-
-    # Get class names from training folder
     class_folders = [
         d
         for d in os.listdir(train_path)
         if os.path.isdir(os.path.join(train_path, d)) and d not in ["__pycache__"]
     ]
 
-    # Training generator (80% of training data)
     train_generator = train_datagen.flow_from_directory(
         train_path,
         target_size=IMAGE_SIZE,
@@ -211,7 +175,6 @@ def create_data_generators():
         classes=class_folders,
     )
 
-    # Validation generator (20% of training data)
     val_generator = val_datagen.flow_from_directory(
         train_path,
         target_size=IMAGE_SIZE,
@@ -221,13 +184,12 @@ def create_data_generators():
         classes=class_folders,
     )
 
-    # Test generator (from separate test folder)
     test_generator = test_datagen.flow_from_directory(
         test_path,
         target_size=IMAGE_SIZE,
         batch_size=BATCH_SIZE,
         class_mode="categorical",
-        shuffle=False,  # Don't shuffle for evaluation
+        shuffle=False,
         classes=class_folders,
     )
 
@@ -237,12 +199,10 @@ def create_data_generators():
 def create_mobilenet_model(num_classes):
     """Create MobileNetV2 model (lightweight and efficient)"""
 
-    # Using MobileNetV2 as base model
     base_model = tf.keras.applications.MobileNetV2(
         input_shape=(224, 224, 3), include_top=False, weights="imagenet"
     )
 
-    # Freeze base model layers
     base_model.trainable = False
 
     model = models.Sequential(
@@ -287,14 +247,12 @@ def create_custom_cnn(num_classes):
 def train_model(model, train_generator, val_generator):
     """Train the model"""
 
-    # Compile the model
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         loss="categorical_crossentropy",
         metrics=["accuracy", tf.keras.metrics.Precision(), tf.keras.metrics.Recall()],
     )
 
-    # Callbacks
     callbacks = [
         EarlyStopping(
             monitor="val_loss", patience=10, restore_best_weights=True, verbose=1
@@ -310,7 +268,6 @@ def train_model(model, train_generator, val_generator):
         ),
     ]
 
-    # Train the model
     history = model.fit(
         train_generator,
         epochs=EPOCHS,
@@ -327,7 +284,6 @@ def plot_training_history(history):
 
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
 
-    # Plot accuracy
     axes[0].plot(history.history["accuracy"], label="Training Accuracy", linewidth=2)
     axes[0].plot(
         history.history["val_accuracy"], label="Validation Accuracy", linewidth=2
@@ -338,7 +294,6 @@ def plot_training_history(history):
     axes[0].legend()
     axes[0].grid(True)
 
-    # Plot loss
     axes[1].plot(history.history["loss"], label="Training Loss", linewidth=2)
     axes[1].plot(history.history["val_loss"], label="Validation Loss", linewidth=2)
     axes[1].set_title("Model Loss", fontsize=14)
@@ -352,18 +307,12 @@ def plot_training_history(history):
     plt.show()
     print("\n📊 Training history saved as 'training_history.png'")
 
-
-# ============================================
-# MODIFIED: Evaluate model on test set
-# ============================================
 def evaluate_model(model, test_generator, class_names):
     """Evaluate the model on test data"""
 
     print("\n" + "=" * 60)
     print("📈 EVALUATING MODEL ON TEST SET")
     print("=" * 60)
-
-    # Evaluate
     results = model.evaluate(test_generator, verbose=1)
 
     print(f"\n📊 Test Set Results:")
@@ -380,20 +329,15 @@ def evaluate_model(model, test_generator, class_names):
 def save_model_for_app(model, class_names, folder_to_display):
     """Save model in format ready for Flask app"""
 
-    # Create models directory if it doesn't exist
     os.makedirs("app/models", exist_ok=True)
-
-    # Save in H5 format
     model.save("maize_disease_model.h5")
     print("✅ Model saved as 'maize_disease_model.h5'")
 
-    # Copy to app/models folder
     import shutil
 
     shutil.copy("maize_disease_model.h5", "app/models/maize_disease_model.h5")
     print("✅ Model copied to 'app/models/maize_disease_model.h5'")
 
-    # Save class names with display names
     import json
 
     class_mapping = {
@@ -406,12 +350,10 @@ def save_model_for_app(model, class_names, folder_to_display):
         json.dump(class_mapping, f, indent=2)
     print("✅ Class names saved as 'class_names.json'")
 
-    # Also save for the app
     with open("app/models/class_names.json", "w") as f:
         json.dump(class_mapping, f, indent=2)
     print("✅ Class names copied to 'app/models/class_names.json'")
 
-    # Convert to TensorFlow Lite
     try:
         converter = tf.lite.TFLiteConverter.from_keras_model(model)
         tflite_model = converter.convert()
@@ -454,7 +396,6 @@ def main():
     print("🚀 STARTING MODEL TRAINING")
     print("=" * 60)
 
-    # Create data generators (this will also create test set if needed)
     print("\n📂 Loading dataset and creating test set...")
     train_generator, val_generator, test_generator, class_names = (
         create_data_generators()
@@ -466,7 +407,6 @@ def main():
     print(f"🏷️ Number of classes: {train_generator.num_classes}")
     print(f"📋 Classes: {train_generator.class_indices}")
 
-    # Ask user which model to use
     print("\n🤖 Choose model type:")
     print("   1. MobileNetV2 (Recommended - faster, more accurate)")
     print("   2. Custom CNN (Simpler, no pre-trained weights)")
@@ -482,26 +422,20 @@ def main():
 
     model.summary()
 
-    # Train model
     print("\n🚀 Starting training... (This may take several minutes)")
     history = train_model(model, train_generator, val_generator)
 
-    # Plot results
     print("\n📊 Plotting training history...")
     plot_training_history(history)
 
-    # Evaluate model on test set (not validation set!)
     print("\n📈 Evaluating model on test set...")
     evaluate_model(model, test_generator, class_names)
 
-    # Save model
     print("\n💾 Saving model...")
     save_model_for_app(model, class_names, FOLDER_TO_DISPLAY)
 
-    # Test prediction on a sample image from test set
     print("\n🔬 Testing model with sample prediction from test set...")
 
-    # Get first image from test set
     parent_dir = os.path.dirname(DATASET_PATH)
     test_path = os.path.join(parent_dir, "test")
 

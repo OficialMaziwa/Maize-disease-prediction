@@ -1,248 +1,290 @@
-{% extends "base.html" %}
-
-{% block title %}{{ t('diagnosis_report', lang) or 'Diagnosis Report' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease Detection' }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ t('diagnosis_report', lang) or
+'Diagnosis Report' }} - {{ t('maize_disease_detection', lang) or 'Maize Disease
+Detection' }}{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/result.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="container my-5">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <div id="report-content">
-                <!-- Diagnosis Card -->
-                <div class="card report-card mb-4">
-                    <div class="card-header bg-success text-white text-center">
-                        <h3 class="mb-0">
-                            <i class="fas fa-file-medical-alt me-2"></i>
-                            {{ t('diagnosis_report', lang) or 'Diagnosis Report' }}
-                        </h3>
-                        <small class="opacity-75">{{ report.detection_date }}</small>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="alert alert-info-custom">
-                            <h4 class="mb-2 text-success">
-                                <i class="fas fa-microscope me-2"></i>
-                                {{ t('diagnosis', lang) or 'Diagnosis' }}: {{ recommendations.disease_name }}
-                            </h4>
-                            <p class="mb-0">
-                                <strong>{{ t('confidence_level', lang) or 'Confidence Level' }}:</strong> 
-                                <span class="badge bg-primary">{{ recommendations.confidence_level }}</span>
-                            </p>
-                            <p class="mt-2 mb-0">{{ recommendations.description }}</p>
-                        </div>
-                        
-                        <div class="row mt-4">
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <div class="card bg-light h-100">
-                                    <div class="card-body">
-                                        <h5 class="text-warning">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            {{ t('severity', lang) or 'Severity' }}
-                                        </h5>
-                                        <p>
-                                            <span class="severity-{{ recommendations.severity|lower }}">
-                                                {{ t(recommendations.severity|lower, lang) if recommendations.severity else recommendations.severity }}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light h-100">
-                                    <div class="card-body">
-                                        <h5 class="text-info">
-                                            <i class="fas fa-chart-line me-2"></i>
-                                            {{ t('economic_impact', lang) or 'Economic Impact' }}
-                                        </h5>
-                                        <p class="mb-0">{{ recommendations.economic_impact }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Plan Card -->
-                <div class="card report-card mb-4">
-                    <div class="card-header bg-danger text-white">
-                        <h4 class="mb-0">
-                            <i class="fas fa-list-check me-2"></i>
-                            {{ t('action_plan', lang) or 'Action Plan' }}
-                        </h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="alert alert-warning-custom">
-                            <strong>
-                                <i class="fas fa-clock me-2"></i>
-                                {{ t('response_deadline', lang) or 'Response Deadline' }}:
-                            </strong> 
-                            {{ recommendations.response_deadline }}
-                        </div>
-                        
-                        <h5 class="mt-3">
-                            <i class="fas fa-step-forward me-2 text-success"></i>
-                            {{ t('step_by_step', lang) or 'Step by Step Guide' }}
-                        </h5>
-                        <div class="list-group mb-3">
-                            {% for action in report.action_plan %}
-                                <div class="list-group-item">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    {{ action }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Treatments Row -->
-                <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="card report-card h-100">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-flask me-2"></i>
-                                    {{ t('chemical_treatment', lang) or 'Chemical Treatment' }}
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                {% if recommendations.chemical_treatment %}
-                                    <p>{{ recommendations.chemical_treatment }}</p>
-                                {% elif recommendations.chemical and recommendations.chemical.methods %}
-                                    <ul class="mb-0">
-                                        {% for method in recommendations.chemical.methods %}
-                                            <li class="mb-2">{{ method }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        {{ t('no_chemical_treatment', lang) or 'No chemical treatment information available' }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="card report-card h-100">
-                            <div class="card-header bg-success text-white">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-leaf me-2"></i>
-                                    {{ t('organic_solutions', lang) or 'Organic Solutions' }}
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                {% if recommendations.organic_options %}
-                                    <ul class="mb-0">
-                                        {% for solution in recommendations.organic_options %}
-                                            <li class="mb-2">{{ solution }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% elif recommendations.organic and recommendations.organic.methods %}
-                                    <ul class="mb-0">
-                                        {% for method in recommendations.organic.methods %}
-                                            <li class="mb-2">{{ method }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        {{ t('no_organic_treatment', lang) or 'No organic treatment information available' }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Prevention & Monitoring Card -->
-                <div class="card report-card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-shield-alt me-2"></i>
-                            {{ t('prevention_monitoring', lang) or 'Prevention & Monitoring' }}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="text-info">
-                                    <i class="fas fa-calendar-week me-2"></i>
-                                    {{ t('long_term_prevention', lang) or 'Long-term Prevention' }}:
-                                </h6>
-                                {% if recommendations.long_term_solutions %}
-                                    <ul class="mb-0">
-                                        {% for solution in recommendations.long_term_solutions %}
-                                            <li class="mb-2">{{ solution }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% elif recommendations.cultural and recommendations.cultural.methods %}
-                                    <ul class="mb-0">
-                                        {% for method in recommendations.cultural.methods %}
-                                            <li class="mb-2">{{ method }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p class="text-muted">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        {{ t('no_prevention_info', lang) or 'No prevention information available' }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="text-info">
-                                    <i class="fas fa-chart-line me-2"></i>
-                                    {{ t('monitoring_schedule', lang) or 'Monitoring Schedule' }}:
-                                </h6>
-                                <p class="fw-bold">{{ recommendations.monitoring_frequency }}</p>
-                                
-                                <h6 class="text-info mt-3">
-                                    <i class="fas fa-calendar-check me-2"></i>
-                                    {{ t('follow_up', lang) or 'Follow-up' }}:
-                                </h6>
-                                <p class="mb-0">{{ report.follow_up }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <div id="report-content">
+        <!-- Diagnosis Card -->
+        <div class="card report-card mb-4">
+          <div class="card-header bg-success text-white text-center">
+            <h3 class="mb-0">
+              <i class="fas fa-file-medical-alt me-2"></i>
+              {{ t('diagnosis_report', lang) or 'Diagnosis Report' }}
+            </h3>
+            <small class="opacity-75">{{ report.detection_date }}</small>
+          </div>
+          <div class="card-body p-4">
+            <div class="alert alert-info-custom">
+              <h4 class="mb-2 text-success">
+                <i class="fas fa-microscope me-2"></i>
+                {{ t('diagnosis', lang) or 'Diagnosis' }}: {{
+                recommendations.disease_name }}
+              </h4>
+              <p class="mb-0">
+                <strong
+                  >{{ t('confidence_level', lang) or 'Confidence Level'
+                  }}:</strong
+                >
+                <span class="badge bg-primary"
+                  >{{ recommendations.confidence_level }}</span
+                >
+              </p>
+              <p class="mt-2 mb-0">{{ recommendations.description }}</p>
             </div>
 
-            <!-- Save Options -->
-            <div class="save-options no-print">
-                <button onclick="saveAsHTML()" class="btn btn-primary save-btn" title="{{ t('save_html', lang) or 'Save as HTML' }}">
-                    <i class="fas fa-file-code me-1"></i> {{ t('save_html', lang) or 'Save HTML' }}
-                </button>
-                <button onclick="saveAsText()" class="btn btn-success save-btn" title="{{ t('save_text', lang) or 'Save as Text' }}">
-                    <i class="fas fa-file-alt me-1"></i> {{ t('save_text', lang) or 'Save Text' }}
-                </button>
-                <button onclick="copyToClipboard()" class="btn btn-info save-btn" title="{{ t('copy', lang) or 'Copy' }}">
-                    <i class="fas fa-copy me-1"></i> {{ t('copy', lang) or 'Copy' }}
-                </button>
-                <button onclick="window.print()" class="btn btn-secondary save-btn" title="{{ t('print', lang) or 'Print' }}">
-                    <i class="fas fa-print me-1"></i> {{ t('print', lang) or 'Print' }}
-                </button>
-                <a href="{{ url_for('main.predict') }}" class="btn btn-dark save-btn" title="{{ t('new_analysis', lang) or 'New Analysis' }}">
-                    <i class="fas fa-microscope me-1"></i> {{ t('new_analysis', lang) or 'New Analysis' }}
-                </a>
+            <div class="row mt-4">
+              <div class="col-md-6 mb-3 mb-md-0">
+                <div class="card bg-light h-100">
+                  <div class="card-body">
+                    <h5 class="text-warning">
+                      <i class="fas fa-exclamation-triangle me-2"></i>
+                      {{ t('severity', lang) or 'Severity' }}
+                    </h5>
+                    <p>
+                      <span
+                        class="severity-{{ recommendations.severity|lower }}"
+                      >
+                        {{ t(recommendations.severity|lower, lang) if
+                        recommendations.severity else recommendations.severity
+                        }}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-light h-100">
+                  <div class="card-body">
+                    <h5 class="text-info">
+                      <i class="fas fa-chart-line me-2"></i>
+                      {{ t('economic_impact', lang) or 'Economic Impact' }}
+                    </h5>
+                    <p class="mb-0">{{ recommendations.economic_impact }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
+        <!-- Action Plan Card -->
+        <div class="card report-card mb-4">
+          <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">
+              <i class="fas fa-list-check me-2"></i>
+              {{ t('action_plan', lang) or 'Action Plan' }}
+            </h4>
+          </div>
+          <div class="card-body p-4">
+            <div class="alert alert-warning-custom">
+              <strong>
+                <i class="fas fa-clock me-2"></i>
+                {{ t('response_deadline', lang) or 'Response Deadline' }}:
+              </strong>
+              {{ recommendations.response_deadline }}
+            </div>
+
+            <h5 class="mt-3">
+              <i class="fas fa-step-forward me-2 text-success"></i>
+              {{ t('step_by_step', lang) or 'Step by Step Guide' }}
+            </h5>
+            <div class="list-group mb-3">
+              {% for action in report.action_plan %}
+              <div class="list-group-item">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                {{ action }}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Treatments Row -->
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="card report-card h-100">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-flask me-2"></i>
+                  {{ t('chemical_treatment', lang) or 'Chemical Treatment' }}
+                </h5>
+              </div>
+              <div class="card-body">
+                {% if recommendations.chemical_treatment %}
+                <p>{{ recommendations.chemical_treatment }}</p>
+                {% elif recommendations.chemical and
+                recommendations.chemical.methods %}
+                <ul class="mb-0">
+                  {% for method in recommendations.chemical.methods %}
+                  <li class="mb-2">{{ method }}</li>
+                  {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  {{ t('no_chemical_treatment', lang) or 'No chemical treatment
+                  information available' }}
+                </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <div class="card report-card h-100">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-leaf me-2"></i>
+                  {{ t('organic_solutions', lang) or 'Organic Solutions' }}
+                </h5>
+              </div>
+              <div class="card-body">
+                {% if recommendations.organic_options %}
+                <ul class="mb-0">
+                  {% for solution in recommendations.organic_options %}
+                  <li class="mb-2">{{ solution }}</li>
+                  {% endfor %}
+                </ul>
+                {% elif recommendations.organic and
+                recommendations.organic.methods %}
+                <ul class="mb-0">
+                  {% for method in recommendations.organic.methods %}
+                  <li class="mb-2">{{ method }}</li>
+                  {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  {{ t('no_organic_treatment', lang) or 'No organic treatment
+                  information available' }}
+                </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prevention & Monitoring Card -->
+        <div class="card report-card mb-4">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-shield-alt me-2"></i>
+              {{ t('prevention_monitoring', lang) or 'Prevention & Monitoring'
+              }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-info">
+                  <i class="fas fa-calendar-week me-2"></i>
+                  {{ t('long_term_prevention', lang) or 'Long-term Prevention'
+                  }}:
+                </h6>
+                {% if recommendations.long_term_solutions %}
+                <ul class="mb-0">
+                  {% for solution in recommendations.long_term_solutions %}
+                  <li class="mb-2">{{ solution }}</li>
+                  {% endfor %}
+                </ul>
+                {% elif recommendations.cultural and
+                recommendations.cultural.methods %}
+                <ul class="mb-0">
+                  {% for method in recommendations.cultural.methods %}
+                  <li class="mb-2">{{ method }}</li>
+                  {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">
+                  <i class="fas fa-info-circle me-2"></i>
+                  {{ t('no_prevention_info', lang) or 'No prevention information
+                  available' }}
+                </p>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-info">
+                  <i class="fas fa-chart-line me-2"></i>
+                  {{ t('monitoring_schedule', lang) or 'Monitoring Schedule' }}:
+                </h6>
+                <p class="fw-bold">
+                  {{ recommendations.monitoring_frequency }}
+                </p>
+
+                <h6 class="text-info mt-3">
+                  <i class="fas fa-calendar-check me-2"></i>
+                  {{ t('follow_up', lang) or 'Follow-up' }}:
+                </h6>
+                <p class="mb-0">{{ report.follow_up }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Options -->
+      <div class="save-options no-print">
+        <button
+          onclick="saveAsHTML()"
+          class="btn btn-primary save-btn"
+          title="{{ t('save_html', lang) or 'Save as HTML' }}"
+        >
+          <i class="fas fa-file-code me-1"></i> {{ t('save_html', lang) or 'Save
+          HTML' }}
+        </button>
+        <button
+          onclick="saveAsText()"
+          class="btn btn-success save-btn"
+          title="{{ t('save_text', lang) or 'Save as Text' }}"
+        >
+          <i class="fas fa-file-alt me-1"></i> {{ t('save_text', lang) or 'Save
+          Text' }}
+        </button>
+        <button
+          onclick="copyToClipboard()"
+          class="btn btn-info save-btn"
+          title="{{ t('copy', lang) or 'Copy' }}"
+        >
+          <i class="fas fa-copy me-1"></i> {{ t('copy', lang) or 'Copy' }}
+        </button>
+        <button
+          onclick="window.print()"
+          class="btn btn-secondary save-btn"
+          title="{{ t('print', lang) or 'Print' }}"
+        >
+          <i class="fas fa-print me-1"></i> {{ t('print', lang) or 'Print' }}
+        </button>
+        <a
+          href="{{ url_for('main.predict') }}"
+          class="btn btn-dark save-btn"
+          title="{{ t('new_analysis', lang) or 'New Analysis' }}"
+        >
+          <i class="fas fa-microscope me-1"></i> {{ t('new_analysis', lang) or
+          'New Analysis' }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/result.js') }}"></script>
 <script>
-    // Pass translations to JavaScript
-    window.reportTranslations = {
-        report_saved: "{{ t('report_saved', lang) or 'Report saved successfully!' }}",
-        report_copied: "{{ t('report_copied', lang) or 'Report copied to clipboard!' }}"
-    };
-    
-    // Override getTranslation function with actual translations
-    function getTranslation(key) {
-        return window.reportTranslations[key] || key;
-    }
+  // Pass translations to JavaScript
+  window.reportTranslations = {
+    report_saved:
+      "{{ t('report_saved', lang) or 'Report saved successfully!' }}",
+    report_copied:
+      "{{ t('report_copied', lang) or 'Report copied to clipboard!' }}",
+  };
+
+  // Override getTranslation function with actual translations
+  function getTranslation(key) {
+    return window.reportTranslations[key] || key;
+  }
 </script>
 {% endblock %}

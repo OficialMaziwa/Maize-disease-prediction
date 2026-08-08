@@ -7,6 +7,9 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class UserDB:
@@ -17,7 +20,7 @@ class UserDB:
         self.connect()
 
     def connect(self):
-        """Connect to PostgreSQL database (supports both local and production)"""
+        """Connect to PostgreSQL database"""
         try:
             if self.connection:
                 try:
@@ -25,45 +28,23 @@ class UserDB:
                 except:
                     pass
                 self.connection = None
+            db_host = os.environ.get("DB_HOST", "127.0.0.1")
+            db_port = int(os.environ.get("DB_PORT", 5432))
+            db_user = os.environ.get("DB_USER", "postgres")
+            db_password = os.environ.get("DB_PASSWORD", "Malaba@2003")
+            db_name = os.environ.get("DB_NAME", "maize_disease_db")
 
-            # Check for DATABASE_URL (production on Render with Neon)
-            database_url = os.environ.get("DATABASE_URL")
-
-            if database_url:
-                # Production mode: Use DATABASE_URL from Neon
-                print("🔗 Connecting to production database (Neon)...")
-
-                # Fix URL format for psycopg2
-                if "postgresql+psycopg2://" in database_url:
-                    database_url = database_url.replace(
-                        "postgresql+psycopg2://", "postgresql://"
-                    )
-
-                # For Neon, ensure sslmode is set
-                if "neon.tech" in database_url and "sslmode" not in database_url:
-                    if "?" in database_url:
-                        database_url += "&sslmode=require"
-                    else:
-                        database_url += "?sslmode=require"
-
-                self.connection = psycopg2.connect(database_url)
-                print("✅ Production database connected successfully (Neon)")
-            else:
-                # Local development mode
-                print("🔗 Connecting to local database...")
-                self.connection = psycopg2.connect(
-                    host=os.environ.get("DB_HOST", "127.0.0.1"),
-                    user=os.environ.get("DB_USER", "postgres"),
-                    password=os.environ.get("DB_PASSWORD", "Malaba@2003"),
-                    database=os.environ.get("DB_NAME", "maize_disease_db"),
-                    port=os.environ.get("DB_PORT", 5432),
-                )
-                print("✅ Local database connected successfully")
-
+            self.connection = psycopg2.connect(
+                host=db_host,
+                user=db_user,
+                password=db_password,
+                database=db_name,
+                port=db_port,
+            )
+            print("✅ PostgreSQL connected successfully")
             return True
-
         except Exception as e:
-            print(f"❌ Database connection error: {e}")
+            print(f"Database connection error: {e}")
             self.connection = None
             return False
 
@@ -125,8 +106,8 @@ class UserDB:
             return None
         try:
             cursor.execute(
-                """SELECT user_id, phone_number, email, full_name, role, location, 
-                district, region, is_active, is_approved, created_at, last_login, profile_picture 
+                """SELECT user_id, phone_number, email, full_name, role, location,
+                district, region, is_active, is_approved, created_at, last_login, profile_picture
                 FROM maziwa WHERE user_id = %s""",
                 (user_id,),
             )
@@ -144,8 +125,8 @@ class UserDB:
 
             cursor.execute(
                 """
-                SELECT * FROM maziwa 
-                WHERE (phone_number = %s OR email = %s) AND is_active = TRUE
+                SELECT * FROM maziwa
+                WHERE (phone_number = %s OR email = %s) AND is_active = 1
             """,
                 (identifier, identifier),
             )
@@ -189,5 +170,4 @@ class UserDB:
             self.connection.close()
 
 
-# Create a global instance that main.py can import
 user_db = UserDB()

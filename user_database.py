@@ -47,7 +47,7 @@ class UserDB:
                         database_url += "?sslmode=require"
 
                 self.connection = psycopg2.connect(database_url)
-                print("✅ Production database connected successfully (Neon)")
+                print(" Production database connected successfully (Neon)")
             else:
                 # Local development mode: Use individual parameters
                 print("🔗 Connecting to local database...")
@@ -58,12 +58,12 @@ class UserDB:
                     database=os.environ.get("DB_NAME", "maize_disease_db"),
                     port=os.environ.get("DB_PORT", 5432),
                 )
-                print("✅ Local database connected successfully")
+                print(" Local database connected successfully")
 
             return True
 
         except Exception as e:
-            print(f"❌ Database connection error: {e}")
+            print(f" Database connection error: {e}")
             self.connection = None
             return False
 
@@ -189,5 +189,4 @@ class UserDB:
             self.connection.close()
 
 
-# Create a singleton instance
 user_db = UserDB()

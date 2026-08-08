@@ -14,7 +14,6 @@ class RateLimiter:
         now = time.time()
         client_requests = self.requests[client_id]
 
-        # Remove old requests
         client_requests = [
             req_time
             for req_time in client_requests
@@ -45,6 +44,4 @@ class RateLimiter:
 
         return decorated_function
 
-
-# Create global rate limiter instance
 rate_limiter = RateLimiter(max_requests=10, time_window=60)

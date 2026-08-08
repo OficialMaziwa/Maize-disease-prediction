@@ -1,26 +1,21 @@
-// ==================== NOTIFICATIONS.JS ====================
 
-// Global variables
 let notificationsList = [];
 let currentPage = 1;
 let totalNotifications = 0;
 
-// Load notifications when page loads
 document.addEventListener('DOMContentLoaded', function () {
     loadNotifications();
     loadUnreadCount();
 });
 
-// Load all notifications
 async function loadNotifications() {
     try {
         const response = await fetch('/api/notifications?limit=50');
         const data = await response.json();
 
-        console.log('Notifications response:', data); // Debug
+        console.log('Notifications response:', data);
 
         if (data.success) {
-            // Ensure notifications is an array
             notificationsList = Array.isArray(data.notifications) ? data.notifications : [];
             totalNotifications = notificationsList.length;
 
@@ -36,7 +31,6 @@ async function loadNotifications() {
     }
 }
 
-// Load unread count only
 async function loadUnreadCount() {
     try {
         const response = await fetch('/api/notifications/unread-count');
@@ -50,7 +44,6 @@ async function loadUnreadCount() {
     }
 }
 
-// Display notifications in the dropdown
 function displayNotifications(notifications) {
     const container = document.getElementById('notificationList');
     if (!container) return;
@@ -87,7 +80,6 @@ function displayNotifications(notifications) {
 
     container.innerHTML = html;
 
-    // Add click handlers
     document.querySelectorAll('.notification-item').forEach(item => {
         item.addEventListener('click', () => {
             const id = item.dataset.id;
@@ -98,7 +90,6 @@ function displayNotifications(notifications) {
     });
 }
 
-// Get icon based on notification type
 function getNotificationIcon(type) {
     switch (type) {
         case 'ACCOUNT_APPROVAL':
@@ -112,7 +103,6 @@ function getNotificationIcon(type) {
     }
 }
 
-// Mark a single notification as read
 async function markAsRead(notificationId) {
     try {
         const response = await fetch(`/api/notifications/${notificationId}/read`, {
@@ -125,7 +115,6 @@ async function markAsRead(notificationId) {
         const data = await response.json();
 
         if (data.success) {
-            // Reload notifications
             loadNotifications();
         }
     } catch (error) {
@@ -133,7 +122,6 @@ async function markAsRead(notificationId) {
     }
 }
 
-// Mark all notifications as read
 async function markAllAsRead() {
     try {
         const response = await fetch('/api/notifications/mark-all-read', {
@@ -155,7 +143,6 @@ async function markAllAsRead() {
     }
 }
 
-// Update notification badge with count
 function updateNotificationBadge(count) {
     const badge = document.getElementById('notificationBadge');
     const dropdown = document.getElementById('notificationDropdown');
@@ -169,7 +156,6 @@ function updateNotificationBadge(count) {
         }
     }
 
-    // Update dropdown header
     if (dropdown) {
         const header = dropdown.querySelector('.dropdown-header');
         if (header) {
@@ -184,7 +170,6 @@ function updateNotificationBadge(count) {
     }
 }
 
-// Helper: Escape HTML to prevent XSS
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -192,7 +177,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Helper: Show toast notification
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -209,7 +193,6 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// Refresh notifications periodically (every 30 seconds)
 setInterval(() => {
     if (document.querySelector('.notification-dropdown')?.classList.contains('show')) {
         loadNotifications();
@@ -217,5 +200,4 @@ setInterval(() => {
     loadUnreadCount();
 }, 30000);
 
-// Make functions global for onclick handlers
 window.markAllAsRead = markAllAsRead;

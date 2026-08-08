@@ -1,229 +1,544 @@
-﻿{% extends "base.html" %}
-
-{% block title %}{{ t('officer_dashboard', lang) or 'Officer Dashboard - Extension Officer' }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/officer_dashboard.css') }}">
+﻿{% extends "base.html" %} {% block title %}{{ t('officer_dashboard',
+session.get('language', 'en')) or 'Officer Dashboard - Extension Officer' }}{%
+endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/officer_dashboard.css') }}"
+/>
 <style>
-    .modal-lg {
-        max-width: 800px;
+  .modal-lg {
+    max-width: 800px;
+  }
+  .disease-detail-card {
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .disease-detail-card .card-header {
+    font-weight: bold;
+  }
+  .stat-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  .region-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    color: white;
+  }
+  .btn-refresh {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+  }
+  .btn-refresh:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-2px);
+  }
+  .card-header-custom {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card-header-custom h5 {
+    margin: 0;
+    color: #2c3e50;
+  }
+  .dashboard-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  .table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+  }
+  .table td {
+    vertical-align: middle;
+  }
+  .btn-success,
+  .btn-info,
+  .btn-primary,
+  .btn-warning,
+  .btn-danger {
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+  }
+  .btn-success:hover,
+  .btn-info:hover,
+  .btn-primary:hover,
+  .btn-warning:hover,
+  .btn-danger:hover {
+    transform: translateY(-2px);
+  }
+  .form-control-sm,
+  .form-select-sm {
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.8rem;
+  }
+  .welcome-card {
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .welcome-card::before {
+    content: "🌽";
+    position: absolute;
+    font-size: 120px;
+    opacity: 0.1;
+    bottom: -20px;
+    right: -20px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition:
+      transform 0.3s,
+      box-shadow 0.3s;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2e7d32;
+  }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+  }
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+  }
+  .icon-farmers {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+  }
+  .icon-predictions {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+  }
+  .icon-diseases {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+  }
+  .icon-active {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+  }
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
     }
-    .disease-detail-card {
-        margin-bottom: 1rem;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .stat-value {
+      font-size: 1.5rem;
     }
-    .disease-detail-card .card-header {
-        font-weight: bold;
+  }
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
     }
-    .stat-card {
-        cursor: pointer;
-        transition: transform 0.2s;
+    .card-header-custom {
+      flex-direction: column;
+      text-align: center;
     }
-    .stat-card:hover {
-        transform: translateY(-5px);
+    .card-header-custom div {
+      width: 100%;
     }
+    .card-header-custom input,
+    .card-header-custom select {
+      width: 100% !important;
+      margin-bottom: 5px;
+    }
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="dashboard-container">
-    <div class="container-fluid">
-        <!-- Welcome Card -->
-        <div class="welcome-card">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h4 class="mb-2">{{ t('welcome_back_officer', lang) or 'Welcome back' }}, {{ session.user_name }}!</h4>
-                    <p class="mb-0 mt-2">
-                        <i class="fas fa-map-marker-alt me-2"></i>
-                        {{ t('your_region', lang) or 'Your Region' }}: <span class="region-badge">{{ officer_region or (t('all_regions', lang) or 'All Regions') }}</span>
-                    </p>
-                </div>
-                <div class="mt-3 mt-sm-0">
-                    <button class="btn-refresh" onclick="refreshDashboard()">
-                        <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', lang) or 'Refresh Data' }}
-                    </button>
-                </div>
-            </div>
+  <div class="container-fluid">
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          <h4 class="mb-2">
+            {{ t('welcome_back_officer', session.get('language', 'en')) or
+            'Welcome back' }}, {{ session.user_name }}!
+          </h4>
+          <p class="mb-0 mt-2">
+            <i class="fas fa-map-marker-alt me-2"></i>
+            {{ t('your_region', session.get('language', 'en')) or 'Your Region'
+            }}:
+            <span class="region-badge"
+              >{{ officer_region or (t('all_regions', session.get('language',
+              'en')) or 'All Regions') }}</span
+            >
+          </p>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card" onclick="scrollToFarmers()">
-                <div>
-                    <div class="stat-value" id="totalFarmers">0</div>
-                    <div class="stat-label"><i class="fas fa-users me-1"></i>{{ t('total_farmers', lang) or 'Total Farmers' }}</div>
-                </div>
-                <div class="stat-icon icon-farmers">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-            <div class="stat-card" onclick="scrollToPredictions()">
-                <div>
-                    <div class="stat-value" id="totalPredictions">0</div>
-                    <div class="stat-label"><i class="fas fa-chart-line me-1"></i>{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</div>
-                </div>
-                <div class="stat-icon icon-predictions">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div>
-                    <div class="stat-value" id="diseasesDetected">0</div>
-                    <div class="stat-label"><i class="fas fa-leaf me-1"></i>{{ t('diseases_detected', lang) or 'Diseases Detected' }}</div>
-                </div>
-                <div class="stat-icon icon-diseases">
-                    <i class="fas fa-leaf"></i>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div>
-                    <div class="stat-value" id="activeFarmers">0</div>
-                    <div class="stat-label"><i class="fas fa-user-check me-1"></i>{{ t('active_farmers_30d', lang) or 'Active Farmers (30d)' }}</div>
-                </div>
-                <div class="stat-icon icon-active">
-                    <i class="fas fa-user-check"></i>
-                </div>
-            </div>
+        <div class="mt-3 mt-sm-0">
+          <button class="btn-refresh" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data',
+            session.get('language', 'en')) or 'Refresh Data' }}
+          </button>
         </div>
-
-        <!-- Disease Management Section -->
-        <div class="dashboard-card">
-            <div class="card-header-custom">
-                <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>{{ t('disease_management', lang) or 'Disease Management' }}</h5>
-                <button class="btn btn-primary btn-sm" onclick="showAddDiseaseModal()">
-                    <i class="fas fa-plus me-1"></i>{{ t('add_new_disease', lang) or 'Add New Disease' }}
-                </button>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>{{ t('id', lang) or 'ID' }}</th>
-                                <th>{{ t('disease_name_en', lang) or 'Disease Name (English)' }}</th>
-                                <th>{{ t('disease_name_sw', lang) or 'Disease Name (Swahili)' }}</th>
-                                <th>{{ t('scientific_name', lang) or 'Scientific Name' }}</th>
-                                <th>{{ t('actions', lang) or 'Actions' }}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="diseasesTableBody">
-                            <tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_diseases', lang) or 'Loading diseases...' }}<\/td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Farmers Table -->
-        <div class="dashboard-card" id="farmersSection">
-            <div class="card-header-custom">
-                <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>{{ t('all_farmers', lang) or 'All Farmers' }}</h5>
-                <div>
-                    <input type="text" id="farmerSearch" class="form-control form-control-sm" placeholder="{{ t('search_farmers', lang) or 'Search farmers...' }}" style="width: 200px; display: inline-block;">
-                    <button class="btn btn-success btn-sm ms-2" onclick="exportFarmers()">
-                        <i class="fas fa-file-csv me-1"></i>{{ t('export_csv', lang) or 'Export CSV' }}
-                    </button>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{{ t('full_name', lang) or 'Full Name' }}</th>
-                            <th>{{ t('phone_number', lang) or 'Phone Number' }}</th>
-                            <th>{{ t('email', lang) or 'Email' }}</th>
-                            <th>{{ t('location', lang) or 'Location' }}</th>
-                            <th>{{ t('district', lang) or 'District' }}</th>
-                            <th>{{ t('region', lang) or 'Region' }}</th>
-                            <th>{{ t('registered', lang) or 'Registered' }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="farmersTableBody">
-                        <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_farmers', lang) or 'Loading farmers...' }}<\/td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Recent Predictions Table -->
-        <div class="dashboard-card" id="predictionsSection">
-            <div class="card-header-custom">
-                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>{{ t('recent_predictions', lang) or 'Recent Predictions' }}</h5>
-                <div>
-                    <select id="diseaseFilter" class="form-select form-select-sm" style="width: 180px; display: inline-block;">
-                        <option value="all">{{ t('all_diseases', lang) or 'All Diseases' }}</option>
-                        <option value="Blight">Blight</option>
-                        <option value="Rust">Common Rust</option>
-                        <option value="Spot">Gray Leaf Spot</option>
-                        <option value="Healthy">Healthy</option>
-                    </select>
-                    <button class="btn btn-success btn-sm ms-2" onclick="exportPredictions()">
-                        <i class="fas fa-file-csv me-1"></i>{{ t('export_csv', lang) or 'Export CSV' }}
-                    </button>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{{ t('farmer_name', lang) or 'Farmer Name' }}</th>
-                            <th>{{ t('phone', lang) or 'Phone' }}</th>
-                            <th>{{ t('location', lang) or 'Location' }}</th>
-                            <th>{{ t('disease', lang) or 'Disease' }}</th>
-                            <th>{{ t('confidence', lang) or 'Confidence' }}</th>
-                            <th>{{ t('date', lang) or 'Date' }}</th>
-                            <th>{{ t('action', lang) or 'Action' }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="predictionsTableBody">
-                        <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading_predictions', lang) or 'Loading predictions...' }}<\/td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card" onclick="scrollToFarmers()">
+        <div>
+          <div class="stat-value" id="totalFarmers">0</div>
+          <div class="stat-label">
+            <i class="fas fa-users me-1"></i>{{ t('total_farmers',
+            session.get('language', 'en')) or 'Total Farmers' }}
+          </div>
+        </div>
+        <div class="stat-icon icon-farmers">
+          <i class="fas fa-users"></i>
+        </div>
+      </div>
+      <div class="stat-card" onclick="scrollToPredictions()">
+        <div>
+          <div class="stat-value" id="totalPredictions">0</div>
+          <div class="stat-label">
+            <i class="fas fa-chart-line me-1"></i>{{ t('total_diagnoses',
+            session.get('language', 'en')) or 'Total Diagnoses' }}
+          </div>
+        </div>
+        <div class="stat-icon icon-predictions">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-value" id="diseasesDetected">0</div>
+          <div class="stat-label">
+            <i class="fas fa-leaf me-1"></i>{{ t('diseases_detected',
+            session.get('language', 'en')) or 'Diseases Detected' }}
+          </div>
+        </div>
+        <div class="stat-icon icon-diseases">
+          <i class="fas fa-leaf"></i>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-value" id="activeFarmers">0</div>
+          <div class="stat-label">
+            <i class="fas fa-user-check me-1"></i>{{ t('active_farmers_30d',
+            session.get('language', 'en')) or 'Active Farmers (30d)' }}
+          </div>
+        </div>
+        <div class="stat-icon icon-active">
+          <i class="fas fa-user-check"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disease Management Section -->
+    <div class="dashboard-card">
+      <div class="card-header-custom">
+        <h5 class="mb-0">
+          <i class="fas fa-leaf me-2"></i>{{ t('disease_management',
+          session.get('language', 'en')) or 'Disease Management' }}
+        </h5>
+        <button class="btn btn-primary btn-sm" onclick="showAddDiseaseModal()">
+          <i class="fas fa-plus me-1"></i>{{ t('add_new_disease',
+          session.get('language', 'en')) or 'Add New Disease' }}
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                <th>
+                  {{ t('disease_name_en', session.get('language', 'en')) or
+                  'Disease Name (English)' }}
+                </th>
+                <th>
+                  {{ t('disease_name_sw', session.get('language', 'en')) or
+                  'Disease Name (Swahili)' }}
+                </th>
+                <th>
+                  {{ t('scientific_name', session.get('language', 'en')) or
+                  'Scientific Name' }}
+                </th>
+                <th>
+                  {{ t('actions', session.get('language', 'en')) or 'Actions' }}
+                </th>
+              </tr>
+            </thead>
+            <tbody id="diseasesTableBody">
+              <tr>
+                <td colspan="5" class="text-center py-4">
+                  <div class="spinner-border text-success"></div>
+                  {{ t('loading_diseases', session.get('language', 'en')) or
+                  'Loading diseases...' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Farmers Table -->
+    <div class="dashboard-card" id="farmersSection">
+      <div class="card-header-custom">
+        <h5 class="mb-0">
+          <i class="fas fa-user-plus me-2"></i>{{ t('all_farmers',
+          session.get('language', 'en')) or 'All Farmers' }}
+        </h5>
+        <div>
+          <input
+            type="text"
+            id="farmerSearch"
+            class="form-control form-control-sm"
+            placeholder="{{ t('search_farmers', session.get('language', 'en')) or 'Search farmers...' }}"
+            style="width: 200px; display: inline-block"
+          />
+          <button class="btn btn-success btn-sm ms-2" onclick="exportFarmers()">
+            <i class="fas fa-file-csv me-1"></i>{{ t('export_csv',
+            session.get('language', 'en')) or 'Export CSV' }}
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>
+                  {{ t('full_name', session.get('language', 'en')) or 'Full
+                  Name' }}
+                </th>
+                <th>
+                  {{ t('phone_number', session.get('language', 'en')) or 'Phone
+                  Number' }}
+                </th>
+                <th>
+                  {{ t('email', session.get('language', 'en')) or 'Email' }}
+                </th>
+                <th>
+                  {{ t('location', session.get('language', 'en')) or 'Location'
+                  }}
+                </th>
+                <th>
+                  {{ t('district', session.get('language', 'en')) or 'District'
+                  }}
+                </th>
+                <th>
+                  {{ t('region', session.get('language', 'en')) or 'Region' }}
+                </th>
+                <th>
+                  {{ t('registered', session.get('language', 'en')) or
+                  'Registered' }}
+                </th>
+              </tr>
+            </thead>
+            <tbody id="farmersTableBody">
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <div class="spinner-border text-success"></div>
+                  {{ t('loading_farmers', session.get('language', 'en')) or
+                  'Loading farmers...' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Predictions Table -->
+    <div class="dashboard-card" id="predictionsSection">
+      <div class="card-header-custom">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line me-2"></i>{{ t('recent_predictions',
+          session.get('language', 'en')) or 'Recent Predictions' }}
+        </h5>
+        <div>
+          <select
+            id="diseaseFilter"
+            class="form-select form-select-sm"
+            style="width: 180px; display: inline-block"
+          >
+            <option value="all">
+              {{ t('all_diseases', session.get('language', 'en')) or 'All
+              Diseases' }}
+            </option>
+            <option value="Blight">Blight</option>
+            <option value="Common_Rust">Common Rust</option>
+            <option value="Gray_Leaf_Spot">Gray Leaf Spot</option>
+            <option value="Healthy">Healthy</option>
+          </select>
+          <button
+            class="btn btn-success btn-sm ms-2"
+            onclick="exportPredictions()"
+          >
+            <i class="fas fa-file-csv me-1"></i>{{ t('export_csv',
+            session.get('language', 'en')) or 'Export CSV' }}
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>
+                  {{ t('farmer_name', session.get('language', 'en')) or 'Farmer
+                  Name' }}
+                </th>
+                <th>
+                  {{ t('phone', session.get('language', 'en')) or 'Phone' }}
+                </th>
+                <th>
+                  {{ t('location', session.get('language', 'en')) or 'Location'
+                  }}
+                </th>
+                <th>
+                  {{ t('disease', session.get('language', 'en')) or 'Disease' }}
+                </th>
+                <th>
+                  {{ t('confidence', session.get('language', 'en')) or
+                  'Confidence' }}
+                </th>
+                <th>
+                  {{ t('date', session.get('language', 'en')) or 'Date' }}
+                </th>
+                <th>
+                  {{ t('action', session.get('language', 'en')) or 'Action' }}
+                </th>
+              </tr>
+            </thead>
+            <tbody id="predictionsTableBody">
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <div class="spinner-border text-success"></div>
+                  {{ t('loading_predictions', session.get('language', 'en')) or
+                  'Loading predictions...' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Disease Details Modal -->
 <div class="modal fade" id="diseaseDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="fas fa-leaf me-2"></i>Disease Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="diseaseDetailsModalBody">
-                <div class="text-center py-4"><div class="spinner-border text-info"></div> Loading...</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-warning" id="editDiseaseFromModalBtn">Edit Disease</button>
-            </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-leaf me-2"></i>Disease Details
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body" id="diseaseDetailsModalBody">
+        <div class="text-center py-4">
+          <div class="spinner-border text-info"></div>
+          Loading...
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning"
+          id="editDiseaseFromModalBtn"
+        >
+          Edit Disease
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Prediction Details Modal -->
 <div class="modal fade" id="predictionDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fas fa-microscope me-2"></i>Prediction Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="predictionDetailsModalBody">
-                <div class="text-center py-4"><div class="spinner-border text-success"></div> Loading...</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="window.print()">Print Report</button>
-            </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-microscope me-2"></i>Prediction Details
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body" id="predictionDetailsModalBody">
+        <div class="text-center py-4">
+          <div class="spinner-border text-success"></div>
+          Loading...
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+          Print Report
+        </button>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/officer_dashboard.js') }}"></script>
 {% endblock %}

@@ -1,207 +1,325 @@
-{% extends "base.html" %}
-
-{% block title %}{{ t('farmers_management', lang) or 'Farmers Management' }} - {{ t('extension_officer', lang) or 'Extension Officer' }}{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/farmers.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ t('farmers_management', lang) or
+'Farmers Management' }} - {{ t('extension_officer', lang) or 'Extension Officer'
+}}{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/farmers.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="farmers-container">
-    <div class="container-fluid">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h2 class="mb-2">
-                        <i class="fas fa-users me-2 text-success"></i>
-                        {{ t('farmers_management', lang) or 'Farmers Management' }}
-                    </h2>
-                    <p class="text-muted mb-0">
-                        {{ t('farmers_management_desc', lang) or 'Manage and monitor all registered farmers in your region' }}
-                    </p>
-                </div>
-                <div class="mt-3 mt-sm-0">
-                    <button class="btn btn-outline-success me-2" onclick="refreshFarmers()">
-                        <i class="fas fa-sync-alt me-1"></i> {{ t('refresh', lang) or 'Refresh' }}
-                    </button>
-                    <button class="btn btn-success" onclick="exportFarmersCSV()">
-                        <i class="fas fa-file-csv me-1"></i> {{ t('export_csv', lang) or 'Export CSV' }}
-                    </button>
-                </div>
-            </div>
+  <div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          <h2 class="mb-2">
+            <i class="fas fa-users me-2 text-success"></i>
+            {{ t('farmers_management', lang) or 'Farmers Management' }}
+          </h2>
+          <p class="text-muted mb-0">
+            {{ t('farmers_management_desc', lang) or 'Manage and monitor all
+            registered farmers in your region' }}
+          </p>
         </div>
-
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon bg-primary">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalFarmers">0</h3>
-                    <p>{{ t('total_farmers', lang) or 'Total Farmers' }}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon bg-success">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="activeFarmers">0</h3>
-                    <p>{{ t('active_farmers', lang) or 'Active Farmers' }}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon bg-danger">
-                    <i class="fas fa-user-times"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="inactiveFarmers">0</h3>
-                    <p>{{ t('inactive_farmers', lang) or 'Inactive Farmers' }}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon bg-info">
-                    <i class="fas fa-leaf"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalPredictions">0</h3>
-                    <p>{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</p>
-                </div>
-            </div>
+        <div class="mt-3 mt-sm-0">
+          <button
+            class="btn btn-outline-success me-2"
+            onclick="refreshFarmers()"
+          >
+            <i class="fas fa-sync-alt me-1"></i> {{ t('refresh', lang) or
+            'Refresh' }}
+          </button>
+          <button class="btn btn-success" onclick="exportFarmersCSV()">
+            <i class="fas fa-file-csv me-1"></i> {{ t('export_csv', lang) or
+            'Export CSV' }}
+          </button>
         </div>
-
-        <!-- Filters Card -->
-        <div class="filters-card">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
-                            <i class="fas fa-search text-success"></i>
-                        </span>
-                        <input type="text" id="searchFarmers" class="form-control" 
-                               placeholder="{{ t('search_by_name_phone_location', lang) or 'Search by name, phone or location...' }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <select id="statusFilter" class="form-select">
-                        <option value="all">{{ t('all_status', lang) or 'All Status' }}</option>
-                        <option value="active">{{ t('active', lang) or 'Active' }}</option>
-                        <option value="inactive">{{ t('inactive', lang) or 'Inactive' }}</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select id="regionFilter" class="form-select">
-                        <option value="all">{{ t('all_regions', lang) or 'All Regions' }}</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select id="districtFilter" class="form-select">
-                        <option value="all">{{ t('all_districts', lang) or 'All Districts' }}</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
-                            <i class="fas fa-calendar text-success"></i>
-                        </span>
-                        <input type="date" id="dateFrom" class="form-control" placeholder="{{ t('from_date', lang) or 'From' }}">
-                        <span class="input-group-text bg-white">{{ t('to', lang) or 'to' }}</span>
-                        <input type="date" id="dateTo" class="form-control" placeholder="{{ t('to_date', lang) or 'To' }}">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Farmers Table -->
-        <div class="farmers-table-card">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>{{ t('id', lang) or 'ID' }}</th>
-                            <th>{{ t('name', lang) or 'Name' }}</th>
-                            <th>{{ t('phone', lang) or 'Phone' }}</th>
-                            <th>{{ t('email', lang) or 'Email' }}</th>
-                            <th>{{ t('location', lang) or 'Location' }}</th>
-                            <th>{{ t('district', lang) or 'District' }}</th>
-                            <th>{{ t('region', lang) or 'Region' }}</th>
-                            <th>{{ t('registered_date', lang) or 'Registered' }}</th>
-                            <th>{{ t('status', lang) or 'Status' }}</th>
-                            <th>{{ t('actions', lang) or 'Actions' }}</th>
-                        </tr>
-                    </thead>
-                    <tbody id="farmersTableBody">
-                        <tr>
-                            <td colspan="10" class="text-center py-5">
-                                <div class="spinner-border text-success"></div>
-                                <p class="mt-2 text-muted">{{ t('loading_farmers_data', lang) or 'Loading farmers data...' }}</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="pagination-container">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div class="mb-2 mb-sm-0">
-                        <span class="text-muted">{{ t('showing', lang) or 'Showing' }} <span id="showingStart">0</span> {{ t('to', lang) or 'to' }} <span id="showingEnd">0</span> {{ t('of', lang) or 'of' }} <span id="totalCount">0</span> {{ t('farmers', lang) or 'farmers' }}</span>
-                    </div>
-                    <nav>
-                        <ul class="pagination mb-0" id="pagination">
-                            <li class="page-item disabled"><a class="page-link" href="#" onclick="changePage('prev')"><i class="fas fa-chevron-left"></i></a></li>
-                            <li class="page-item disabled"><a class="page-link" href="#" onclick="changePage('next')"><i class="fas fa-chevron-right"></i></a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalFarmers">0</h3>
+          <p>{{ t('total_farmers', lang) or 'Total Farmers' }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="activeFarmers">0</h3>
+          <p>{{ t('active_farmers', lang) or 'Active Farmers' }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-danger">
+          <i class="fas fa-user-times"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="inactiveFarmers">0</h3>
+          <p>{{ t('inactive_farmers', lang) or 'Inactive Farmers' }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-info">
+          <i class="fas fa-leaf"></i>
+        </div>
+        <div class="stat-info">
+          <h3 id="totalPredictions">0</h3>
+          <p>{{ t('total_diagnoses', lang) or 'Total Diagnoses' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="filters-card">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="fas fa-search text-success"></i>
+            </span>
+            <input
+              type="text"
+              id="searchFarmers"
+              class="form-control"
+              placeholder="{{ t('search_by_name_phone_location', lang) or 'Search by name, phone or location...' }}"
+            />
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select id="statusFilter" class="form-select">
+            <option value="all">
+              {{ t('all_status', lang) or 'All Status' }}
+            </option>
+            <option value="active">{{ t('active', lang) or 'Active' }}</option>
+            <option value="inactive">
+              {{ t('inactive', lang) or 'Inactive' }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="regionFilter" class="form-select">
+            <option value="all">
+              {{ t('all_regions', lang) or 'All Regions' }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select id="districtFilter" class="form-select">
+            <option value="all">
+              {{ t('all_districts', lang) or 'All Districts' }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="fas fa-calendar text-success"></i>
+            </span>
+            <input
+              type="date"
+              id="dateFrom"
+              class="form-control"
+              placeholder="{{ t('from_date', lang) or 'From' }}"
+            />
+            <span class="input-group-text bg-white"
+              >{{ t('to', lang) or 'to' }}</span
+            >
+            <input
+              type="date"
+              id="dateTo"
+              class="form-control"
+              placeholder="{{ t('to_date', lang) or 'To' }}"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Farmers Table -->
+    <div class="farmers-table-card">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>{{ t('id', lang) or 'ID' }}</th>
+              <th>{{ t('name', lang) or 'Name' }}</th>
+              <th>{{ t('phone', lang) or 'Phone' }}</th>
+              <th>{{ t('email', lang) or 'Email' }}</th>
+              <th>{{ t('location', lang) or 'Location' }}</th>
+              <th>{{ t('district', lang) or 'District' }}</th>
+              <th>{{ t('region', lang) or 'Region' }}</th>
+              <th>{{ t('registered_date', lang) or 'Registered' }}</th>
+              <th>{{ t('status', lang) or 'Status' }}</th>
+              <th>{{ t('actions', lang) or 'Actions' }}</th>
+            </tr>
+          </thead>
+          <tbody id="farmersTableBody">
+            <tr>
+              <td colspan="10" class="text-center py-5">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2 text-muted">
+                  {{ t('loading_farmers_data', lang) or 'Loading farmers
+                  data...' }}
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-container">
+        <div
+          class="d-flex justify-content-between align-items-center flex-wrap"
+        >
+          <div class="mb-2 mb-sm-0">
+            <span class="text-muted"
+              >{{ t('showing', lang) or 'Showing' }}
+              <span id="showingStart">0</span> {{ t('to', lang) or 'to' }}
+              <span id="showingEnd">0</span> {{ t('of', lang) or 'of' }}
+              <span id="totalCount">0</span> {{ t('farmers', lang) or 'farmers'
+              }}</span
+            >
+          </div>
+          <nav>
+            <ul class="pagination mb-0" id="pagination">
+              <li class="page-item disabled">
+                <a class="page-link" href="#" onclick="changePage('prev')"
+                  ><i class="fas fa-chevron-left"></i
+                ></a>
+              </li>
+              <li class="page-item disabled">
+                <a class="page-link" href="#" onclick="changePage('next')"
+                  ><i class="fas fa-chevron-right"></i
+                ></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Farmer Details Modal -->
 <div class="modal fade" id="farmerDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fas fa-user-circle me-2"></i>{{ t('farmer_details', lang) or 'Farmer Details' }}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="farmerDetailsBody">
-                <div class="text-center py-4"><div class="spinner-border text-success"></div> {{ t('loading', lang) or 'Loading...' }}</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('close', lang) or 'Close' }}</button>
-                <button type="button" class="btn btn-primary" onclick="viewFarmerDiagnoses()">
-                    <i class="fas fa-chart-line me-1"></i>{{ t('view_diagnoses', lang) or 'View Diagnoses' }}
-                </button>
-            </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-user-circle me-2"></i>{{ t('farmer_details', lang) or
+          'Farmer Details' }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body" id="farmerDetailsBody">
+        <div class="text-center py-4">
+          <div class="spinner-border text-success"></div>
+          {{ t('loading', lang) or 'Loading...' }}
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ t('close', lang) or 'Close' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="viewFarmerDiagnoses()"
+        >
+          <i class="fas fa-chart-line me-1"></i>{{ t('view_diagnoses', lang) or
+          'View Diagnoses' }}
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Farmer Diagnoses Modal -->
 <div class="modal fade" id="farmerDiagnosesModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="fas fa-microscope me-2"></i>{{ t('farmer_diagnoses_history', lang) or 'Farmer Diagnoses History' }}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="farmerDiagnosesBody">
-                <div class="text-center py-4"><div class="spinner-border text-info"></div> {{ t('loading', lang) or 'Loading...' }}</div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('close', lang) or 'Close' }}</button>
-                <button type="button" class="btn btn-primary" onclick="window.print()">{{ t('print_report', lang) or 'Print Report' }}</button>
-            </div>
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-microscope me-2"></i>{{ t('farmer_diagnoses_history',
+          lang) or 'Farmer Diagnoses History' }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body" id="farmerDiagnosesBody">
+        <div class="text-center py-4">
+          <div class="spinner-border text-info"></div>
+          {{ t('loading', lang) or 'Loading...' }}
         </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ t('close', lang) or 'Close' }}
+        </button>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+          {{ t('print_report', lang) or 'Print Report' }}
+        </button>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+<!-- Prediction Details Modal -->
+<div class="modal fade" id="farmerPredictionModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header" id="predictionModalHeader">
+        <h5 class="modal-title">
+          <i class="fas fa-stethoscope me-2"></i>
+          <span id="predictionTitle"
+            >{{ t('prediction_details', lang) or 'Prediction Details' }}</span
+          >
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body" id="farmerPredictionBody">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2 text-muted">
+            {{ t('loading', lang) or 'Loading...' }}
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ t('close', lang) or 'Close' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          onclick="printPredictionReport()"
+        >
+          <i class="fas fa-print me-1"></i> {{ t('print', lang) or 'Print' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/farmers.js') }}"></script>
 {% endblock %}

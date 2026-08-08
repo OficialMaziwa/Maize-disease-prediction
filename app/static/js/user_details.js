@@ -1,9 +1,7 @@
-// ==================== USER DETAILS PAGE JAVASCRIPT ====================
 
 const userId = window.location.pathname.split('/').pop();
 let currentUserData = null;
 
-// Load user data
 function loadUserData() {
     fetch(`/admin/user/${userId}`)
         .then(response => response.json())
@@ -31,7 +29,6 @@ function loadUserData() {
         });
 }
 
-// Render user information
 function renderUserInfo(user) {
     const avatarUrl = user.profile_picture
         ? `/static/profile_photos/${user.profile_picture}`
@@ -43,7 +40,6 @@ function renderUserInfo(user) {
     const approvedClass = user.is_approved ? 'status-approved' : (user.rejection_reason ? 'status-rejected' : 'status-pending');
     const approvedText = user.is_approved ? 'Approved' : (user.rejection_reason ? 'Rejected' : 'Pending');
 
-    // Personal Information
     document.getElementById('personalInfo').innerHTML = `
         <div class="info-item">
             <div class="info-label">Full Name</div>
@@ -67,7 +63,6 @@ function renderUserInfo(user) {
         </div>
     `;
 
-    // Account Information
     document.getElementById('accountInfo').innerHTML = `
         <div class="info-item">
             <div class="info-label">User ID</div>
@@ -105,7 +100,6 @@ function renderUserInfo(user) {
         </div>` : ''}
     `;
 
-    // Location Information
     document.getElementById('locationInfo').innerHTML = `
         <div class="info-item">
             <div class="info-label">Location</div>
@@ -121,7 +115,6 @@ function renderUserInfo(user) {
         </div>
     `;
 
-    // Update toggle button text
     const toggleBtn = document.getElementById('statusToggleBtn');
     if (toggleBtn) {
         toggleBtn.innerHTML = user.is_active ?
@@ -129,7 +122,6 @@ function renderUserInfo(user) {
             '<i class="fas fa-check-circle me-2"></i> Activate User';
     }
 
-    // Calculate active days
     if (user.created_at) {
         const created = new Date(user.created_at);
         const now = new Date();
@@ -138,7 +130,6 @@ function renderUserInfo(user) {
     }
 }
 
-// Load user statistics
 function loadUserStatistics(userId) {
     fetch(`/api/user/statistics?user_id=${userId}`)
         .then(response => response.json())
@@ -149,7 +140,6 @@ function loadUserStatistics(userId) {
         .catch(error => console.error('Stats error:', error));
 }
 
-// Load user activity
 function loadUserActivity(userId) {
     fetch(`/api/user/activity?user_id=${userId}`)
         .then(response => response.json())
@@ -178,7 +168,6 @@ function loadUserActivity(userId) {
         });
 }
 
-// Load notification count
 function loadNotificationCount(userId) {
     fetch(`/api/notifications/count?user_id=${userId}`)
         .then(response => response.json())
@@ -188,7 +177,6 @@ function loadNotificationCount(userId) {
         .catch(error => console.error('Notif count error:', error));
 }
 
-// Toggle user status
 function toggleUserStatus() {
     if (!currentUserData) return;
 
@@ -208,7 +196,6 @@ function toggleUserStatus() {
     }
 }
 
-// Edit user
 function editUser() {
     if (!currentUserData) return;
 
@@ -223,7 +210,6 @@ function editUser() {
     new bootstrap.Modal(document.getElementById('editUserModal')).show();
 }
 
-// Save user changes
 function saveUserChanges() {
     const data = {
         full_name: document.getElementById('editFullName').value,
@@ -252,7 +238,6 @@ function saveUserChanges() {
         .catch(error => showAlert('Error: ' + error, 'danger'));
 }
 
-// Delete user
 function deleteUser() {
     if (confirm('⚠️ WARNING: This action cannot be undone!\n\nAre you sure you want to permanently delete this user?')) {
         const confirmation = prompt('Type "DELETE" to confirm:');
@@ -274,12 +259,10 @@ function deleteUser() {
     }
 }
 
-// Send notification
 function sendNotification() {
     new bootstrap.Modal(document.getElementById('notificationModal')).show();
 }
 
-// Send manual notification
 function sendManualNotification() {
     const data = {
         user_id: parseInt(userId),
@@ -314,7 +297,6 @@ function sendManualNotification() {
         .catch(error => showAlert('Error: ' + error, 'danger'));
 }
 
-// Helper: Escape HTML
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -322,14 +304,12 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Helper: Format date
 function formatDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleString();
 }
 
-// Helper: Show alert
 function showAlert(message, type = 'success') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
@@ -351,7 +331,6 @@ function showAlert(message, type = 'success') {
     }, 3000);
 }
 
-// Initialize page
 document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
 });

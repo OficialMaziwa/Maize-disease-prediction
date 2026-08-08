@@ -1,6 +1,4 @@
-﻿// Admin Dashboard JavaScript - Complete Version
-// Supports View, Edit, Delete, Add for Farmers, Officers, Admins, and Diseases
-
+﻿
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Admin Dashboard loaded");
     loadData();
@@ -48,12 +46,17 @@ function loadStats() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.getElementById('totalUsers').innerText = data.total_users || 0;
-                document.getElementById('totalFarmers').innerText = data.total_farmers || 0;
-                document.getElementById('totalOfficers').innerText = data.total_officers || 0;
-                document.getElementById('totalPredictions').innerText = data.total_predictions || 0;
+                // Check if elements exist before setting
+                var el = document.getElementById('totalUsers');
+                if (el) el.innerText = data.total_users || 0;
+                el = document.getElementById('totalFarmers');
+                if (el) el.innerText = data.total_farmers || 0;
+                el = document.getElementById('totalOfficers');
+                if (el) el.innerText = data.total_officers || 0;
+                el = document.getElementById('totalPredictions');
+                if (el) el.innerText = data.total_predictions || 0;
 
-                const pendingSpan = document.getElementById('pendingOfficers');
+                var pendingSpan = document.getElementById('pendingOfficers');
                 if (pendingSpan) pendingSpan.innerText = data.pending_officers || 0;
             }
         })
@@ -61,42 +64,39 @@ function loadStats() {
 }
 
 function updateUserTables(users) {
-    // Filter users by role
     const farmers = users.filter(u => u.role === 'farmer');
     const officers = users.filter(u => u.role === 'extension_officer');
     const admins = users.filter(u => u.role === 'admin');
     const pending = users.filter(u => u.role === 'extension_officer' && !u.is_approved);
 
-    // Update farmers table
     updateFarmersTable(farmers);
-
-    // Update officers table
     updateOfficersTable(officers);
-
-    // Update admins table
     updateAdminsTable(admins);
-
-    // Update pending table
     updatePendingTable(pending);
 
-    // Update stats
-    const totalUsers = document.getElementById('totalUsers');
-    const totalFarmers = document.getElementById('totalFarmers');
-    const totalOfficers = document.getElementById('totalOfficers');
-    const totalAdmins = document.getElementById('totalAdmins');
-    const pendingCount = document.getElementById('pendingCount');
-    const farmersCount = document.getElementById('farmersCount');
-    const officersCount = document.getElementById('officersCount');
-    const adminsCount = document.getElementById('adminsCount');
+    var el = document.getElementById('totalUsers');
+    if (el) el.textContent = users.length;
 
-    if (totalUsers) totalUsers.textContent = users.length;
-    if (totalFarmers) totalFarmers.textContent = farmers.length;
-    if (totalOfficers) totalOfficers.textContent = officers.length;
-    if (totalAdmins) totalAdmins.textContent = admins.length;
-    if (pendingCount) pendingCount.textContent = pending.length;
-    if (farmersCount) farmersCount.textContent = farmers.length;
-    if (officersCount) officersCount.textContent = officers.length;
-    if (adminsCount) adminsCount.textContent = admins.length;
+    el = document.getElementById('totalFarmers');
+    if (el) el.textContent = farmers.length;
+
+    el = document.getElementById('totalOfficers');
+    if (el) el.textContent = officers.length;
+
+    el = document.getElementById('totalAdmins');
+    if (el) el.textContent = admins.length;
+
+    el = document.getElementById('pendingCount');
+    if (el) el.textContent = pending.length;
+
+    el = document.getElementById('farmersCount');
+    if (el) el.textContent = farmers.length;
+
+    el = document.getElementById('officersCount');
+    if (el) el.textContent = officers.length;
+
+    el = document.getElementById('adminsCount');
+    if (el) el.textContent = admins.length;
 }
 
 function updateFarmersTable(farmers) {
@@ -104,27 +104,27 @@ function updateFarmersTable(farmers) {
     if (!tbody) return;
 
     if (!farmers || farmers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No farmers found<\/td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No farmers found</td></tr>';
         return;
     }
 
     let html = '';
     farmers.forEach(farmer => {
         html += '<tr data-user-id="' + farmer.user_id + '">';
-        html += '<td>' + escapeHtml(farmer.user_id) + '<\/td>';
-        html += '<td><strong>' + escapeHtml(farmer.full_name) + '<\/strong><\/td>';
-        html += '<td>' + escapeHtml(farmer.phone_number) + '<\/td>';
-        html += '<td>' + escapeHtml(farmer.email || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(farmer.location || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(farmer.district || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(farmer.region || '-') + '<\/td>';
-        html += '<td><span class="badge bg-success">Active<\/span><\/td>';
+        html += '<td>' + escapeHtml(farmer.user_id) + '</td>';
+        html += '<td><strong>' + escapeHtml(farmer.full_name) + '</strong></td>';
+        html += '<td>' + escapeHtml(farmer.phone_number) + '</td>';
+        html += '<td>' + escapeHtml(farmer.email || '-') + '</td>';
+        html += '<td>' + escapeHtml(farmer.location || '-') + '</td>';
+        html += '<td>' + escapeHtml(farmer.district || '-') + '</td>';
+        html += '<td>' + escapeHtml(farmer.region || '-') + '</td>';
+        html += '<td><span class="badge bg-success">Active</span></td>';
         html += '<td class="action-buttons">';
-        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + farmer.user_id + '\')" title="View"><i class="fas fa-eye"><\/i><\/button>';
-        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + farmer.user_id + '\')" title="Edit"><i class="fas fa-edit"><\/i><\/button>';
-        html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + farmer.user_id + '\')" title="Delete"><i class="fas fa-trash"><\/i><\/button>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + farmer.user_id + '\')" title="View"><i class="fas fa-eye"></i></button>';
+        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + farmer.user_id + '\')" title="Edit"><i class="fas fa-edit"></i></button>';
+        html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + farmer.user_id + '\')" title="Delete"><i class="fas fa-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
     });
     tbody.innerHTML = html;
 }
@@ -134,7 +134,7 @@ function updateOfficersTable(officers) {
     if (!tbody) return;
 
     if (!officers || officers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No officers found<\/td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No officers found</td></tr>';
         return;
     }
 
@@ -146,22 +146,22 @@ function updateOfficersTable(officers) {
         const approvedText = officer.is_approved ? 'Approved' : 'Pending';
 
         html += '<tr data-user-id="' + officer.user_id + '">';
-        html += '<td>' + escapeHtml(officer.user_id) + '<\/td>';
-        html += '<td><strong>' + escapeHtml(officer.full_name) + '<\/strong><\/td>';
-        html += '<td>' + escapeHtml(officer.phone_number) + '<\/td>';
-        html += '<td>' + escapeHtml(officer.email || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(officer.region || '-') + '<\/td>';
-        html += '<td><span class="badge ' + statusBadge + '">' + statusText + '<\/span><\/td>';
-        html += '<td><span class="badge ' + approvedBadge + '">' + approvedText + '<\/span><\/td>';
+        html += '<td>' + escapeHtml(officer.user_id) + '</td>';
+        html += '<td><strong>' + escapeHtml(officer.full_name) + '</strong></td>';
+        html += '<td>' + escapeHtml(officer.phone_number) + '</td>';
+        html += '<td>' + escapeHtml(officer.email || '-') + '</td>';
+        html += '<td>' + escapeHtml(officer.region || '-') + '</td>';
+        html += '<td><span class="badge ' + statusBadge + '">' + statusText + '</span></td>';
+        html += '<td><span class="badge ' + approvedBadge + '">' + approvedText + '</span></td>';
         html += '<td class="action-buttons">';
-        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + officer.user_id + '\')" title="View"><i class="fas fa-eye"><\/i><\/button>';
-        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + officer.user_id + '\')" title="Edit"><i class="fas fa-edit"><\/i><\/button>';
+        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + officer.user_id + '\')" title="View"><i class="fas fa-eye"></i></button>';
+        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + officer.user_id + '\')" title="Edit"><i class="fas fa-edit"></i></button>';
         if (!officer.is_approved) {
-            html += '<button class="btn btn-sm btn-success me-1" onclick="approveOfficer(\'' + officer.user_id + '\')" title="Approve"><i class="fas fa-check"><\/i><\/button>';
+            html += '<button class="btn btn-sm btn-success me-1" onclick="approveOfficer(\'' + officer.user_id + '\')" title="Approve"><i class="fas fa-check"></i></button>';
         }
-        html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + officer.user_id + '\')" title="Delete"><i class="fas fa-trash"><\/i><\/button>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + officer.user_id + '\')" title="Delete"><i class="fas fa-trash"></i></button>';
+        html += '</td>';
+        html += '</tr>';
     });
     tbody.innerHTML = html;
 }
@@ -171,7 +171,7 @@ function updateAdminsTable(admins) {
     if (!tbody) return;
 
     if (!admins || admins.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No admins found<\/td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No admins found</td></tr>';
         return;
     }
 
@@ -181,20 +181,20 @@ function updateAdminsTable(admins) {
         const statusText = admin.is_active ? 'Active' : 'Inactive';
 
         html += '<tr data-user-id="' + admin.user_id + '">';
-        html += '<td>' + escapeHtml(admin.user_id) + '<\/td>';
-        html += '<td><strong>' + escapeHtml(admin.full_name) + '<\/strong><\/td>';
-        html += '<td>' + escapeHtml(admin.phone_number) + '<\/td>';
-        html += '<td>' + escapeHtml(admin.email || '-') + '<\/td>';
-        html += '<td><span class="badge bg-info">' + escapeHtml(admin.role) + '<\/span><\/td>';
-        html += '<td><span class="badge ' + statusBadge + '">' + statusText + '<\/span><\/td>';
+        html += '<td>' + escapeHtml(admin.user_id) + '</td>';
+        html += '<td><strong>' + escapeHtml(admin.full_name) + '</strong></td>';
+        html += '<td>' + escapeHtml(admin.phone_number) + '</td>';
+        html += '<td>' + escapeHtml(admin.email || '-') + '</td>';
+        html += '<td><span class="badge bg-info">' + escapeHtml(admin.role) + '</span></td>';
+        html += '<td><span class="badge ' + statusBadge + '">' + statusText + '</span></td>';
         html += '<td class="action-buttons">';
-        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + admin.user_id + '\')" title="View"><i class="fas fa-eye"><\/i><\/button>';
-        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + admin.user_id + '\')" title="Edit"><i class="fas fa-edit"><\/i><\/button>';
+        html += '<button class="btn btn-sm btn-info me-1" onclick="viewUser(\'' + admin.user_id + '\')" title="View"><i class="fas fa-eye"></i></button>';
+        html += '<button class="btn btn-sm btn-warning me-1" onclick="editUser(\'' + admin.user_id + '\')" title="Edit"><i class="fas fa-edit"></i></button>';
         if (admin.user_id != window.currentUserId) {
-            html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + admin.user_id + '\')" title="Delete"><i class="fas fa-trash"><\/i><\/button>';
+            html += '<button class="btn btn-sm btn-danger" onclick="deleteUser(\'' + admin.user_id + '\')" title="Delete"><i class="fas fa-trash"></i></button>';
         }
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '</td>';
+        html += '</tr>';
     });
     tbody.innerHTML = html;
 }
@@ -204,25 +204,25 @@ function updatePendingTable(pending) {
     if (!tbody) return;
 
     if (!pending || pending.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No pending officers<\/td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No pending officers</td></tr>';
         return;
     }
 
     let html = '';
     pending.forEach(officer => {
         html += '<tr id="officer-row-' + officer.user_id + '">';
-        html += '<td>' + escapeHtml(officer.user_id || '-') + '<\/td>';
-        html += '<td><strong>' + escapeHtml(officer.full_name || '-') + '<\/strong><\/td>';
-        html += '<td>' + escapeHtml(officer.phone_number || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(officer.email || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(officer.region || '-') + '<\/td>';
-        html += '<td>' + (officer.created_at ? officer.created_at.substring(0, 10) : '-') + '<\/td>';
+        html += '<td>' + escapeHtml(officer.user_id || '-') + '</td>';
+        html += '<td><strong>' + escapeHtml(officer.full_name || '-') + '</strong></td>';
+        html += '<td>' + escapeHtml(officer.phone_number || '-') + '</td>';
+        html += '<td>' + escapeHtml(officer.email || '-') + '</td>';
+        html += '<td>' + escapeHtml(officer.region || '-') + '</td>';
+        html += '<td>' + (officer.created_at ? officer.created_at.substring(0, 10) : '-') + '</td>';
         html += '<td class="action-buttons">';
-        html += '<button class="btn btn-sm btn-success me-1" onclick="approveOfficer(\'' + officer.user_id + '\')" title="Approve"><i class="fas fa-check me-1"><\/i>Approve<\/button>';
-        html += '<button class="btn btn-sm btn-danger me-1" onclick="showRejectModal(\'' + officer.user_id + '\', \'' + escapeHtml(officer.full_name) + '\')" title="Reject"><i class="fas fa-times me-1"><\/i>Reject<\/button>';
-        html += '<button class="btn btn-sm btn-info" onclick="viewUser(\'' + officer.user_id + '\')" title="View"><i class="fas fa-eye"><\/i><\/button>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<button class="btn btn-sm btn-success me-1" onclick="approveOfficer(\'' + officer.user_id + '\')" title="Approve"><i class="fas fa-check me-1"></i>Approve</button>';
+        html += '<button class="btn btn-sm btn-danger me-1" onclick="showRejectModal(\'' + officer.user_id + '\', \'' + escapeHtml(officer.full_name) + '\')" title="Reject"><i class="fas fa-times me-1"></i>Reject</button>';
+        html += '<button class="btn btn-sm btn-info" onclick="viewUser(\'' + officer.user_id + '\')" title="View"><i class="fas fa-eye"></i></button>';
+        html += '</td>';
+        html += '</tr>';
     });
     tbody.innerHTML = html;
 }
@@ -232,30 +232,30 @@ function updateDiseaseTable(diseases) {
     if (!tbody) return;
 
     if (!diseases || diseases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No diseases found<\/td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No diseases found</td></tr>';
         return;
     }
 
     let html = '';
     diseases.forEach(disease => {
         html += '<tr data-disease-id="' + disease.disease_id + '">';
-        html += '<td>' + escapeHtml(disease.disease_id) + '<\/td>';
-        html += '<td><strong>' + escapeHtml(disease.disease_name_en || '-') + '<\/strong><\/td>';
-        html += '<td>' + escapeHtml(disease.disease_name_sw || '-') + '<\/td>';
-        html += '<td>' + escapeHtml(disease.scientific_name || '-') + '<\/td>';
+        html += '<td>' + escapeHtml(disease.disease_id) + '</td>';
+        html += '<td><strong>' + escapeHtml(disease.disease_name_en || '-') + '</strong></td>';
+        html += '<td>' + escapeHtml(disease.disease_name_sw || '-') + '</td>';
+        html += '<td>' + escapeHtml(disease.scientific_name || '-') + '</td>';
         html += '<td class="action-buttons">';
-        html += '<button class="btn btn-sm btn-info me-1" onclick="viewDisease(' + disease.disease_id + ')" title="View"><i class="fas fa-eye me-1"><\/i>View<\/button>';
-        html += '<button class="btn btn-sm btn-warning me-1" onclick="editDisease(' + disease.disease_id + ')" title="Edit"><i class="fas fa-edit me-1"><\/i>Edit<\/button>';
-        html += '<button class="btn btn-sm btn-danger" onclick="deleteDisease(' + disease.disease_id + ')" title="Delete"><i class="fas fa-trash me-1"><\/i>Delete<\/button>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<button class="btn btn-sm btn-info me-1" onclick="viewDisease(' + disease.disease_id + ')" title="View"><i class="fas fa-eye me-1"></i>View</button>';
+        html += '<button class="btn btn-sm btn-warning me-1" onclick="editDisease(' + disease.disease_id + ')" title="Edit"><i class="fas fa-edit me-1"></i>Edit</button>';
+        html += '<button class="btn btn-sm btn-danger" onclick="deleteDisease(' + disease.disease_id + ')" title="Delete"><i class="fas fa-trash me-1"></i>Delete</button>';
+        html += '</td>';
+        html += '</tr>';
     });
     tbody.innerHTML = html;
 }
 
-// ==================== CRUD FUNCTIONS ====================
 
-// User Functions (For Farmers, Officers, Admins)
+// USER CRUD FUNCTIONS
+
 function viewUser(userId) {
     if (!userId) {
         showToast('Invalid user ID', 'danger');
@@ -305,7 +305,9 @@ function deleteUser(userId) {
         });
 }
 
-// Add User Functions
+
+// ADD USER FUNCTIONS
+
 function showAddFarmerModal() {
     window.location.href = '/admin/farmer/add';
 }
@@ -318,7 +320,12 @@ function showAddAdminModal() {
     window.location.href = '/admin/admin/add';
 }
 
-// Officer Approval Functions
+function showEditUserModal(userId) {
+    editUser(userId);
+}
+
+
+// OFFICER APPROVAL FUNCTIONS
 function approveOfficer(userId) {
     if (!userId) {
         showToast('Invalid officer ID', 'danger');
@@ -435,7 +442,9 @@ function rejectOfficer(userId) {
         });
 }
 
-// Disease Functions
+
+// DISEASE CRUD FUNCTIONS
+
 function viewDisease(diseaseId) {
     if (!diseaseId) {
         showToast('Invalid disease ID', 'danger');
@@ -485,7 +494,7 @@ function deleteDisease(diseaseId) {
         });
 }
 
-// Add Disease Function
+// ADD DISEASE FUNCTION
 function showAddDiseaseModal() {
     const existingModal = document.getElementById('addDiseaseModal');
     if (existingModal) existingModal.remove();
@@ -605,7 +614,10 @@ function addDisease() {
         });
 }
 
-// Helper Functions
+
+// HELPER FUNCTIONS
+
+
 function refreshAllData() {
     showToast('Refreshing data...', 'info');
     location.reload();
@@ -613,10 +625,6 @@ function refreshAllData() {
 
 function generateReport(type) {
     showToast('Report generation for ' + type + ' coming soon', 'info');
-}
-
-function showEditUserModal(userId) {
-    editUser(userId);
 }
 
 function showLoading(show) {

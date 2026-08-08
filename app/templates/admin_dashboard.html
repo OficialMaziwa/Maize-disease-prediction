@@ -1,491 +1,742 @@
-{% extends "base.html" %}
-
-{% block title %}{{ t('admin_dashboard', session.get('language', 'en')) }} - System Control{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ t('admin_dashboard',
+session.get('language', 'en')) }} - System Control{% endblock %} {% block
+extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/admin_dashboard.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="container-fluid mt-4">
-    <!-- Welcome Section -->
-    <div class="welcome-card">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h2 class="mb-2"><i class="fas fa-crown me-2"></i>{{ t('admin_dashboard', session.get('language', 'en')) }}</h2>
-                <p class="mb-0 opacity-75">{{ t('welcome_back', session.get('language', 'en')) }}, {{ session.user_name }}! {{ t('full_system_control', session.get('language', 'en')) }}</p>
-            </div>
-            
-            <div class="mt-3 mt-sm-0 d-flex gap-2">
-                <a href="{{ url_for('main.admin_user_activity') }}" class="btn btn-info">
-                    <i class="fas fa-users me-2"></i>{{ t('user_activity_logs', session.get('language', 'en')) or 'User Activity Logs' }}
-                </a>
-                <button class="btn btn-light" onclick="refreshAllData()">
-                    <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data', session.get('language', 'en')) or 'Refresh Data' }}
-                </button>
-            </div>
+  <!-- Welcome Section -->
+  <div class="welcome-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+      <div>
+        <h2 class="mb-2">
+          <i class="fas fa-crown me-2"></i>{{ t('admin_dashboard',
+          session.get('language', 'en')) }}
+        </h2>
+        <p class="mb-0 opacity-75">
+          {{ t('welcome_back', session.get('language', 'en')) }}, {{
+          session.user_name }}! {{ t('full_system_control',
+          session.get('language', 'en')) }}
+        </p>
+      </div>
+
+      <div class="mt-3 mt-sm-0 d-flex gap-2">
+        <a
+          href="{{ url_for('main.admin_user_activity') }}"
+          class="btn btn-info"
+        >
+          <i class="fas fa-users me-2"></i>{{ t('user_activity_logs',
+          session.get('language', 'en')) or 'User Activity Logs' }}
+        </a>
+        <button class="btn btn-light" onclick="refreshAllData()">
+          <i class="fas fa-sync-alt me-2"></i>{{ t('refresh_data',
+          session.get('language', 'en')) or 'Refresh Data' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div
+          class="stat-icon"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <i class="fas fa-users text-white"></i>
         </div>
+        <div class="stat-value">{{ stats.get('total_users', 0) }}</div>
+        <div class="stat-label">
+          {{ t('total_users', session.get('language', 'en')) or 'Total Users' }}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div
+          class="stat-icon"
+          style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%)"
+        >
+          <i class="fas fa-user-friends text-white"></i>
+        </div>
+        <div class="stat-value">{{ stats.get('total_farmers', 0) }}</div>
+        <div class="stat-label">
+          {{ t('farmers', session.get('language', 'en')) or 'Farmers' }}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div
+          class="stat-icon"
+          style="background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%)"
+        >
+          <i class="fas fa-chalkboard-teacher text-white"></i>
+        </div>
+        <div class="stat-value">{{ stats.get('total_officers', 0) }}</div>
+        <div class="stat-label">
+          {{ t('extension_officers', session.get('language', 'en')) or
+          'Extension Officers' }}
+        </div>
+        <small class="text-warning"
+          >{{ t('pending', session.get('language', 'en')) or 'Pending' }}: {{
+          stats.get('pending_officers', 0) }}</small
+        >
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card">
+        <div
+          class="stat-icon"
+          style="background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%)"
+        >
+          <i class="fas fa-chart-line text-white"></i>
+        </div>
+        <div class="stat-value">{{ stats.get('total_predictions', 0) }}</div>
+        <div class="stat-label">
+          {{ t('total_diagnoses', session.get('language', 'en')) or 'Total
+          Diagnoses' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Section -->
+  <div class="table-card">
+    <div class="card-header">
+      <ul class="nav nav-tabs-custom" id="adminTabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#farmers">
+            <i class="fas fa-user-friends me-2"></i>{{ t('farmers',
+            session.get('language', 'en')) or 'Farmers' }}
+            <span class="badge bg-success ms-2">{{ farmers|length }}</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#officers">
+            <i class="fas fa-chalkboard-teacher me-2"></i>{{
+            t('extension_officers', session.get('language', 'en')) or 'Extension
+            Officers' }}
+            <span class="badge bg-info ms-2">{{ officers|length }}</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#pending">
+            <i class="fas fa-clock me-2"></i>{{ t('pending_approvals',
+            session.get('language', 'en')) or 'Pending Approvals' }}
+            <span class="badge bg-danger ms-2"
+              >{{ pending_officers|length }}</span
+            >
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#admins">
+            <i class="fas fa-user-shield me-2"></i>{{ t('admins',
+            session.get('language', 'en')) or 'Admins' }}
+            <span class="badge bg-warning ms-2">{{ admins|length }}</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#diseases">
+            <i class="fas fa-leaf me-2"></i>{{ t('diseases',
+            session.get('language', 'en')) or 'Diseases' }}
+            <span class="badge bg-success ms-2">{{ diseases|length }}</span>
+          </a>
+        </li>
+      </ul>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <i class="fas fa-users text-white"></i>
-                </div>
-                <div class="stat-value">{{ stats.get('total_users', 0) }}</div>
-                <div class="stat-label">{{ t('total_users', session.get('language', 'en')) or 'Total Users' }}</div>
-            </div>
+    <div class="card-body p-0">
+      <div class="tab-content">
+        <!-- Farmers Tab -->
+        <div class="tab-pane fade show active" id="farmers">
+          <div class="p-3">
+            <button class="btn btn-success" onclick="showAddFarmerModal()">
+              <i class="fas fa-plus me-2"></i>{{ t('add_new_farmer',
+              session.get('language', 'en')) or 'Add New Farmer' }}
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                  <th>
+                    {{ t('name', session.get('language', 'en')) or 'Name' }}
+                  </th>
+                  <th>
+                    {{ t('phone', session.get('language', 'en')) or 'Phone' }}
+                  </th>
+                  <th>
+                    {{ t('email', session.get('language', 'en')) or 'Email' }}
+                  </th>
+                  <th>
+                    {{ t('location', session.get('language', 'en')) or
+                    'Location' }}
+                  </th>
+                  <th>
+                    {{ t('district', session.get('language', 'en')) or
+                    'District' }}
+                  </th>
+                  <th>
+                    {{ t('region', session.get('language', 'en')) or 'Region' }}
+                  </th>
+                  <th>
+                    {{ t('status', session.get('language', 'en')) or 'Status' }}
+                  </th>
+                  <th>
+                    {{ t('actions', session.get('language', 'en')) or 'Actions'
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for farmer in farmers %}
+                <tr>
+                  <td>{{ farmer.user_id }}</td>
+                  <td><strong>{{ farmer.full_name }}</strong></td>
+                  <td>{{ farmer.phone_number }}</td>
+                  <td>{{ farmer.email or '-' }}</td>
+                  <td>{{ farmer.location or '-' }}</td>
+                  <td>{{ farmer.district or '-' }}</td>
+                  <td>{{ farmer.region or '-' }}</td>
+                  <td>
+                    <span class="badge bg-success"
+                      >{{ t('active', session.get('language', 'en')) or 'Active'
+                      }}</span
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="viewUser('{{ farmer.user_id }}')"
+                      title="{{ t('view', session.get('language', 'en')) or 'View' }}"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-warning"
+                      onclick="showEditUserModal('{{ farmer.user_id }}')"
+                      title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      onclick="deleteUser('{{ farmer.user_id }}')"
+                      title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="9" class="text-center">
+                    {{ t('no_farmers_found', session.get('language', 'en')) or
+                    'No farmers found.' }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                    <i class="fas fa-user-friends text-white"></i>
-                </div>
-                <div class="stat-value">{{ stats.get('total_farmers', 0) }}</div>
-                <div class="stat-label">{{ t('farmers', session.get('language', 'en')) or 'Farmers' }}</div>
-            </div>
+
+        <!-- Officers Tab -->
+        <div class="tab-pane fade" id="officers">
+          <div class="p-3">
+            <button class="btn btn-primary" onclick="showAddOfficerModal()">
+              <i class="fas fa-plus me-2"></i>{{ t('add_new_officer',
+              session.get('language', 'en')) or 'Add New Officer' }}
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                  <th>
+                    {{ t('name', session.get('language', 'en')) or 'Name' }}
+                  </th>
+                  <th>
+                    {{ t('phone', session.get('language', 'en')) or 'Phone' }}
+                  </th>
+                  <th>
+                    {{ t('email', session.get('language', 'en')) or 'Email' }}
+                  </th>
+                  <th>
+                    {{ t('region', session.get('language', 'en')) or 'Region' }}
+                  </th>
+                  <th>
+                    {{ t('status', session.get('language', 'en')) or 'Status' }}
+                  </th>
+                  <th>
+                    {{ t('approved', session.get('language', 'en')) or
+                    'Approved' }}
+                  </th>
+                  <th>
+                    {{ t('actions', session.get('language', 'en')) or 'Actions'
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for officer in officers %}
+                <tr>
+                  <td>{{ officer.user_id }}</td>
+                  <td><strong>{{ officer.full_name }}</strong></td>
+                  <td>{{ officer.phone_number }}</td>
+                  <td>{{ officer.email or '-' }}</td>
+                  <td>{{ officer.region or '-' }}</td>
+                  <td>
+                    <span
+                      class="badge {% if officer.is_active %}bg-success{% else %}bg-danger{% endif %}"
+                    >
+                      {% if officer.is_active %}{{ t('active',
+                      session.get('language', 'en')) or 'Active' }}{% else %}{{
+                      t('inactive', session.get('language', 'en')) or 'Inactive'
+                      }}{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      class="badge {% if officer.is_approved %}bg-success{% else %}bg-warning{% endif %}"
+                    >
+                      {% if officer.is_approved %}{{ t('approved',
+                      session.get('language', 'en')) or 'Approved' }}{% else
+                      %}{{ t('pending', session.get('language', 'en')) or
+                      'Pending' }}{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="viewUser('{{ officer.user_id }}')"
+                      title="{{ t('view', session.get('language', 'en')) or 'View' }}"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-warning"
+                      onclick="showEditUserModal('{{ officer.user_id }}')"
+                      title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    {% if not officer.is_approved %}
+                    <button
+                      class="btn btn-sm btn-success"
+                      onclick="approveOfficer('{{ officer.user_id }}')"
+                      title="{{ t('approve', session.get('language', 'en')) or 'Approve' }}"
+                    >
+                      <i class="fas fa-check"></i>
+                    </button>
+                    {% endif %}
+                    <button
+                      class="btn btn-sm btn-danger"
+                      onclick="deleteUser('{{ officer.user_id }}')"
+                      title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center">
+                    {{ t('no_officers_found', session.get('language', 'en')) or
+                    'No officers found.' }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);">
-                    <i class="fas fa-chalkboard-teacher text-white"></i>
-                </div>
-                <div class="stat-value">{{ stats.get('total_officers', 0) }}</div>
-                <div class="stat-label">{{ t('extension_officers', session.get('language', 'en')) or 'Extension Officers' }}</div>
-                <small class="text-warning">{{ t('pending', session.get('language', 'en')) or 'Pending' }}: {{ stats.get('pending_officers', 0) }}</small>
-            </div>
+
+        <!-- Pending Approvals Tab -->
+        <div class="tab-pane fade" id="pending">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                  <th>
+                    {{ t('name', session.get('language', 'en')) or 'Name' }}
+                  </th>
+                  <th>
+                    {{ t('phone', session.get('language', 'en')) or 'Phone' }}
+                  </th>
+                  <th>
+                    {{ t('email', session.get('language', 'en')) or 'Email' }}
+                  </th>
+                  <th>
+                    {{ t('region', session.get('language', 'en')) or 'Region' }}
+                  </th>
+                  <th>
+                    {{ t('registered', session.get('language', 'en')) or
+                    'Registered' }}
+                  </th>
+                  <th>
+                    {{ t('actions', session.get('language', 'en')) or 'Actions'
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="pending-officers-tbody">
+                {% for officer in pending_officers %}
+                <tr id="officer-row-{{ officer.user_id }}">
+                  <td>{{ officer.user_id or 'N/A' }}</td>
+                  <td><strong>{{ officer.full_name }}</strong></td>
+                  <td>{{ officer.phone_number }}</td>
+                  <td>{{ officer.email or '-' }}</td>
+                  <td>{{ officer.region or '-' }}</td>
+                  <td>
+                    {{ officer.created_at[:10] if officer.created_at else '-' }}
+                  </td>
+                  <td class="action-buttons">
+                    <button
+                      class="btn btn-sm btn-success approve-btn"
+                      data-user-id="{{ officer.user_id }}"
+                      onclick="approveOfficer('{{ officer.user_id }}', this)"
+                    >
+                      <i class="fas fa-check me-1"></i> {{ t('approve',
+                      session.get('language', 'en')) or 'Approve' }}
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger reject-btn"
+                      data-user-id="{{ officer.user_id }}"
+                      onclick="showRejectModal('{{ officer.user_id }}', '{{ officer.full_name }}')"
+                    >
+                      <i class="fas fa-times me-1"></i> {{ t('reject',
+                      session.get('language', 'en')) or 'Reject' }}
+                    </button>
+                    <button
+                      class="btn btn-sm btn-info view-btn"
+                      onclick="viewUser('{{ officer.user_id }}')"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);">
-                    <i class="fas fa-chart-line text-white"></i>
-                </div>
-                <div class="stat-value">{{ stats.get('total_predictions', 0) }}</div>
-                <div class="stat-label">{{ t('total_diagnoses', session.get('language', 'en')) or 'Total Diagnoses' }}</div>
-            </div>
+
+        <!-- Admins Tab -->
+        <div class="tab-pane fade" id="admins">
+          <div class="p-3">
+            <button class="btn btn-primary" onclick="showAddAdminModal()">
+              <i class="fas fa-plus me-2"></i>{{ t('add_new_admin',
+              session.get('language', 'en')) or 'Add New Admin' }}
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                  <th>
+                    {{ t('name', session.get('language', 'en')) or 'Name' }}
+                  </th>
+                  <th>
+                    {{ t('phone', session.get('language', 'en')) or 'Phone' }}
+                  </th>
+                  <th>
+                    {{ t('email', session.get('language', 'en')) or 'Email' }}
+                  </th>
+                  <th>
+                    {{ t('role', session.get('language', 'en')) or 'Role' }}
+                  </th>
+                  <th>
+                    {{ t('status', session.get('language', 'en')) or 'Status' }}
+                  </th>
+                  <th>
+                    {{ t('actions', session.get('language', 'en')) or 'Actions'
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for admin in admins %}
+                <tr>
+                  <td>{{ admin.user_id }}</td>
+                  <td><strong>{{ admin.full_name }}</strong></td>
+                  <td>{{ admin.phone_number }}</td>
+                  <td>{{ admin.email or '-' }}</td>
+                  <td><span class="badge bg-info">{{ admin.role }}</span></td>
+                  <td>
+                    <span
+                      class="badge {% if admin.is_active %}bg-success{% else %}bg-danger{% endif %}"
+                    >
+                      {% if admin.is_active %}{{ t('active',
+                      session.get('language', 'en')) or 'Active' }}{% else %}{{
+                      t('inactive', session.get('language', 'en')) or 'Inactive'
+                      }}{% endif %}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-info"
+                      onclick="viewUser('{{ admin.user_id }}')"
+                      title="{{ t('view', session.get('language', 'en')) or 'View' }}"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-warning"
+                      onclick="showEditUserModal('{{ admin.user_id }}')"
+                      title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    {% if admin.user_id != session.user_id %}
+                    <button
+                      class="btn btn-sm btn-danger"
+                      onclick="deleteUser('{{ admin.user_id }}')"
+                      title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <!-- Diseases Tab -->
+        <div class="tab-pane fade" id="diseases">
+          <div class="p-3">
+            <button class="btn btn-primary" onclick="showAddDiseaseModal()">
+              <i class="fas fa-plus me-2"></i>{{ t('add_new_disease',
+              session.get('language', 'en')) or 'Add New Disease' }}
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
+                  <th>
+                    {{ t('disease_name_en', session.get('language', 'en')) or
+                    'Disease Name (EN)' }}
+                  </th>
+                  <th>
+                    {{ t('disease_name_sw', session.get('language', 'en')) or
+                    'Disease Name (SW)' }}
+                  </th>
+                  <th>
+                    {{ t('scientific_name', session.get('language', 'en')) or
+                    'Scientific Name' }}
+                  </th>
+                  <th>
+                    {{ t('actions', session.get('language', 'en')) or 'Actions'
+                    }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for disease in diseases %}
+                <tr>
+                  <td>{{ disease.disease_id }}</td>
+                  <td><strong>{{ disease.disease_name_en }}</strong></td>
+                  <td>{{ disease.disease_name_sw or '-' }}</td>
+                  <td>{{ disease.scientific_name or '-' }}</td>
+                  <td class="action-buttons">
+                    <button
+                      class="btn btn-sm btn-info me-1"
+                      onclick="viewDisease({{ disease.disease_id }})"
+                      title="View"
+                    >
+                      <i class="fas fa-eye me-1"></i>View
+                    </button>
+                    <button
+                      class="btn btn-sm btn-warning me-1"
+                      onclick="editDisease({{ disease.disease_id }})"
+                      title="Edit"
+                    >
+                      <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      onclick="deleteDisease({{ disease.disease_id }})"
+                      title="Delete"
+                    >
+                      <i class="fas fa-trash me-1"></i>Delete
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Tabs Section -->
-    <div class="table-card">
-        <div class="card-header">
-            <ul class="nav nav-tabs-custom" id="adminTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#farmers">
-                        <i class="fas fa-user-friends me-2"></i>{{ t('farmers', session.get('language', 'en')) or 'Farmers' }}
-                        <span class="badge bg-success ms-2">{{ farmers|length }}</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#officers">
-                        <i class="fas fa-chalkboard-teacher me-2"></i>{{ t('extension_officers', session.get('language', 'en')) or 'Extension Officers' }}
-                        <span class="badge bg-info ms-2">{{ officers|length }}</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#pending">
-                        <i class="fas fa-clock me-2"></i>{{ t('pending_approvals', session.get('language', 'en')) or 'Pending Approvals' }}
-                        <span class="badge bg-danger ms-2">{{ pending_officers|length }}</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#admins">
-                        <i class="fas fa-user-shield me-2"></i>{{ t('admins', session.get('language', 'en')) or 'Admins' }}
-                        <span class="badge bg-warning ms-2">{{ admins|length }}</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#diseases">
-                        <i class="fas fa-leaf me-2"></i>{{ t('diseases', session.get('language', 'en')) or 'Diseases' }}
-                        <span class="badge bg-success ms-2">{{ diseases|length }}</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="card-body p-0">
-            <div class="tab-content">
-                <!-- Farmers Tab -->
-                <div class="tab-pane fade show active" id="farmers">
-                    <div class="p-3">
-                        <button class="btn btn-success" onclick="showAddFarmerModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_farmer', session.get('language', 'en')) or 'Add New Farmer' }}
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
-                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
-                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
-                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
-                                    <th>{{ t('location', session.get('language', 'en')) or 'Location' }}</th>
-                                    <th>{{ t('district', session.get('language', 'en')) or 'District' }}</th>
-                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
-                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
-                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for farmer in farmers %}
-                                <tr>
-                                    <td>{{ farmer.user_id }}</td>
-                                    <td><strong>{{ farmer.full_name }}</strong></td>
-                                    <td>{{ farmer.phone_number }}</td>
-                                    <td>{{ farmer.email or '-' }}</td>
-                                    <td>{{ farmer.location or '-' }}</td>
-                                    <td>{{ farmer.district or '-' }}</td>
-                                    <td>{{ farmer.region or '-' }}</td>
-                                    <td><span class="badge bg-success">{{ t('active', session.get('language', 'en')) or 'Active' }}</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ farmer.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ farmer.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ farmer.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Officers Tab -->
-                <div class="tab-pane fade" id="officers">
-                    <div class="p-3">
-                        <button class="btn btn-primary" onclick="showAddOfficerModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_officer', session.get('language', 'en')) or 'Add New Officer' }}
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
-                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
-                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
-                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
-                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
-                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
-                                    <th>{{ t('approved', session.get('language', 'en')) or 'Approved' }}</th>
-                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for officer in officers %}
-                                <tr>
-                                    <td>{{ officer.user_id }}</td>
-                                    <td><strong>{{ officer.full_name }}</strong></td>
-                                    <td>{{ officer.phone_number }}</td>
-                                    <td>{{ officer.email or '-' }}</td>
-                                    <td>{{ officer.region or '-' }}</td>
-                                    <td>
-                                        <span class="badge {% if officer.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if officer.is_active %}{{ t('active', session.get('language', 'en')) or 'Active' }}{% else %}{{ t('inactive', session.get('language', 'en')) or 'Inactive' }}{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge {% if officer.is_approved %}bg-success{% else %}bg-warning{% endif %}">
-                                            {% if officer.is_approved %}{{ t('approved', session.get('language', 'en')) or 'Approved' }}{% else %}{{ t('pending', session.get('language', 'en')) or 'Pending' }}{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ officer.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ officer.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        {% if not officer.is_approved %}
-                                            <button class="btn btn-sm btn-success" onclick="approveOfficer('{{ officer.user_id }}')" title="{{ t('approve', session.get('language', 'en')) or 'Approve' }}">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        {% endif %}
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ officer.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Pending Approvals Tab -->
-                <div class="tab-pane fade" id="pending">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
-                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
-                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
-                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
-                                    <th>{{ t('region', session.get('language', 'en')) or 'Region' }}</th>
-                                    <th>{{ t('registered', session.get('language', 'en')) or 'Registered' }}</th>
-                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pending-officers-tbody">
-                                {% for officer in pending_officers %}
-                                <tr id="officer-row-{{ officer.user_id }}">
-                                    <td>{{ officer.user_id or 'N/A' }}</td>
-                                    <td><strong>{{ officer.full_name }}</strong></td>
-                                    <td>{{ officer.phone_number }}</td>
-                                    <td>{{ officer.email or '-' }}</td>
-                                    <td>{{ officer.region or '-' }}</td>
-                                    <td>{{ officer.created_at.strftime('%Y-%m-%d') if officer.created_at else '-' }}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-success approve-btn" 
-                                                data-user-id="{{ officer.user_id }}"
-                                                onclick="approveOfficer('{{ officer.user_id }}', this)">
-                                            <i class="fas fa-check me-1"></i> {{ t('approve', session.get('language', 'en')) or 'Approve' }}
-                                        </button>
-                                        <button class="btn btn-sm btn-danger reject-btn" 
-                                                data-user-id="{{ officer.user_id }}"
-                                                onclick="showRejectModal('{{ officer.user_id }}', '{{ officer.full_name }}')">
-                                            <i class="fas fa-times me-1"></i> {{ t('reject', session.get('language', 'en')) or 'Reject' }}
-                                        </button>
-                                        <button class="btn btn-sm btn-info view-btn" 
-                                                onclick="viewUser('{{ officer.user_id }}')">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Admins Tab -->
-                <div class="tab-pane fade" id="admins">
-                    <div class="p-3">
-                        <button class="btn btn-primary" onclick="showAddAdminModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_admin', session.get('language', 'en')) or 'Add New Admin' }}
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
-                                    <th>{{ t('name', session.get('language', 'en')) or 'Name' }}</th>
-                                    <th>{{ t('phone', session.get('language', 'en')) or 'Phone' }}</th>
-                                    <th>{{ t('email', session.get('language', 'en')) or 'Email' }}</th>
-                                    <th>{{ t('role', session.get('language', 'en')) or 'Role' }}</th>
-                                    <th>{{ t('status', session.get('language', 'en')) or 'Status' }}</th>
-                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for admin in admins %}
-                                <tr>
-                                    <td>{{ admin.user_id }}</td>
-                                    <td><strong>{{ admin.full_name }}</strong></td>
-                                    <td>{{ admin.phone_number }}</td>
-                                    <td>{{ admin.email or '-' }}</td>
-                                    <td><span class="badge bg-info">{{ admin.role }}</span></td>
-                                    <td>
-                                        <span class="badge {% if admin.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                            {% if admin.is_active %}{{ t('active', session.get('language', 'en')) or 'Active' }}{% else %}{{ t('inactive', session.get('language', 'en')) or 'Inactive' }}{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info" onclick="viewUser('{{ admin.user_id }}')" title="{{ t('view', session.get('language', 'en')) or 'View' }}">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning" onclick="showEditUserModal('{{ admin.user_id }}')" title="{{ t('edit', session.get('language', 'en')) or 'Edit' }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        {% if admin.user_id != session.user_id %}
-                                        <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ admin.user_id }}')" title="{{ t('delete', session.get('language', 'en')) or 'Delete' }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Diseases Tab -->
-                <div class="tab-pane fade" id="diseases">
-                    <div class="p-3">
-                        <button class="btn btn-primary" onclick="showAddDiseaseModal()">
-                            <i class="fas fa-plus me-2"></i>{{ t('add_new_disease', session.get('language', 'en')) or 'Add New Disease' }}
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>{{ t('id', session.get('language', 'en')) or 'ID' }}</th>
-                                    <th>{{ t('disease_name_en', session.get('language', 'en')) or 'Disease Name (EN)' }}</th>
-                                    <th>{{ t('disease_name_sw', session.get('language', 'en')) or 'Disease Name (SW)' }}</th>
-                                    <th>{{ t('scientific_name', session.get('language', 'en')) or 'Scientific Name' }}</th>
-                                    <th>{{ t('actions', session.get('language', 'en')) or 'Actions' }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for disease in diseases %}
-                                <tr>
-                                    <td>{{ disease.disease_id }}</td>
-                                    <td><strong>{{ disease.disease_name_en }}</strong></td>
-                                    <td>{{ disease.disease_name_sw or '-' }}</td>
-                                    <td>{{ disease.scientific_name or '-' }}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-info me-1" onclick="viewDisease({{ disease.disease_id }})" title="View">
-                                            <i class="fas fa-eye me-1"></i>View
-                                        </button>
-                                        <button class="btn btn-sm btn-warning me-1" onclick="editDisease({{ disease.disease_id }})" title="Edit">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteDisease({{ disease.disease_id }})" title="Delete">
-                                            <i class="fas fa-trash me-1"></i>Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 <script>
-// Override the approveOfficer and rejectOfficer functions
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Admin dashboard loaded with language: {{ session.get("language", "en") }}');
-    
-    document.querySelectorAll('button[onclick*="None"]').forEach(function(btn) {
-        console.warn('Found button with None:', btn);
-        btn.disabled = true;
-        btn.classList.add('btn-secondary');
-        btn.classList.remove('btn-success', 'btn-danger');
-    });
-});
+  // Override the approveOfficer and rejectOfficer functions
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log(
+      'Admin dashboard loaded with language: {{ session.get("language", "en") }}',
+    );
 
-window.approveOfficer = function(userId, buttonElement) {
-    if (!userId || userId === 'None' || userId === 'null' || userId === 'undefined' || userId === '') {
-        showToast('Invalid officer ID. Please refresh the page.', 'danger');
-        console.error('Invalid userId:', userId);
-        return;
+    document
+      .querySelectorAll('button[onclick*="None"]')
+      .forEach(function (btn) {
+        console.warn("Found button with None:", btn);
+        btn.disabled = true;
+        btn.classList.add("btn-secondary");
+        btn.classList.remove("btn-success", "btn-danger");
+      });
+  });
+
+  window.approveOfficer = function (userId, buttonElement) {
+    if (
+      !userId ||
+      userId === "None" ||
+      userId === "null" ||
+      userId === "undefined" ||
+      userId === ""
+    ) {
+      showToast("Invalid officer ID. Please refresh the page.", "danger");
+      console.error("Invalid userId:", userId);
+      return;
     }
-    
-    if (!confirm('Are you sure you want to approve this extension officer?')) {
-        return;
+
+    if (!confirm("Are you sure you want to approve this extension officer?")) {
+      return;
     }
 
     showLoading(true);
 
-    fetch('/admin/officer/' + userId + '/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+    fetch("/admin/officer/" + userId + "/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
     })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
         showLoading(false);
         if (data.success) {
-            showToast(data.message, 'success');
-            setTimeout(function() { location.reload(); }, 1500);
+          showToast(data.message, "success");
+          setTimeout(function () {
+            location.reload();
+          }, 1500);
         } else {
-            showToast(data.message || 'Error approving officer', 'danger');
+          showToast(data.message || "Error approving officer", "danger");
         }
-    })
-    .catch(function(error) {
+      })
+      .catch(function (error) {
         showLoading(false);
-        console.error('Error:', error);
-        showToast('Network error. Make sure server is running.', 'danger');
-    });
-};
+        console.error("Error:", error);
+        showToast("Network error. Make sure server is running.", "danger");
+      });
+  };
 
-window.showRejectModal = function(userId, officerName) {
-    if (!userId || userId === 'None' || userId === 'null' || userId === 'undefined' || userId === '') {
-        showToast('Invalid officer ID. Please refresh the page.', 'danger');
-        return;
+  window.showRejectModal = function (userId, officerName) {
+    if (
+      !userId ||
+      userId === "None" ||
+      userId === "null" ||
+      userId === "undefined" ||
+      userId === ""
+    ) {
+      showToast("Invalid officer ID. Please refresh the page.", "danger");
+      return;
     }
-    
-    var existingModal = document.getElementById('rejectModal');
+
+    var existingModal = document.getElementById("rejectModal");
     if (existingModal) existingModal.remove();
 
-    var modalHtml = '<div class="modal fade" id="rejectModal" tabindex="-1">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header bg-danger text-white">' +
-        '<h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Officer: ' + escapeHtml(officerName) + '</h5>' +
-        '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
-        '</div>' +
-        '<div class="modal-body">' +
-        '<p>Are you sure you want to reject <strong>' + escapeHtml(officerName) + '</strong>\'s application?</p>' +
-        '<div class="mb-3">' +
-        '<label class="form-label">Reason for rejection:</label>' +
-        '<textarea id="rejectionReason" class="form-control" rows="3" placeholder="Please provide a reason..."></textarea>' +
-        '</div>' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
-        '<button type="button" class="btn btn-danger" onclick="rejectOfficer(\'' + userId + '\')">Confirm Rejection</button>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
+    var modalHtml =
+      '<div class="modal fade" id="rejectModal" tabindex="-1">' +
+      '<div class="modal-dialog">' +
+      '<div class="modal-content">' +
+      '<div class="modal-header bg-danger text-white">' +
+      '<h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Officer: ' +
+      escapeHtml(officerName) +
+      "</h5>" +
+      '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+      "</div>" +
+      '<div class="modal-body">' +
+      "<p>Are you sure you want to reject <strong>" +
+      escapeHtml(officerName) +
+      "</strong>'s application?</p>" +
+      '<div class="mb-3">' +
+      '<label class="form-label">Reason for rejection:</label>' +
+      '<textarea id="rejectionReason" class="form-control" rows="3" placeholder="Please provide a reason..."></textarea>' +
+      "</div>" +
+      "</div>" +
+      '<div class="modal-footer">' +
+      '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+      '<button type="button" class="btn btn-danger" onclick="rejectOfficer(\'' +
+      userId +
+      "')\">Confirm Rejection</button>" +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      "</div>";
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    var modalElement = document.getElementById('rejectModal');
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    var modalElement = document.getElementById("rejectModal");
     var modal = new bootstrap.Modal(modalElement);
     modal.show();
 
-    modalElement.addEventListener('hidden.bs.modal', function() {
-        this.remove();
+    modalElement.addEventListener("hidden.bs.modal", function () {
+      this.remove();
     });
-};
+  };
 
-window.rejectOfficer = function(userId) {
-    var reason = document.getElementById('rejectionReason') ? document.getElementById('rejectionReason').value : 'No specific reason provided';
+  window.rejectOfficer = function (userId) {
+    var reason = document.getElementById("rejectionReason")
+      ? document.getElementById("rejectionReason").value
+      : "No specific reason provided";
 
     showLoading(true);
 
-    fetch('/admin/officer/' + userId + '/reject', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: reason })
+    fetch("/admin/officer/" + userId + "/reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: reason }),
     })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
         showLoading(false);
         if (data.success) {
-            showToast(data.message, 'success');
-            var modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
-            if (modal) modal.hide();
-            setTimeout(function() { location.reload(); }, 1500);
+          showToast(data.message, "success");
+          var modal = bootstrap.Modal.getInstance(
+            document.getElementById("rejectModal"),
+          );
+          if (modal) modal.hide();
+          setTimeout(function () {
+            location.reload();
+          }, 1500);
         } else {
-            showToast(data.message || 'Error rejecting officer', 'danger');
+          showToast(data.message || "Error rejecting officer", "danger");
         }
-    })
-    .catch(function(error) {
+      })
+      .catch(function (error) {
         showLoading(false);
-        console.error('Error:', error);
-        showToast('Network error. Make sure server is running.', 'danger');
-    });
-};
+        console.error("Error:", error);
+        showToast("Network error. Make sure server is running.", "danger");
+      });
+  };
 </script>
 {% endblock %}

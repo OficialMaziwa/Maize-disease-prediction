@@ -1,95 +1,218 @@
-{% extends "base.html" %}
-
-{% block title %}{{ t('prediction_history', lang) }} - Maize Disease Detection{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
-{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ t('prediction_history', lang) }} -
+Maize Disease Detection{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/history.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="container my-5 history-container">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <!-- History Stats Summary -->
-            <div class="history-stats no-print">
-                <div class="d-flex flex-wrap justify-content-between align-items-center">
-                    <div class="stat-badge">
-                        <i class="fas fa-chart-line text-success"></i>
-                        <span>{{ t('total_predictions', lang) }}: <strong id="totalPredictions">0</strong></span>
-                    </div>
-                    <div class="stat-badge">
-                        <i class="fas fa-percent text-info"></i>
-                        <span>{{ t('avg_confidence', lang) }}: <strong id="avgConfidence">0%</strong></span>
-                    </div>
-                    <div class="stat-badge">
-                        <i class="fas fa-plug text-warning"></i>
-                        <span>{{ t('offline_predictions', lang) }}: <strong id="offlinePredictions">0</strong></span>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-info me-2" id="syncOfflineBtn" style="display: none;">
-                            <i class="fas fa-sync-alt"></i> {{ t('sync_now', lang) }}
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" id="clearHistoryBtn">
-                            <i class="fas fa-trash-alt"></i> {{ t('clear_history', lang) }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- History Card -->
-            <div class="card history-card">
-                <div class="card-header bg-success text-white">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <h3 class="mb-0">
-                            <i class="fas fa-history me-2"></i> {{ t('prediction_history', lang) }}
-                        </h3>
-                        <small class="text-white-50">
-                            <i class="fas fa-database me-1"></i> {{ t('stored_locally', lang) }}
-                        </small>
-                    </div>
-                </div>
-                <div class="card-body p-4">
-                    <div id="historyList">
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p class="text-muted mt-2">{{ t('loading_history', lang) }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <!-- History Stats Summary -->
+      <div class="history-stats no-print">
+        <div
+          class="d-flex flex-wrap justify-content-between align-items-center"
+        >
+          <div class="stat-badge">
+            <i class="fas fa-chart-line text-success"></i>
+            <span
+              >{{ t('total_predictions', lang) }}:
+              <strong id="totalPredictions">0</strong></span
+            >
+          </div>
+          <div class="stat-badge">
+            <i class="fas fa-percent text-info"></i>
+            <span
+              >{{ t('avg_confidence', lang) }}:
+              <strong id="avgConfidence">0%</strong></span
+            >
+          </div>
+          <div class="stat-badge">
+            <i class="fas fa-plug text-warning"></i>
+            <span
+              >{{ t('offline_predictions', lang) }}:
+              <strong id="offlinePredictions">0</strong></span
+            >
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              class="btn btn-sm btn-outline-success"
+              onclick="downloadPredictions()"
+              title="{{ t('download', lang) }}"
+            >
+              <i class="fas fa-download me-1"></i> {{ t('download', lang) }}
+            </button>
+            <button
+              class="btn btn-sm btn-outline-info"
+              id="syncOfflineBtn"
+              style="display: none"
+            >
+              <i class="fas fa-sync-alt"></i> {{ t('sync_now', lang) }}
+            </button>
+            <button class="btn btn-sm btn-outline-danger" id="clearHistoryBtn">
+              <i class="fas fa-trash-alt"></i> {{ t('clear_history', lang) }}
+            </button>
+          </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+      </div>
 
-{% block extra_js %}
+      <!-- History Card -->
+      <div class="card history-card">
+        <div class="card-header bg-success text-white">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap"
+          >
+            <h3 class="mb-0">
+              <i class="fas fa-history me-2"></i> {{ t('prediction_history',
+              lang) }}
+            </h3>
+            <small class="text-white-50">
+              <i class="fas fa-database me-1"></i> {{ t('stored_locally', lang)
+              }}
+            </small>
+          </div>
+        </div>
+        <div class="card-body p-4">
+          <div id="historyList">
+            <div class="loading-state">
+              <div class="loading-spinner"></div>
+              <p class="text-muted mt-2">{{ t('loading_history', lang) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/database.js') }}"></script>
 <script src="{{ url_for('static', filename='js/offline_handler.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history.js') }}"></script>
 <script>
-    // Pass translations to JavaScript
-    window.historyTranslations = {
-        confidence: "{{ t('confidence', lang) }}",
-        mode: "{{ t('mode', lang) }}",
-        synced: "{{ t('synced', lang) }}",
-        yes: "{{ t('yes', lang) }}",
-        no: "{{ t('no', lang) }}",
-        delete: "{{ t('delete', lang) }}",
-        no_history: "{{ t('no_history', lang) }}",
-        no_history_message: "{{ t('no_history_message', lang) }}",
-        make_prediction: "{{ t('make_prediction', lang) }}",
-        loading_history: "{{ t('loading_history', lang) }}",
-        error_loading_history: "{{ t('error_loading_history', lang) }}",
-        confirm_delete: "{{ t('confirm_delete', lang) }}",
-        confirm_clear_all: "{{ t('confirm_clear_all', lang) }}",
-        online: "{{ t('online', lang) }}",
-        offline: "{{ t('offline', lang) }}",
-        pending_sync: "{{ t('pending_sync', lang) }}"
-    };
-    
-    // Override getTranslation function
-    function getTranslation(key) {
-        return window.historyTranslations[key] || key;
+  // Pass translations to JavaScript
+  window.historyTranslations = {
+    confidence: "{{ t('confidence', lang) }}",
+    mode: "{{ t('mode', lang) }}",
+    synced: "{{ t('synced', lang) }}",
+    yes: "{{ t('yes', lang) }}",
+    no: "{{ t('no', lang) }}",
+    delete: "{{ t('delete', lang) }}",
+    download: "{{ t('download', lang) }}",
+    no_history: "{{ t('no_history', lang) }}",
+    no_history_message: "{{ t('no_history_message', lang) }}",
+    make_prediction: "{{ t('make_prediction', lang) }}",
+    loading_history: "{{ t('loading_history', lang) }}",
+    error_loading_history: "{{ t('error_loading_history', lang) }}",
+    confirm_delete: "{{ t('confirm_delete', lang) }}",
+    confirm_clear_all: "{{ t('confirm_clear_all', lang) }}",
+    online: "{{ t('online', lang) }}",
+    offline: "{{ t('offline', lang) }}",
+    pending_sync: "{{ t('pending_sync', lang) }}",
+  };
+
+  function getTranslation(key) {
+    return window.historyTranslations[key] || key;
+  }
+
+  async function downloadPredictions() {
+    try {
+      showToast("Preparing download...", "info");
+      const response = await fetch("/api/farmer/predictions/download");
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to download");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `predictions_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      showToast("✅ Download completed successfully!", "success");
+    } catch (error) {
+      console.error("Download error:", error);
+      showToast("❌ " + error.message, "error");
     }
+  }
+
+  function showToast(message, type = "success") {
+    const existingToasts = document.querySelectorAll(".custom-toast");
+    existingToasts.forEach((toast) => toast.remove());
+
+    const toast = document.createElement("div");
+    toast.className = `custom-toast alert alert-${type === "success" ? "success" : type === "info" ? "info" : "danger"} fade show`;
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.zIndex = "9999";
+    toast.style.minWidth = "280px";
+    toast.style.maxWidth = "400px";
+
+    if (type === "success") {
+      toast.style.backgroundColor = "#d4edda";
+      toast.style.color = "#155724";
+      toast.style.border = "1px solid #c3e6cb";
+    } else if (type === "info") {
+      toast.style.backgroundColor = "#d1ecf1";
+      toast.style.color = "#0c5460";
+      toast.style.border = "1px solid #bee5eb";
+    } else {
+      toast.style.backgroundColor = "#f8d7da";
+      toast.style.color = "#721c24";
+      toast.style.border = "1px solid #f5c6cb";
+    }
+
+    toast.style.borderRadius = "8px";
+    toast.style.padding = "12px 20px";
+    toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+    toast.style.fontSize = "14px";
+    toast.style.fontWeight = "500";
+
+    const icon =
+      type === "success"
+        ? "check-circle"
+        : type === "info"
+          ? "info-circle"
+          : "exclamation-circle";
+    toast.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <i class="fas fa-${icon} me-2"></i>
+                    ${escapeHtml(message)}
+                </div>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 20px; cursor: pointer; margin-left: 15px; opacity: 0.7;">&times;</button>
+            </div>
+        `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      if (toast && toast.remove) toast.remove();
+    }, 4000);
+
+    const closeBtn = toast.querySelector(".btn-close");
+    if (closeBtn) {
+      closeBtn.onclick = () => toast.remove();
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return "";
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Initialize history manager
+  document.addEventListener("DOMContentLoaded", function () {
+    if (typeof historyManager !== "undefined" && historyManager) {
+      console.log("History manager already initialized");
+    }
+  });
 </script>
 {% endblock %}

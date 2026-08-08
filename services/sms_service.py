@@ -19,14 +19,12 @@ class SMSService:
 
     def format_phone_number(self, phone_number):
         """Format Tanzanian phone numbers to international format"""
-        # Remove any non-digit characters
         phone = re.sub(r"\D", "", str(phone_number))
 
-        # Tanzanian numbers: 0763387402 -> 255763387402
         if phone.startswith("0"):
             phone = "255" + phone[1:]
         elif phone.startswith("255") and len(phone) == 12:
-            pass  # Already correct format
+            pass
         elif not phone.startswith("255"):
             phone = "255" + phone
 
@@ -41,10 +39,8 @@ class SMSService:
             return False, "SMS API key not configured"
 
         try:
-            # Format phone number
             formatted_number = self.format_phone_number(phone_number)
 
-            # Africa's Talking API endpoint
             url = "https://api.africastalking.com/version1/messaging"
 
             headers = {
@@ -59,13 +55,10 @@ class SMSService:
                 "message": message,
                 "from": self.sender_id,
             }
-
-            # Send request
             response = requests.post(url, headers=headers, data=data, timeout=30)
 
             if response.status_code == 200:
                 result = response.json()
-                # Check if message was sent successfully
                 if result.get("SMSMessageData", {}).get("Recipients"):
                     recipient = result["SMSMessageData"]["Recipients"][0]
                     if recipient.get("status") == "Success":

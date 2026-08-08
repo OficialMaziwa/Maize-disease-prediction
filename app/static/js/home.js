@@ -1,8 +1,4 @@
-// ==================== HOME PAGE JAVASCRIPT ====================
-
-// Smooth scroll for anchor links
 document.addEventListener('DOMContentLoaded', function () {
-    // Add smooth scrolling to all links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
@@ -19,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Animate stats when they come into view
     const statsSection = document.querySelector('.stats-section');
     if (statsSection) {
         const observer = new IntersectionObserver((entries) => {
@@ -35,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Animate statistics numbers
 function animateStats() {
     const statNumbers = document.querySelectorAll('.stat-number');
 
@@ -79,7 +73,6 @@ function animateStats() {
     });
 }
 
-// Add hover effect for disease cards
 document.querySelectorAll('.disease-card').forEach(card => {
     card.addEventListener('mouseenter', function () {
         this.style.transform = 'scale(1.05)';
@@ -90,7 +83,6 @@ document.querySelectorAll('.disease-card').forEach(card => {
     });
 });
 
-// Track page view for analytics (optional)
 function trackPageView() {
     if (typeof gtag !== 'undefined') {
         gtag('event', 'page_view', {
@@ -100,11 +92,9 @@ function trackPageView() {
     }
 }
 
-// Preload prediction page on hover
 const getStartedBtn = document.querySelector('.btn-get-started');
 if (getStartedBtn) {
     getStartedBtn.addEventListener('mouseenter', function () {
-        // Prefetch prediction page
         const link = document.createElement('link');
         link.rel = 'prefetch';
         link.href = '/predict';

@@ -276,7 +276,6 @@ class DatabaseLogger:
             cursor.execute(query, params)
             results = cursor.fetchall()
 
-            # Convert datetime objects to strings
             for result in results:
                 if result.get("created_at"):
                     result["created_at"] = result["created_at"].strftime(
@@ -389,5 +388,4 @@ class DatabaseLogger:
             }
 
 
-# Create global instance
 db_logger = DatabaseLogger()

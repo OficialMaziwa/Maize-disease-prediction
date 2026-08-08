@@ -1,6 +1,3 @@
-// Profile Page JavaScript - Complete Working Version
-
-// Show toast notification
 function showToast(message, type = 'info') {
     const existingToasts = document.querySelectorAll('.toast-notification');
     existingToasts.forEach(toast => toast.remove());
@@ -52,7 +49,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Upload profile photo
 function uploadProfilePhoto(file) {
     if (!file) {
         showToast('Please select a photo', 'error');
@@ -70,7 +66,6 @@ function uploadProfilePhoto(file) {
         return;
     }
 
-    // Show preview immediately
     const reader = new FileReader();
     reader.onload = function (e) {
         const profileImage = document.getElementById('profileImage');
@@ -117,7 +112,6 @@ function uploadProfilePhoto(file) {
         });
 }
 
-// Delete profile photo
 function deleteProfilePhoto() {
     if (confirm('Are you sure you want to remove your profile photo?')) {
         showToast('Removing photo...', 'info');
@@ -146,7 +140,6 @@ function deleteProfilePhoto() {
     }
 }
 
-// Password strength checker
 function checkPasswordStrength() {
     const password = document.getElementById('new_password');
     if (!password) return;
@@ -187,7 +180,6 @@ function checkPasswordStrength() {
     strengthDiv.className = `password-strength ${strengthClass}`;
 }
 
-// Check password match
 function checkPasswordMatch() {
     const password = document.getElementById('new_password');
     const confirm = document.getElementById('confirm_password');
@@ -210,7 +202,6 @@ function checkPasswordMatch() {
     }
 }
 
-// Change password
 function changePassword() {
     const currentPassword = document.getElementById('current_password');
     const newPassword = document.getElementById('new_password');
@@ -267,14 +258,11 @@ function changePassword() {
         });
 }
 
-// Initialize everything
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Profile page initializing...');
 
-    // Profile photo input
     const photoInput = document.getElementById('profilePhotoInput');
     if (photoInput) {
-        // Clone to remove existing listeners
         const newInput = photoInput.cloneNode(true);
         photoInput.parentNode.replaceChild(newInput, photoInput);
 
@@ -288,21 +276,18 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Photo input ready');
     }
 
-    // Password strength
     const newPassword = document.getElementById('new_password');
     if (newPassword) {
         newPassword.addEventListener('input', checkPasswordStrength);
         console.log('Password strength ready');
     }
 
-    // Password match
     const confirmPassword = document.getElementById('confirm_password');
     if (confirmPassword) {
         confirmPassword.addEventListener('input', checkPasswordMatch);
         console.log('Password match ready');
     }
 
-    // Profile form
     const profileForm = document.getElementById('profileForm');
     if (profileForm) {
         profileForm.addEventListener('submit', function () {
