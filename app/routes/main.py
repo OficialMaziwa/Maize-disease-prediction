@@ -1220,7 +1220,7 @@ def result():
     image_data = request.args.get("image_data", "")
     
     # ============================================================
-    # DISEASE NAME MAPPING - FIX
+    # DISEASE NAME MAPPING - FIXED
     # ============================================================
     disease_mapping = {
         "Blight": "Turcicum Leaf Blight",
@@ -1247,9 +1247,7 @@ def result():
         if ensure_db_connection():
             cursor = user_db.get_cursor()
             cursor.execute(
-                """SELECT disease_name_en, disease_name_sw, scientific_name, 
-                   description_en, description_sw, symptoms_en, symptoms_sw, 
-                   treatment_en, treatment_sw
+                """SELECT disease_name_en, description_en, symptoms_en, treatment_en
                 FROM diseases 
                 WHERE disease_name_en = %s""",
                 (db_disease_name,)
@@ -1259,17 +1257,17 @@ def result():
             
             if disease_info:
                 print(f"✅ Found disease in DB: {disease_info.get('disease_name_en')}")
+                description = disease_info.get("description_en") or description
+                symptoms = disease_info.get("symptoms_en") or symptoms
+                treatment = disease_info.get("treatment_en") or treatment
                 
-                # Get data based on language
+                # If lang is Swahili, try to get Swahili versions
                 if lang == "sw":
-                    description = disease_info.get("description_sw") or disease_info.get("description_en") or "Maelezo hayapatikani."
-                    symptoms = disease_info.get("symptoms_sw") or disease_info.get("symptoms_en") or "Dalili hazipatikani."
-                    treatment = disease_info.get("treatment_sw") or disease_info.get("treatment_en") or "Matibabu hayapatikani."
-                else:
-                    description = disease_info.get("description_en") or "No description available."
-                    symptoms = disease_info.get("symptoms_en") or "No symptoms available."
-                    treatment = disease_info.get("treatment_en") or "No treatment available."
-                    
+                    # You can add Swahili translations if available
+                    pass
+            else:
+                print(f"⚠️ Disease not found: {db_disease_name}")
+                
     except Exception as e:
         print(f"❌ Error fetching disease info: {e}")
     
@@ -1280,18 +1278,6 @@ def result():
         symptoms = stored_result.get("symptoms", symptoms)
     if treatment == "No treatment information available." or not treatment:
         treatment = stored_result.get("treatment", treatment)
-    
-    # Try stored_result for lists
-    organic = stored_result.get("organic_treatment", [])
-    chemical = stored_result.get("chemical_treatment", [])
-    cultural = stored_result.get("cultural_practices", [])
-    action = stored_result.get("action_plan", [])
-    
-    # Ensure lists
-    organic = organic if isinstance(organic, list) else []
-    chemical = chemical if isinstance(chemical, list) else []
-    cultural = cultural if isinstance(cultural, list) else []
-    action = action if isinstance(action, list) else []
     
     try:
         confidence = float(confidence)
@@ -1316,14 +1302,6 @@ def result():
         confidence_level = "Medium"
     else:
         confidence_level = "Low"
-    
-    # If still no description, create default message
-    if description == "No description available." or not description:
-        description = f"Information about {disease} is being updated. Please consult your local extension officer for more details."
-    if symptoms == "No symptoms information available." or not symptoms:
-        symptoms = f"Symptoms for {disease} are being updated. Please consult your local extension officer."
-    if treatment == "No treatment information available." or not treatment:
-        treatment = f"Treatment information for {disease} is being updated. Please consult your local extension officer."
     
     print(f"📊 Final: Disease={disease}, Description={description[:50]}...")
     
