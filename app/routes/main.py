@@ -1027,17 +1027,33 @@ def api_predict():
                 ),
                 500,
             )
+
+        # ============================================================
+        # DISEASE NAME MAPPING - FIX FOR DATABASE QUERY
+        # ============================================================
+        disease_mapping = {
+            "Blight": "Turcicum Leaf Blight",
+            "Common_Rust": "Common Rust",
+            "Gray_Leaf_Spot": "Gray Leaf Spot",
+            "Healthy": "Healthy"
+        }
+        db_disease_name = disease_mapping.get(disease_name, disease_name)
+        print(f"🔍 Model disease: {disease_name} -> Database disease: {db_disease_name}")
+
         disease_info = None
         disease_id = None
         try:
             if ensure_db_connection():
                 cursor = user_db.get_cursor()
                 cursor.execute(
-                    "SELECT * FROM diseases WHERE disease_name_en = %s", (disease_name,)
+                    "SELECT * FROM diseases WHERE disease_name_en = %s", (db_disease_name,)
                 )
                 disease_info = cursor.fetchone()
                 if disease_info:
                     disease_id = disease_info.get("disease_id")
+                    print(f"✅ Found disease in DB: {disease_info.get('disease_name_en')}")
+                else:
+                    print(f"⚠️ Disease not found: {db_disease_name}")
                 cursor.close()
         except Exception as db_error:
             print(f"Database error: {db_error}")
@@ -1208,15 +1224,16 @@ def api_predict():
             500,
         )
 
+
 @main.route("/result")
 def result():
     lang = session.get("language", "en")
     stored_result = session.get("last_prediction_result", {})
-    
+
     disease = request.args.get("disease") or stored_result.get("disease", "Unknown")
     confidence = request.args.get("confidence") or stored_result.get("confidence", "0")
     image_data = request.args.get("image_data", "")
-    
+
     # ============================================================
     # DISEASE NAME MAPPING - FIXED
     # ============================================================
@@ -1226,10 +1243,10 @@ def result():
         "Gray_Leaf_Spot": "Gray Leaf Spot",
         "Healthy": "Healthy"
     }
-    
+
     db_disease_name = disease_mapping.get(disease, disease)
     print(f"🔍 Model: {disease} -> Database: {db_disease_name}")
-    
+
     # Default values
     description = "No description available."
     symptoms = "No symptoms information available."
@@ -1238,7 +1255,7 @@ def result():
     chemical = []
     cultural = []
     action = []
-    
+
     # Try to get disease info from database using mapped name
     try:
         if ensure_db_connection():
@@ -1253,18 +1270,18 @@ def result():
             )
             disease_info = cursor.fetchone()
             cursor.close()
-            
+
             if disease_info:
                 print(f"✅ Found disease: {disease_info.get('disease_name_en')}")
                 description = disease_info.get("description_en") or description
                 symptoms = disease_info.get("symptoms_en") or symptoms
                 treatment = disease_info.get("treatment_en") or treatment
-                
+
                 organic_str = disease_info.get("organic_treatment_en") or ""
                 chemical_str = disease_info.get("chemical_treatment_en") or ""
                 cultural_str = disease_info.get("cultural_practices_en") or ""
                 action_str = disease_info.get("action_plan_en") or ""
-                
+
                 if organic_str:
                     organic = [item.strip() for item in organic_str.split("|") if item.strip()]
                 if chemical_str:
@@ -1278,30 +1295,30 @@ def result():
                 description = stored_result.get("description", description)
                 symptoms = stored_result.get("symptoms", symptoms)
                 treatment = stored_result.get("treatment", treatment)
-                
+
     except Exception as e:
         print(f"❌ DB Error: {e}")
         description = stored_result.get("description", description)
         symptoms = stored_result.get("symptoms", symptoms)
         treatment = stored_result.get("treatment", treatment)
-    
+
     organic = organic if isinstance(organic, list) else []
     chemical = chemical if isinstance(chemical, list) else []
     cultural = cultural if isinstance(cultural, list) else []
     action = action if isinstance(action, list) else []
-    
+
     try:
         confidence = float(confidence)
     except:
         confidence = 0.0
-    
+
     severity = "Low"
     if disease.lower() != "healthy" and disease.lower() != "afya":
         if confidence > 80:
             severity = "High"
         elif confidence > 50:
             severity = "Medium"
-    
+
     confidence_level = "Medium"
     if confidence > 80:
         confidence_level = "Very High"
@@ -1311,9 +1328,9 @@ def result():
         confidence_level = "Medium"
     else:
         confidence_level = "Low"
-    
+
     print(f"📊 Final: Disease={disease}, Description={description[:50] if description else 'None'}...")
-    
+
     return render_template(
         "result.html",
         lang=lang,
@@ -1355,39 +1372,39 @@ def admin_dashboard():
     lang = session.get("language", "en")
     try:
         cursor = user_db.get_cursor()
-        
+
         # Get all farmers
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('farmer') ORDER BY created_at DESC"
         )
         farmers = cursor.fetchall() or []
-        
+
         # Get all officers
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') ORDER BY created_at DESC"
         )
         officers = cursor.fetchall() or []
-        
+
         # Get all admins
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('admin') ORDER BY created_at DESC"
         )
         admins = cursor.fetchall() or []
-        
+
         # Get pending officers (is_approved = FALSE or NULL)
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL) ORDER BY created_at DESC"
         )
         pending_officers = cursor.fetchall() or []
-        
+
         # FIX: Get ALL diseases WITHOUT filtering
         cursor.execute("SELECT * FROM diseases ORDER BY disease_id")
         diseases = cursor.fetchall() or []
-        
+
         # Get total predictions count
         cursor.execute("SELECT COUNT(*) as count FROM diagnosis_history")
         predictions_result = cursor.fetchone()
-        
+
         total_predictions = 0
         if predictions_result:
             if isinstance(predictions_result, dict):
@@ -1398,7 +1415,7 @@ def admin_dashboard():
                 except:
                     total_predictions = 0
         cursor.close()
-        
+
         stats = {
             "total_users": len(farmers) + len(officers) + len(admins),
             "total_farmers": len(farmers),
@@ -1408,7 +1425,7 @@ def admin_dashboard():
             "total_predictions": int(total_predictions) if total_predictions else 0,
             "active_diseases": len(diseases) if diseases else 0,
         }
-        
+
         return render_template(
             "admin_dashboard.html",
             lang=lang,
