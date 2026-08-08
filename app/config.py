@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 
@@ -10,14 +9,14 @@ class Config:
 
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
 
-    if os.environ.get("DATABASE_URL"):
-        database_url = os.environ.get("DATABASE_URL")
-        if database_url.startswith("postgresql://") and "+psycopg2" not in database_url:
-            database_url = database_url.replace(
-                "postgresql://", "postgresql+psycopg2://", 1
-            )
-        SQLALCHEMY_DATABASE_URI = database_url
+    # Database configuration
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+    
+    if DATABASE_URL:
+        # Use DATABASE_URL as-is without modifying it
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
     else:
+        # Fallback to individual variables
         DB_HOST = os.environ.get("DB_HOST", "127.0.0.1")
         DB_PORT = os.environ.get("DB_PORT", "5432")
         DB_USER = os.environ.get("DB_USER", "postgres")
