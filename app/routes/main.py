@@ -1213,8 +1213,97 @@ def api_predict():
 def result():
     lang = session.get("language", "en")
     stored_result = session.get("last_prediction_result", {})
+    disease = request.args.get("disease") or stored_result.get("disease", "Unknown")
+    confidence = request.args.get("confidence") or stored_result.get("confidence", "0")
+    description = request.args.get("description") or stored_result.get(
+        "description", "No description available."
+    )
+    symptoms = request.args.get("symptoms") or stored_result.get(
+        "symptoms", "No symptoms information available."
+    )
+    treatment = request.args.get("treatment") or stored_result.get(
+        "treatment", "No treatment information available."
+    )
+    image_data = request.args.get("image_data", "")
+    try:
+        organic = (
+            json.loads(request.args.get("organic"))
+            if request.args.get("organic")
+            else stored_result.get("organic_treatment", [])
+        )
+        chemical = (
+            json.loads(request.args.get("chemical"))
+            if request.args.get("chemical")
+            else stored_result.get("chemical_treatment", [])
+        )
+        cultural = (
+            json.loads(request.args.get("cultural"))
+            if request.args.get("cultural")
+            else stored_result.get("cultural_practices", [])
+        )
+        action = (
+            json.loads(request.args.get("action"))
+            if request.args.get("action")
+            else stored_result.get("action_plan", [])
+        )
+    except:
+        organic = []
+        chemical = []
+        cultural = []
+        action = []
+    try:
+        confidence = float(confidence)
+    except:
+        confidence = 0.0
+    severity = "Low"
+    if disease.lower() != "healthy":
+        if confidence > 80:
+            severity = "High"
+        elif confidence > 50:
+            severity = "Medium"
+    confidence_level = "Medium"
+    if confidence > 80:
+        confidence_level = "Very High"
+    elif confidence > 70:
+        confidence_level = "High"
+    elif confidence > 50:
+        confidence_level = "Medium"
+    else:
+        confidence_level = "Low"
+    report_data = {
+        "detection_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "follow_up": "Re-evaluate after 7 days",
+    }
+    return render_template(
+        "result.html",
+        lang=lang,
+        t=lang_manager.get_text,
+        request=request,
+        disease=disease,
+        confidence=confidence,
+        description=description,
+        symptoms=symptoms,
+        treatment=treatment,
+        organic_treatment=organic,
+        chemical_treatment=chemical,
+        cultural_practices=cultural,
+        action_plan=action,
+        detection_date=report_data["detection_date"],
+        disease_name=disease,
+        severity=severity,
+        confidence_level=confidence_level,
+        economic_impact="Significant yield losses if not controlled promptly",
+        response_deadline="Immediate action required",
+        monitoring_frequency="Weekly monitoring recommended",
+        follow_up=report_data["follow_up"],
+        image_data=image_data,
+    )
+
+@main.route("/result")
+def result():
+    lang = session.get("language", "en")
+    stored_result = session.get("last_prediction_result", {})
     
-    # Get disease name from URL or session
     disease = request.args.get("disease") or stored_result.get("disease", "Unknown")
     confidence = request.args.get("confidence") or stored_result.get("confidence", "0")
     image_data = request.args.get("image_data", "")
@@ -1231,7 +1320,7 @@ def result():
     
     # Convert model name to database name
     db_disease_name = disease_mapping.get(disease, disease)
-    print(f"🔍 Mapping: {disease} -> {db_disease_name}")
+    print(f"🔍 Model: {disease} -> Database: {db_disease_name}")
     
     # Default values
     description = "No description available."
@@ -1247,7 +1336,9 @@ def result():
         if ensure_db_connection():
             cursor = user_db.get_cursor()
             cursor.execute(
-                """SELECT disease_name_en, description_en, symptoms_en, treatment_en
+                """SELECT disease_name_en, description_en, symptoms_en, treatment_en,
+                   organic_treatment_en, chemical_treatment_en, cultural_practices_en,
+                   action_plan_en
                 FROM diseases 
                 WHERE disease_name_en = %s""",
                 (db_disease_name,)
@@ -1256,28 +1347,52 @@ def result():
             cursor.close()
             
             if disease_info:
-                print(f"✅ Found disease in DB: {disease_info.get('disease_name_en')}")
+                print(f"✅ Found disease: {disease_info.get('disease_name_en')}")
                 description = disease_info.get("description_en") or description
                 symptoms = disease_info.get("symptoms_en") or symptoms
                 treatment = disease_info.get("treatment_en") or treatment
                 
-                # If lang is Swahili, try to get Swahili versions
-                if lang == "sw":
-                    # You can add Swahili translations if available
-                    pass
+                # Get lists
+                organic_str = disease_info.get("organic_treatment_en") or ""
+                chemical_str = disease_info.get("chemical_treatment_en") or ""
+                cultural_str = disease_info.get("cultural_practices_en") or ""
+                action_str = disease_info.get("action_plan_en") or ""
+                
+                if organic_str:
+                    organic = [item.strip() for item in organic_str.split("|") if item.strip()]
+                if chemical_str:
+                    chemical = [item.strip() for item in chemical_str.split("|") if item.strip()]
+                if cultural_str:
+                    cultural = [item.strip() for item in cultural_str.split("|") if item.strip()]
+                if action_str:
+                    action = [item.strip() for item in action_str.split("|") if item.strip()]
             else:
                 print(f"⚠️ Disease not found: {db_disease_name}")
+                # Fallback to stored_result
+                description = stored_result.get("description", description)
+                symptoms = stored_result.get("symptoms", symptoms)
+                treatment = stored_result.get("treatment", treatment)
+                organic = stored_result.get("organic_treatment", [])
+                chemical = stored_result.get("chemical_treatment", [])
+                cultural = stored_result.get("cultural_practices", [])
+                action = stored_result.get("action_plan", [])
                 
     except Exception as e:
-        print(f"❌ Error fetching disease info: {e}")
-    
-    # If still no data, try stored_result
-    if description == "No description available." or not description:
+        print(f"❌ DB Error: {e}")
+        # Fallback to stored_result
         description = stored_result.get("description", description)
-    if symptoms == "No symptoms information available." or not symptoms:
         symptoms = stored_result.get("symptoms", symptoms)
-    if treatment == "No treatment information available." or not treatment:
         treatment = stored_result.get("treatment", treatment)
+        organic = stored_result.get("organic_treatment", [])
+        chemical = stored_result.get("chemical_treatment", [])
+        cultural = stored_result.get("cultural_practices", [])
+        action = stored_result.get("action_plan", [])
+    
+    # Ensure lists
+    organic = organic if isinstance(organic, list) else []
+    chemical = chemical if isinstance(chemical, list) else []
+    cultural = cultural if isinstance(cultural, list) else []
+    action = action if isinstance(action, list) else []
     
     try:
         confidence = float(confidence)
@@ -1303,7 +1418,8 @@ def result():
     else:
         confidence_level = "Low"
     
-    print(f"📊 Final: Disease={disease}, Description={description[:50]}...")
+    print(f"📊 Final: Disease={disease}, Description={description[:50] if description else 'None'}...")
+    print(f"📊 Organic: {len(organic)}, Chemical: {len(chemical)}, Cultural: {len(cultural)}, Action: {len(action)}")
     
     return render_template(
         "result.html",
@@ -1329,7 +1445,6 @@ def result():
         economic_impact="Significant yield losses if not controlled promptly",
         image_data=image_data,
     )
-
 # ============================================================
 # ADMIN ROUTES - ILIYOREKEBISHWA KWA POSTGRESQL BOOLEAN
 # ============================================================
