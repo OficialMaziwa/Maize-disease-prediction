@@ -1315,42 +1315,50 @@ def admin_dashboard():
     lang = session.get("language", "en")
     try:
         cursor = user_db.get_cursor()
+        
+        # Get all farmers
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('farmer') ORDER BY created_at DESC"
         )
         farmers = cursor.fetchall() or []
+        
+        # Get all officers
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') ORDER BY created_at DESC"
         )
         officers = cursor.fetchall() or []
+        
+        # Get all admins
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('admin') ORDER BY created_at DESC"
         )
         admins = cursor.fetchall() or []
-        # FIX: Use FALSE for PostgreSQL boolean
+        
+        # Get pending officers (is_approved = FALSE or NULL)
         cursor.execute(
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL) ORDER BY created_at DESC"
         )
         pending_officers = cursor.fetchall() or []
+        
+        # FIX: Get ALL diseases WITHOUT filtering
         cursor.execute("SELECT * FROM diseases ORDER BY disease_id")
-        all_diseases = cursor.fetchall() or []
-        diseases = []
-        model_classes = ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
-        for d in all_diseases:
-            if d.get("disease_name_en") in model_classes:
-                diseases.append(d)
+        diseases = cursor.fetchall() or []
+        
+        # Get total predictions count
         cursor.execute("SELECT COUNT(*) as count FROM diagnosis_history")
         predictions_result = cursor.fetchone()
-        # FIX: Safe handling of count
+        
         total_predictions = 0
         if predictions_result:
             if isinstance(predictions_result, dict):
                 total_predictions = predictions_result.get("count", 0)
             else:
-                total_predictions = predictions_result[0] if predictions_result[0] else 0
+                try:
+                    total_predictions = predictions_result[0] if predictions_result[0] else 0
+                except:
+                    total_predictions = 0
         cursor.close()
         
-        # FIX: Ensure all values are integers
         stats = {
             "total_users": len(farmers) + len(officers) + len(admins),
             "total_farmers": len(farmers),
@@ -1360,6 +1368,7 @@ def admin_dashboard():
             "total_predictions": int(total_predictions) if total_predictions else 0,
             "active_diseases": len(diseases) if diseases else 0,
         }
+        
         return render_template(
             "admin_dashboard.html",
             lang=lang,
@@ -1369,7 +1378,7 @@ def admin_dashboard():
             officers=officers,
             admins=admins,
             pending_officers=pending_officers,
-            diseases=diseases,
+            diseases=diseases,  # ← Now shows ALL diseases
             stats=stats,
         )
     except Exception as e:
