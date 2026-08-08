@@ -515,14 +515,15 @@ def register():
         password_hash = generate_password_hash(
             password, method="pbkdf2:sha256", salt_length=32
         )
-        is_approved = 1 if role == "farmer" else 0
+        # FIX: Use TRUE/FALSE for PostgreSQL boolean
+        is_approved = True if role == "farmer" else False
         try:
             cursor.execute(
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                 location, district, region, is_approved, is_active, 
                                 created_at, ip_address, user_agent, password_last_changed)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1, CURRENT_TIMESTAMP, %s, %s, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, CURRENT_TIMESTAMP)
                 """,
                 (
                     full_name,
@@ -534,6 +535,7 @@ def register():
                     district if district else None,
                     region if region else None,
                     is_approved,
+                    True,  # is_active = TRUE
                     request.remote_addr,
                     (
                         request.user_agent.string
@@ -581,7 +583,8 @@ def login():
             )
             user = cursor.fetchone()
             if user and check_password_hash(user["password_hash"], password):
-                if user["is_active"] == 0:
+                # FIX: Check boolean values
+                if user["is_active"] == False or user["is_active"] == 0:
                     flash("Your account is deactivated. Contact admin.", "danger")
                     cursor.close()
                     return render_template(
@@ -590,7 +593,7 @@ def login():
                         t=lang_manager.get_text,
                         request=request,
                     )
-                if user["role"] == "extension_officer" and user["is_approved"] == 0:
+                if user["role"] == "extension_officer" and (user["is_approved"] == False or user["is_approved"] == 0):
                     flash("Your account is pending approval by admin.", "warning")
                     cursor.close()
                     return render_template(
@@ -1297,7 +1300,9 @@ def result():
     )
 
 
-# ADMIN ROUTES
+# ============================================================
+# ADMIN ROUTES - ILIYOREKEBISHWA KWA POSTGRESQL BOOLEAN
+# ============================================================
 
 @main.route("/admin")
 def admin_dashboard():
@@ -1322,8 +1327,9 @@ def admin_dashboard():
             "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('admin') ORDER BY created_at DESC"
         )
         admins = cursor.fetchall() or []
+        # FIX: Use FALSE for PostgreSQL boolean
         cursor.execute(
-            "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = 0 OR is_approved IS NULL) ORDER BY created_at DESC"
+            "SELECT * FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL) ORDER BY created_at DESC"
         )
         pending_officers = cursor.fetchall() or []
         cursor.execute("SELECT * FROM diseases ORDER BY disease_id")
@@ -1420,8 +1426,9 @@ def admin_edit_user(user_id):
         location = request.form.get("location", "").strip()
         district = request.form.get("district", "").strip()
         region = request.form.get("region", "").strip()
-        is_active = 1 if request.form.get("is_active") == "on" else 0
-        is_approved = 1 if request.form.get("is_approved") == "on" else 0
+        # FIX: Use boolean values for PostgreSQL
+        is_active = True if request.form.get("is_active") == "on" else False
+        is_approved = True if request.form.get("is_approved") == "on" else False
         try:
             cursor.execute(
                 """
@@ -1544,13 +1551,15 @@ def admin_approve_officer(user_id):
         if not officer:
             cursor.close()
             return jsonify({"success": False, "message": "Officer not found"}), 404
-        if officer.get("is_approved") == 1:
+        # FIX: Check boolean value
+        if officer.get("is_approved") == True or officer.get("is_approved") == 1:
             cursor.close()
             return (
                 jsonify({"success": False, "message": "Officer already approved"}),
                 400,
             )
-        update_fields = ["is_approved = 1", "is_active = 1"]
+        # FIX: Use TRUE for PostgreSQL boolean
+        update_fields = ["is_approved = TRUE", "is_active = TRUE"]
         params = []
         if table_has_column(cursor, "maziwa", "approved_at"):
             update_fields.append("approved_at = CURRENT_TIMESTAMP")
@@ -1607,7 +1616,8 @@ def admin_reject_officer(user_id):
         if not officer:
             cursor.close()
             return jsonify({"success": False, "message": "Officer not found"}), 404
-        update_fields = ["is_approved = 0", "is_active = 0"]
+        # FIX: Use FALSE for PostgreSQL boolean
+        update_fields = ["is_approved = FALSE", "is_active = FALSE"]
         params = []
         if table_has_column(cursor, "maziwa", "rejection_reason"):
             update_fields.append("rejection_reason = %s")
@@ -1665,10 +1675,10 @@ def admin_update_user(user_id):
             params.append(data["role"])
         if "is_active" in data:
             update_fields.append("is_active = %s")
-            params.append(1 if data["is_active"] else 0)
+            params.append(True if data["is_active"] else False)
         if "is_approved" in data:
             update_fields.append("is_approved = %s")
-            params.append(1 if data["is_approved"] else 0)
+            params.append(True if data["is_approved"] else False)
             if data["is_approved"] == True:
                 update_fields.append("approved_at = CURRENT_TIMESTAMP")
         if update_fields:
@@ -1794,8 +1804,9 @@ def api_admin_stats():
             "SELECT COUNT(*) as count FROM maziwa WHERE LOWER(role) = LOWER('admin')"
         )
         total_admins = cursor.fetchone()["count"] or 0
+        # FIX: Use FALSE for PostgreSQL boolean
         cursor.execute(
-            "SELECT COUNT(*) as count FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = 0 OR is_approved IS NULL)"
+            "SELECT COUNT(*) as count FROM maziwa WHERE LOWER(role) = LOWER('extension_officer') AND (is_approved = FALSE OR is_approved IS NULL)"
         )
         pending_officers = cursor.fetchone()["count"] or 0
         cursor.execute("SELECT COUNT(*) as count FROM diagnosis_history")
@@ -1889,7 +1900,7 @@ def admin_add_farmer():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role, 
                                     location, district, region, is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 """,
                 (
                     full_name,
@@ -1900,6 +1911,8 @@ def admin_add_farmer():
                     location,
                     district,
                     region,
+                    True,  # is_approved = TRUE
+                    True,  # is_active = TRUE
                 ),
             )
             db.connection.commit()
@@ -1967,7 +1980,7 @@ def admin_add_officer():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role,
                                     region, is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, 0, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 """,
                 (
                     full_name,
@@ -1976,6 +1989,8 @@ def admin_add_officer():
                     password_hash,
                     "extension_officer",
                     region,
+                    False,  # is_approved = FALSE (pending approval)
+                    True,   # is_active = TRUE
                 ),
             )
             db.connection.commit()
@@ -2042,7 +2057,7 @@ def admin_add_admin():
                 """
                 INSERT INTO maziwa (full_name, phone_number, email, password_hash, role,
                                     is_approved, is_active, created_at)
-                VALUES (%s, %s, %s, %s, %s, 1, 1, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 """,
                 (
                     full_name,
@@ -2050,6 +2065,8 @@ def admin_add_admin():
                     email if email else None,
                     password_hash,
                     "admin",
+                    True,  # is_approved = TRUE
+                    True,  # is_active = TRUE
                 ),
             )
             db.connection.commit()
@@ -2487,7 +2504,6 @@ def officer_add_disease():
     )
 
 
-
 # OFFICER DASHBOARD ROUTES
 
 @main.route("/officer-dashboard")
@@ -2811,7 +2827,7 @@ def api_officer_farmer_diagnoses(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-# OFFICER PREDICTION MANAGEMENT ROUTES - ILIYOREKEBISHWA
+# OFFICER PREDICTION MANAGEMENT ROUTES
 
 @main.route("/api/officer/prediction/<prediction_id>")
 @log_activity
