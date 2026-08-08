@@ -358,7 +358,7 @@ extra_css %}
           </div>
         </div>
 
-        <!-- Pending Approvals Tab -->
+        <!-- Pending Approvals Tab - FIXED -->
         <div class="tab-pane fade" id="pending">
           <div class="table-responsive">
             <table class="table table-hover">
@@ -396,7 +396,8 @@ extra_css %}
                   <td>{{ officer.email or '-' }}</td>
                   <td>{{ officer.region or '-' }}</td>
                   <td>
-                    {{ officer.created_at[:10] if officer.created_at else '-' }}
+                    {{ officer.created_at.strftime('%Y-%m-%d') if
+                    officer.created_at else '-' }}
                   </td>
                   <td class="action-buttons">
                     <button
@@ -587,7 +588,6 @@ extra_css %}
 {% endblock %} {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 <script>
-  // Override the approveOfficer and rejectOfficer functions
   document.addEventListener("DOMContentLoaded", function () {
     console.log(
       'Admin dashboard loaded with language: {{ session.get("language", "en") }}',
