@@ -1341,16 +1341,24 @@ def admin_dashboard():
                 diseases.append(d)
         cursor.execute("SELECT COUNT(*) as count FROM diagnosis_history")
         predictions_result = cursor.fetchone()
-        total_predictions = predictions_result["count"] if predictions_result else 0
+        # FIX: Safe handling of count
+        total_predictions = 0
+        if predictions_result:
+            if isinstance(predictions_result, dict):
+                total_predictions = predictions_result.get("count", 0)
+            else:
+                total_predictions = predictions_result[0] if predictions_result[0] else 0
         cursor.close()
+        
+        # FIX: Ensure all values are integers
         stats = {
             "total_users": len(farmers) + len(officers) + len(admins),
             "total_farmers": len(farmers),
             "total_officers": len(officers),
             "total_admins": len(admins),
             "pending_officers": len(pending_officers),
-            "total_predictions": total_predictions,
-            "active_diseases": len(diseases),
+            "total_predictions": int(total_predictions) if total_predictions else 0,
+            "active_diseases": len(diseases) if diseases else 0,
         }
         return render_template(
             "admin_dashboard.html",
@@ -1367,7 +1375,6 @@ def admin_dashboard():
     except Exception as e:
         print(f"ERROR in admin_dashboard: {e}")
         import traceback
-
         traceback.print_exc()
         flash(f"Error loading dashboard: {str(e)}", "danger")
         return redirect(url_for("main.index"))
