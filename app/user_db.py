@@ -20,31 +20,49 @@ class UserDB:
         self.connect()
 
     def connect(self):
-        """Connect to PostgreSQL database"""
+        """Connect to PostgreSQL database using DATABASE_URL or fallback"""
         try:
+            # Close existing connection if any
             if self.connection:
                 try:
                     self.connection.close()
                 except:
                     pass
                 self.connection = None
-            db_host = os.environ.get("DB_HOST", "127.0.0.1")
-            db_port = int(os.environ.get("DB_PORT", 5432))
-            db_user = os.environ.get("DB_USER", "postgres")
-            db_password = os.environ.get("DB_PASSWORD", "Malaba@2003")
-            db_name = os.environ.get("DB_NAME", "maize_disease_db")
 
-            self.connection = psycopg2.connect(
-                host=db_host,
-                user=db_user,
-                password=db_password,
-                database=db_name,
-                port=db_port,
-            )
-            print("✅ PostgreSQL connected successfully")
-            return True
+            # Try DATABASE_URL first
+            database_url = os.environ.get('DATABASE_URL')
+            
+            if database_url:
+                # Remove +psycopg2 if present
+                if '+psycopg2' in database_url:
+                    database_url = database_url.replace('+psycopg2', '')
+                
+                self.connection = psycopg2.connect(database_url)
+                self.connection.autocommit = True
+                print("✅ PostgreSQL connected successfully using DATABASE_URL")
+                return True
+            else:
+                # Fallback to individual parameters for local development
+                db_host = os.environ.get("DB_HOST", "127.0.0.1")
+                db_port = int(os.environ.get("DB_PORT", 5432))
+                db_user = os.environ.get("DB_USER", "postgres")
+                db_password = os.environ.get("DB_PASSWORD", "Malaba@2003")
+                db_name = os.environ.get("DB_NAME", "maize_disease_db")
+
+                self.connection = psycopg2.connect(
+                    host=db_host,
+                    user=db_user,
+                    password=db_password,
+                    database=db_name,
+                    port=db_port,
+                )
+                self.connection.autocommit = True
+                print(f"✅ PostgreSQL connected successfully using local parameters: {db_host}:{db_port}/{db_name}")
+                return True
+                
         except Exception as e:
-            print(f"Database connection error: {e}")
+            print(f"❌ Database connection error: {e}")
             self.connection = None
             return False
 
